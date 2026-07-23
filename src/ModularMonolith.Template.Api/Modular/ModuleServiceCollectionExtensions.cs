@@ -1,4 +1,6 @@
-﻿namespace ModularMonolith.Template.Api.Modular;
+﻿using ModularMonolith.Template.SharedKernel.Modular;
+
+namespace ModularMonolith.Template.Api.Modular;
 
 public static partial class ModuleServiceCollectionExtensions
 {
@@ -10,6 +12,7 @@ public static partial class ModuleServiceCollectionExtensions
 
     #region Private Method Declarations
 
+    [ModuleRegistrationTarget]
     private static partial void GetModules(IServiceCollection serviceCollection);
 
     #endregion

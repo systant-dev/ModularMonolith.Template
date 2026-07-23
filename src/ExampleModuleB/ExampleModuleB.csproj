@@ -7,6 +7,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\ExampleModuleB.Contracts\ExampleModuleB.Contracts.csproj" />
 		<ProjectReference Include="..\ModularMonolith.Template.Analysers\ModularMonolith.Template.Analysers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\ModularMonolith.Template.SourceGen\ModularMonolith.Template.SourceGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
 
 	</ItemGroup>

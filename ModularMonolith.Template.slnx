@@ -28,5 +28,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ModularMonolith.Template.SharedKernel.Tests/ModularMonolith.Template.SharedKernel.Tests.csproj" />
+    <Project Path="tests/ModularMonolith.Template.SourceGen.Tests/ModularMonolith.Template.SourceGen.Tests.csproj" Id="d804d66f-270a-4a8d-924e-a233f160d83f" />
   </Folder>
 </Solution>
