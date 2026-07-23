@@ -7,6 +7,8 @@ namespace ModularMonolith.Template.Analysers;
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 public sealed class ModuleAttributeAnalyzer : DiagnosticAnalyzer
 {
+    #region Field Declarations
+
     public const string DiagnosticId = "MM0001";
 
     private static readonly DiagnosticDescriptor Rule = new(
@@ -18,7 +20,15 @@ public sealed class ModuleAttributeAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         description: "Types annotated with ModularMonolith.Template.SharedKernel.Modular.ModuleAttribute must implement the IModule interface.");
 
+    #endregion
+
+    #region Property Declarations
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
+
+    #endregion
+
+    #region Public Method Declarations
 
     public override void Initialize(AnalysisContext context)
     {
@@ -26,6 +36,10 @@ public sealed class ModuleAttributeAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
     }
+
+    #endregion
+
+    #region Private Method Declarations
 
     private static void AnalyzeNamedType(SymbolAnalysisContext context)
     {
@@ -59,4 +73,6 @@ public sealed class ModuleAttributeAnalyzer : DiagnosticAnalyzer
             }
         }
     }
+
+    #endregion
 }
