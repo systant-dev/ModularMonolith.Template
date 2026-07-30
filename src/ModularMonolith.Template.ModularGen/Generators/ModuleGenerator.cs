@@ -1,12 +1,13 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ModularMonolith.Template.SourceGen.Analysis;
-using ModularMonolith.Template.SourceGen.Models;
+using ModularMonolith.Template.ModularGen.Analysis;
+using ModularMonolith.Template.ModularGen.Common.Collections;
+using ModularMonolith.Template.ModularGen.Models;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace ModularMonolith.Template.SourceGen.Generators;
+namespace ModularMonolith.Template.ModularGen.Generators;
 
 [Generator]
 public sealed class ModuleGenerator : IIncrementalGenerator
@@ -27,12 +28,12 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             .ForAttributeWithMetadataName(
                 ModuleRegistrationTargetAttributeName,
                 predicate: static (node, _) => IsPartialStubMethod(node),
-                transform: static (attributeContext, cancellationToken) => GetStubInfo(attributeContext, cancellationToken))
+                transform: static (attributeContext, cancellationToken) => GetStubInfo(attributeContext))
             .Where(static stub => stub is not null)
             .Select(static (stub, _) => stub!.Value)
             .Collect();
 
-        IncrementalValueProvider<ImmutableArray<ModuleInfo>> modulesProvider = context.CompilationProvider
+        IncrementalValueProvider<EquatableArray<ModuleInfo>> modulesProvider = context.CompilationProvider
             .Select(static (compilation, cancellationToken) => GetRegisteredModules(compilation, cancellationToken))
             .WithTrackingName("GetModules");
 
@@ -61,7 +62,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             && method.Parent is TypeDeclarationSyntax;
     }
 
-    private static StubInfo? GetStubInfo(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
+    private static StubInfo? GetStubInfo(GeneratorAttributeSyntaxContext context)
     {
         if (context.TargetSymbol is not IMethodSymbol methodSymbol)
         {
@@ -73,13 +74,13 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         return new StubInfo(namespaceName, containingType.Name, methodSymbol.Name);
     }
 
-    private static ImmutableArray<ModuleInfo> GetRegisteredModules(Compilation compilation, CancellationToken cancellationToken)
+    private static EquatableArray<ModuleInfo> GetRegisteredModules(Compilation compilation, CancellationToken cancellationToken)
     {
         INamedTypeSymbol? registrationAttribute = compilation.GetTypeByMetadataName(ModuleRegistrationAttributeName);
         INamedTypeSymbol? moduleInterface = compilation.GetTypeByMetadataName(ModuleInterfaceName);
         if (registrationAttribute is null || moduleInterface is null)
         {
-            return [];
+            return EquatableArray<ModuleInfo>.Empty;
         }
 
         ImmutableArray<ModuleInfo>.Builder builder = ImmutableArray.CreateBuilder<ModuleInfo>();
@@ -120,7 +121,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
     }
 
-    private static string GenerateModuleExtensions(StubInfo stub, ImmutableArray<ModuleInfo> modules)
+    private static string GenerateModuleExtensions(StubInfo stub, EquatableArray<ModuleInfo> modules)
     {
         StringBuilder builder = new();
 

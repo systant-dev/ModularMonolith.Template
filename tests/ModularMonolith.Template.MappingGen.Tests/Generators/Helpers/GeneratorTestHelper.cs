@@ -7,20 +7,25 @@ internal static class GeneratorTestHelper
 {
     #region Internal Method Declarations
 
-    public static GeneratorDriver RunGenerator<TGenerator>(string source)
-        where TGenerator : IIncrementalGenerator, new()
+    public static CSharpCompilation CreateCompilation(params string[] sources)
     {
-        List<SyntaxTree> syntaxTrees = [CSharpSyntaxTree.ParseText(source)];
+        IEnumerable<SyntaxTree> syntaxTrees = sources.Select(static source => CSharpSyntaxTree.ParseText(source));
 
         IEnumerable<MetadataReference> references = AppDomain.CurrentDomain.GetAssemblies()
             .Where(static assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
             .Select(static assembly => (MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
 
-        CSharpCompilation compilation = CSharpCompilation.Create(
+        return CSharpCompilation.Create(
             assemblyName: "ModularMonolith.Template.Tests",
             syntaxTrees: syntaxTrees,
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    }
+
+    public static GeneratorDriver RunGenerator<TGenerator>(string source)
+        where TGenerator : IIncrementalGenerator, new()
+    {
+        CSharpCompilation compilation = CreateCompilation(source);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new TGenerator());
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation outputCompilation, out _);
@@ -39,17 +44,7 @@ internal static class GeneratorTestHelper
     public static ImmutableArray<Diagnostic> RunGeneratorDiagnostics<TGenerator>(string source)
         where TGenerator : IIncrementalGenerator, new()
     {
-        List<SyntaxTree> syntaxTrees = [CSharpSyntaxTree.ParseText(source)];
-
-        IEnumerable<MetadataReference> references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(static assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
-            .Select(static assembly => (MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
-
-        CSharpCompilation compilation = CSharpCompilation.Create(
-            assemblyName: "ModularMonolith.Template.Tests",
-            syntaxTrees: syntaxTrees,
-            references: references,
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        CSharpCompilation compilation = CreateCompilation(source);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new TGenerator());
         driver = driver.RunGenerators(compilation);

@@ -16,7 +16,7 @@
 	  <ProjectReference Include="..\ExampleModuleA\ExampleModuleA.csproj" />
 	  <ProjectReference Include="..\ExampleModuleB\ExampleModuleB.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
-	  <ProjectReference Include="..\ModularMonolith.Template.SourceGen\ModularMonolith.Template.SourceGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+	  <ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
 </Project>

@@ -50,7 +50,8 @@ public sealed class MappingGenerator : IIncrementalGenerator
                 transform: static (attributeContext, _) => GetMapMethodInfo(attributeContext))
             .Where(static info => info is not null)
             .Select(static (info, _) => info!.Value)
-            .Collect();
+            .Collect()
+            .WithTrackingName("MapMethods");
 
         IncrementalValueProvider<ImmutableArray<MapTargetInfo>> targetProvider = context.SyntaxProvider
             .CreateSyntaxProvider(
@@ -58,7 +59,8 @@ public sealed class MappingGenerator : IIncrementalGenerator
                 transform: static (syntaxContext, cancellationToken) => GetMapTargetInfo(syntaxContext, cancellationToken))
             .Where(static target => target is not null)
             .Select(static (target, _) => target!.Value)
-            .Collect();
+            .Collect()
+            .WithTrackingName("MapTargets");
 
         context.RegisterSourceOutput(methodProvider.Combine(targetProvider), static (sourceContext, pair) =>
         {
@@ -78,7 +80,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
                     {
                         sourceContext.ReportDiagnostic(Diagnostic.Create(
                             MappingDiagnostics.MissingRequiredMember,
-                            target.Location,
+                            target.Location?.ToLocation(),
                             method.SourceTypeName,
                             target.TargetTypeName,
                             string.Join(", ", target.UnmappedRequiredMembers)));
@@ -205,7 +207,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
             TargetTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
             Assignments: assignments,
             UnmappedRequiredMembers: unmappedRequiredMembers,
-            Location: invocation.GetLocation());
+            Location: LocationInfo.CreateFrom(invocation));
     }
 
     private static bool HasMapAttribute(IMethodSymbol methodSymbol)

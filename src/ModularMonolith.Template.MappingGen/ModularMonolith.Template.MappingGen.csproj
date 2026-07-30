@@ -4,6 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<IsRoslynComponent>true</IsRoslynComponent>
+		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);IncludeCommonAssemblyAsAnalyzer</GetTargetPathDependsOn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -21,5 +22,18 @@
 		<AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
 		<AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ModularMonolith.Template.SourceGen.Common\ModularMonolith.Template.SourceGen.Common.csproj" />
+	</ItemGroup>
+
+	<!-- Ensure the shared common assembly ships alongside the generator so the analyzer host can load it. -->
+	<Target Name="IncludeCommonAssemblyAsAnalyzer" DependsOnTargets="ResolveProjectReferences">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="@(_ResolvedProjectReferencePaths)"
+												 Condition="'%(FileName)' == 'ModularMonolith.Template.SourceGen.Common'"
+												 IncludeRuntimeDependency="false" />
+		</ItemGroup>
+	</Target>
 
 </Project>

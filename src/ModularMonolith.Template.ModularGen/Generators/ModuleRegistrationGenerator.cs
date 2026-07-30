@@ -1,9 +1,9 @@
 using Microsoft.CodeAnalysis;
-using ModularMonolith.Template.SourceGen.Analysis;
+using ModularMonolith.Template.ModularGen.Analysis;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace ModularMonolith.Template.SourceGen.Generators;
+namespace ModularMonolith.Template.ModularGen.Generators;
 
 [Generator]
 public sealed class ModuleRegistrationGenerator : IIncrementalGenerator

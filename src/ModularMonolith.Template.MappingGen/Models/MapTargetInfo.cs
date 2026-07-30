@@ -1,10 +1,9 @@
-using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
+using ModularMonolith.Template.ModularGen.Common.Collections;
 
 namespace ModularMonolith.Template.MappingGen.Models;
 
 internal readonly record struct MapTargetInfo(string Key,
                                               string TargetTypeName,
-                                              ImmutableArray<MapPropertyAssignment> Assignments,
-                                              ImmutableArray<string> UnmappedRequiredMembers,
-                                              Location Location);
+                                              EquatableArray<MapPropertyAssignment> Assignments,
+                                              EquatableArray<string> UnmappedRequiredMembers,
+                                              LocationInfo? Location);

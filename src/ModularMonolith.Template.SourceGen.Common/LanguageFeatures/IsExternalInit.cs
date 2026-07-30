@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -7,4 +7,4 @@ namespace System.Runtime.CompilerServices;
 
 [EditorBrowsable(EditorBrowsableState.Never)]
 [ExcludeFromCodeCoverage]
-internal static class IsExternalInit;
+public static class IsExternalInit;

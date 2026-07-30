@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);IncludeCommonAssemblyAsAnalyzer</GetTargetPathDependsOn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ModularMonolith.Template.SourceGen.Common\ModularMonolith.Template.SourceGen.Common.csproj" />
+	</ItemGroup>
+
+	<!-- Ensure the shared common assembly ships alongside the generator so the analyzer host can load it. -->
+	<Target Name="IncludeCommonAssemblyAsAnalyzer" DependsOnTargets="ResolveProjectReferences">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="@(_ResolvedProjectReferencePaths)"
+												 Condition="'%(FileName)' == 'ModularMonolith.Template.SourceGen.Common'"
+												 IncludeRuntimeDependency="false" />
+		</ItemGroup>
+	</Target>
+
+</Project>

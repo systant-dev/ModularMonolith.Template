@@ -21,14 +21,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\src\ModularMonolith.Template.SourceGen\ModularMonolith.Template.SourceGen.csproj" />
+	  <ProjectReference Include="..\..\src\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Using Include="Xunit" />
 		<Using Include="VerifyXunit" />
 		<Using Include="Microsoft.CodeAnalysis" />
-		<Using Include="ModularMonolith.Template.SourceGen.Generators" />
+		<Using Include="ModularMonolith.Template.ModularGen.Generators" />
 	</ItemGroup>
 
 </Project>

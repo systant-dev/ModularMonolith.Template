@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.CodeAnalysis.CSharp;
+using ModularMonolith.Template.MappingGen.Tests.Generators.Helpers;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -10,11 +11,11 @@ internal static class CacheableHelper
 {
     #region Pubic Method Declarations
 
-    public static (ImmutableArray<Diagnostic> Diagnostics, string[] Output) GetGeneratedTrees(string[] trackingNames, params string[] sources)
+    public static (ImmutableArray<Diagnostic> Diagnostics, string[] Output) GetGeneratedTrees<TGenerator>(string[] trackingNames, params string[] sources)
+        where TGenerator : IIncrementalGenerator, new()
     {
-        IEnumerable<PortableExecutableReference> references = ReferencesBuilder.Build();
-        CSharpCompilation compilation = CompilationBuilder.Build(sources, references);
-        GeneratorDriverRunResult runResult = RunGeneratorAndAssertOutput(compilation, trackingNames);
+        CSharpCompilation compilation = GeneratorTestHelper.CreateCompilation(sources);
+        GeneratorDriverRunResult runResult = RunGeneratorAndAssertOutput<TGenerator>(compilation, trackingNames);
         return (runResult.Diagnostics, runResult.GeneratedTrees.Select(syntaxTree => syntaxTree.ToString()).ToArray());
     }
 
@@ -23,9 +24,10 @@ internal static class CacheableHelper
     #region Private Method Declarations
 
     /// <returns></returns>
-    private static GeneratorDriverRunResult RunGeneratorAndAssertOutput(CSharpCompilation compilation, string[] trackingNames)
+    private static GeneratorDriverRunResult RunGeneratorAndAssertOutput<TGenerator>(CSharpCompilation compilation, string[] trackingNames)
+        where TGenerator : IIncrementalGenerator, new()
     {
-        ISourceGenerator generator = new ApiGenerator.Generator().AsSourceGenerator();
+        ISourceGenerator generator = new TGenerator().AsSourceGenerator();
         GeneratorDriverOptions driverOptions = new(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true);
         GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], driverOptions: driverOptions);
         CSharpCompilation clone = compilation.Clone();

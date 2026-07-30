@@ -1,6 +1,6 @@
-using ModularMonolith.Template.SourceGen.Tests.Generators.Helpers;
+using ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
 
-namespace ModularMonolith.Template.SourceGen.Tests.Generators;
+namespace ModularMonolith.Template.ModularGen.Tests.Generators;
 
 public sealed class ModuleGeneratorTests
 {

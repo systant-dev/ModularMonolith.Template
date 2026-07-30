@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace ModularMonolith.Template.SourceGen.Analysis;
+namespace ModularMonolith.Template.ModularGen.Analysis;
 
 internal static class ModuleSymbolAnalyser
 {

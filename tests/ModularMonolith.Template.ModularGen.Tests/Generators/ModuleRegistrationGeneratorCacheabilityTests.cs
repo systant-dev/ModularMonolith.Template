@@ -1,0 +1,34 @@
+using FluentAssertions;
+using ModularMonolith.Template.ModularGen.Generators;
+using ModularMonolith.Template.ModularGen.Tests.Cacheable;
+using ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
+
+namespace ModularMonolith.Template.ModularGen.Tests.Generators;
+
+public sealed class ModuleRegistrationGeneratorCacheabilityTests
+{
+    #region Field Declarations
+
+    private static readonly string[] TrackingNames = ["ModuleRegistrations"];
+
+    #endregion
+
+    #region Test Method Declarations
+
+    [Fact]
+    public void ProducesCachedOutputOnSecondRun()
+    {
+        string source = $$"""
+            {{TestSources.MarkerTypes}}
+
+            {{TestSources.ExampleModule}}
+            """;
+
+        (System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics, _) =
+            CacheableHelper.GetGeneratedTrees<ModuleRegistrationGenerator>(TrackingNames, source);
+
+        diagnostics.Should().NotContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+    }
+
+    #endregion
+}
