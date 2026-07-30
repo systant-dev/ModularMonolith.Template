@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Immutable;
 
-namespace ModularMonolith.Template.ModularGen.Common.Collections;
+namespace ModularMonolith.Template.SourceGen.Common.Collections;
 
 public readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable<EquatableArray<T>>, IEnumerable<T> where T : IEquatable<T>
 {

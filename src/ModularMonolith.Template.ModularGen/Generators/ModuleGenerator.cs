@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ModularMonolith.Template.ModularGen.Analysis;
-using ModularMonolith.Template.ModularGen.Common.Collections;
+using ModularMonolith.Template.SourceGen.Common.Collections;
 using ModularMonolith.Template.ModularGen.Models;
 using System.Collections.Immutable;
 using System.Text;
