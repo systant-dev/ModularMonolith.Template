@@ -8,15 +8,15 @@ namespace Contracts
     {
         public static partial TTarget To<TTarget>(this global::Contracts.Source source) where TTarget : new()
         {
-            TTarget target = new();
-            switch (target)
+            if (typeof(TTarget) == typeof(global::Contracts.Target))
             {
-                case global::Contracts.Target __mapped:
-                    __mapped.NAME = source.Name;
-                    __mapped.Count = source.Count;
-                    break;
+                return (TTarget)(object)new global::Contracts.Target
+                {
+                    NAME = source.Name,
+                    Count = source.Count,
+                };
             }
-            return target;
+            throw new global::System.NotSupportedException($"No mapping is generated from 'global::Contracts.Source' to '{typeof(TTarget)}'.");
         }
     }
 }

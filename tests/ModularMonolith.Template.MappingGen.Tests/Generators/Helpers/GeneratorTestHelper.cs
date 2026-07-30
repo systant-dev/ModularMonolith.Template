@@ -36,5 +36,26 @@ internal static class GeneratorTestHelper
         return driver;
     }
 
+    public static ImmutableArray<Diagnostic> RunGeneratorDiagnostics<TGenerator>(string source)
+        where TGenerator : IIncrementalGenerator, new()
+    {
+        List<SyntaxTree> syntaxTrees = [CSharpSyntaxTree.ParseText(source)];
+
+        IEnumerable<MetadataReference> references = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(static assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
+            .Select(static assembly => (MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
+
+        CSharpCompilation compilation = CSharpCompilation.Create(
+            assemblyName: "ModularMonolith.Template.Tests",
+            syntaxTrees: syntaxTrees,
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new TGenerator());
+        driver = driver.RunGenerators(compilation);
+
+        return driver.GetRunResult().Diagnostics;
+    }
+
     #endregion
 }

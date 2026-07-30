@@ -8,18 +8,22 @@ namespace Contracts
     {
         public static partial TTarget To<TTarget>(this global::Contracts.Order source) where TTarget : new()
         {
-            TTarget target = new();
-            switch (target)
+            if (typeof(TTarget) == typeof(global::Contracts.OrderDetails))
             {
-                case global::Contracts.OrderDetails __mapped:
-                    __mapped.Id = source.Id;
-                    __mapped.Customer = source.Customer;
-                    break;
-                case global::Contracts.OrderSummary __mapped:
-                    __mapped.Id = source.Id;
-                    break;
+                return (TTarget)(object)new global::Contracts.OrderDetails
+                {
+                    Id = source.Id,
+                    Customer = source.Customer,
+                };
             }
-            return target;
+            if (typeof(TTarget) == typeof(global::Contracts.OrderSummary))
+            {
+                return (TTarget)(object)new global::Contracts.OrderSummary
+                {
+                    Id = source.Id,
+                };
+            }
+            throw new global::System.NotSupportedException($"No mapping is generated from 'global::Contracts.Order' to '{typeof(TTarget)}'.");
         }
     }
 }

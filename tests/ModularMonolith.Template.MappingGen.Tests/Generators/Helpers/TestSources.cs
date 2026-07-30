@@ -118,5 +118,33 @@ internal static class TestSources
         }
         """;
 
+    /// <summary>A target with a required member that has no matching source property.</summary>
+    public const string UnmappableRequiredMember = """
+        namespace Contracts
+        {
+            public sealed class Account
+            {
+                public int Id { get; set; }
+            }
+
+            public sealed class AccountDto
+            {
+                public required int Id { get; init; }
+                public required string Name { get; init; }
+            }
+
+            public static partial class AccountMapper
+            {
+                [ModularMonolith.Template.MappingGen.Map]
+                public static partial TTarget To<TTarget>(this Account source);
+            }
+
+            public static class Consumer
+            {
+                public static AccountDto Map(Account account) => account.To<AccountDto>();
+            }
+        }
+        """;
+
     #endregion
 }

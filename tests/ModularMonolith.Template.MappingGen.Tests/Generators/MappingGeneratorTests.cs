@@ -39,8 +39,8 @@ public sealed class MappingGeneratorTests
 
         string generated = GetGeneratedSource(driver, "SourceMapper");
 
-        generated.Should().Contain("__mapped.NAME = source.Name;");
-        generated.Should().Contain("__mapped.Count = source.Count;");
+        generated.Should().Contain("NAME = source.Name,");
+        generated.Should().Contain("Count = source.Count,");
         generated.Should().NotContain("Missing");
         generated.Should().NotContain("Ignored");
     }
@@ -53,15 +53,24 @@ public sealed class MappingGeneratorTests
     }
 
     [Fact]
-    public void EmitsEmptySwitchWhenMapperIsNeverInvoked()
+    public void EmitsFallbackWhenMapperIsNeverInvoked()
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.NoInvocations);
 
         string generated = GetGeneratedSource(driver, "WidgetMapper");
 
-        generated.Should().Contain("TTarget target = new();");
-        generated.Should().Contain("return target;");
-        generated.Should().NotContain("switch (target)");
+        generated.Should().Contain("throw new global::System.NotSupportedException(");
+        generated.Should().NotContain("typeof(TTarget) ==");
+    }
+
+    [Fact]
+    public void ReportsDiagnosticForUnmappableRequiredMember()
+    {
+        System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics =
+            GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.UnmappableRequiredMember);
+
+        Microsoft.CodeAnalysis.Diagnostic diagnostic = diagnostics.Should().ContainSingle(d => d.Id == "MAP001").Subject;
+        diagnostic.GetMessage().Should().Contain("Name");
     }
 
     #endregion

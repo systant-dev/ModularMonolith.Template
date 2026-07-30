@@ -8,16 +8,16 @@ namespace Contracts
     {
         public static partial TTarget To<TTarget>(this global::Contracts.Person source) where TTarget : new()
         {
-            TTarget target = new();
-            switch (target)
+            if (typeof(TTarget) == typeof(global::Contracts.PersonDto))
             {
-                case global::Contracts.PersonDto __mapped:
-                    __mapped.FirstName = source.FirstName;
-                    __mapped.LastName = source.LastName;
-                    __mapped.Age = source.Age;
-                    break;
+                return (TTarget)(object)new global::Contracts.PersonDto
+                {
+                    FirstName = source.FirstName,
+                    LastName = source.LastName,
+                    Age = source.Age,
+                };
             }
-            return target;
+            throw new global::System.NotSupportedException($"No mapping is generated from 'global::Contracts.Person' to '{typeof(TTarget)}'.");
         }
     }
 }

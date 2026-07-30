@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using ModularMonolith.Template.MappingGen.Diagnostics;
 using ModularMonolith.Template.MappingGen.Models;
 using System.Collections.Immutable;
 using System.Text;
@@ -70,6 +71,19 @@ public sealed class MappingGenerator : IIncrementalGenerator
                     .Where(target => target.Key == method.Key)
                     .GroupBy(target => target.TargetTypeName)
                     .Select(group => group.First())];
+
+                foreach (MapTargetInfo target in targets.Where(target => target.Key == method.Key))
+                {
+                    if (target.UnmappedRequiredMembers.Length > 0)
+                    {
+                        sourceContext.ReportDiagnostic(Diagnostic.Create(
+                            MappingDiagnostics.MissingRequiredMember,
+                            target.Location,
+                            method.SourceTypeName,
+                            target.TargetTypeName,
+                            string.Join(", ", target.UnmappedRequiredMembers)));
+                    }
+                }
 
                 string source = GenerateMapMethod(method, methodTargets);
                 string hintName = $"{method.Key}.g.cs";
@@ -184,12 +198,14 @@ public sealed class MappingGenerator : IIncrementalGenerator
             return null;
         }
 
-        ImmutableArray<MapPropertyAssignment> assignments = ComputeAssignments(sourceType, targetType, context.SemanticModel.Compilation);
+        ImmutableArray<MapPropertyAssignment> assignments = ComputeAssignments(sourceType, targetType, context.SemanticModel.Compilation, out ImmutableArray<string> unmappedRequiredMembers);
 
         return new MapTargetInfo(
             Key: CreateKey(definition.ContainingType, definition.Name),
             TargetTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
-            Assignments: assignments);
+            Assignments: assignments,
+            UnmappedRequiredMembers: unmappedRequiredMembers,
+            Location: invocation.GetLocation());
     }
 
     private static bool HasMapAttribute(IMethodSymbol methodSymbol)
@@ -205,27 +221,33 @@ public sealed class MappingGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static ImmutableArray<MapPropertyAssignment> ComputeAssignments(INamedTypeSymbol sourceType, INamedTypeSymbol targetType, Compilation compilation)
+    private static ImmutableArray<MapPropertyAssignment> ComputeAssignments(INamedTypeSymbol sourceType, INamedTypeSymbol targetType, Compilation compilation, out ImmutableArray<string> unmappedRequiredMembers)
     {
         Dictionary<string, IPropertySymbol> sourceProperties = GetReadableProperties(sourceType);
         ImmutableArray<MapPropertyAssignment>.Builder builder = ImmutableArray.CreateBuilder<MapPropertyAssignment>();
+        ImmutableArray<string>.Builder unmappedRequired = ImmutableArray.CreateBuilder<string>();
 
         foreach (IPropertySymbol targetProperty in GetWritableProperties(targetType))
         {
-            if (!sourceProperties.TryGetValue(targetProperty.Name.ToLowerInvariant(), out IPropertySymbol sourceProperty))
+            bool mapped = false;
+
+            if (sourceProperties.TryGetValue(targetProperty.Name.ToLowerInvariant(), out IPropertySymbol sourceProperty))
             {
-                continue;
+                Conversion conversion = compilation.ClassifyConversion(sourceProperty.Type, targetProperty.Type);
+                if (conversion.IsIdentity || conversion.IsImplicit)
+                {
+                    builder.Add(new MapPropertyAssignment(targetProperty.Name, sourceProperty.Name));
+                    mapped = true;
+                }
             }
 
-            Conversion conversion = compilation.ClassifyConversion(sourceProperty.Type, targetProperty.Type);
-            if (!conversion.IsIdentity && !conversion.IsImplicit)
+            if (!mapped && targetProperty.IsRequired)
             {
-                continue;
+                unmappedRequired.Add(targetProperty.Name);
             }
-
-            builder.Add(new MapPropertyAssignment(targetProperty.Name, sourceProperty.Name));
         }
 
+        unmappedRequiredMembers = unmappedRequired.ToImmutable();
         return builder.ToImmutable();
     }
 
@@ -398,39 +420,47 @@ public sealed class MappingGenerator : IIncrementalGenerator
         builder.Append(indent);
         builder.AppendLine("    {");
 
-        builder.Append(indent);
-        builder.Append("        ");
-        builder.Append(info.TypeParameterName);
-        builder.AppendLine(" target = new();");
-
-        if (targets.Length > 0)
+        foreach (MapTargetInfo target in targets.OrderBy(t => t.TargetTypeName, System.StringComparer.Ordinal))
         {
             builder.Append(indent);
-            builder.AppendLine("        switch (target)");
+            builder.Append("        if (typeof(");
+            builder.Append(info.TypeParameterName);
+            builder.Append(") == typeof(");
+            builder.Append(target.TargetTypeName);
+            builder.AppendLine("))");
             builder.Append(indent);
             builder.AppendLine("        {");
 
-            foreach (MapTargetInfo target in targets.OrderBy(t => t.TargetTypeName, System.StringComparer.Ordinal))
+            builder.Append(indent);
+            builder.Append("            return (");
+            builder.Append(info.TypeParameterName);
+            builder.Append(")(object)new ");
+            builder.Append(target.TargetTypeName);
+
+            if (target.Assignments.Length > 0)
             {
+                builder.AppendLine();
                 builder.Append(indent);
-                builder.Append("            case ");
-                builder.Append(target.TargetTypeName);
-                builder.AppendLine(" __mapped:");
+                builder.AppendLine("            {");
 
                 foreach (MapPropertyAssignment assignment in target.Assignments)
                 {
                     builder.Append(indent);
-                    builder.Append("                __mapped.");
+                    builder.Append("                ");
                     builder.Append(assignment.TargetProperty);
                     builder.Append(" = ");
                     builder.Append(info.SourceParameterName);
                     builder.Append('.');
                     builder.Append(assignment.SourceProperty);
-                    builder.AppendLine(";");
+                    builder.AppendLine(",");
                 }
 
                 builder.Append(indent);
-                builder.AppendLine("                break;");
+                builder.AppendLine("            };");
+            }
+            else
+            {
+                builder.AppendLine("();");
             }
 
             builder.Append(indent);
@@ -438,7 +468,11 @@ public sealed class MappingGenerator : IIncrementalGenerator
         }
 
         builder.Append(indent);
-        builder.AppendLine("        return target;");
+        builder.Append("        throw new global::System.NotSupportedException($\"No mapping is generated from '");
+        builder.Append(info.SourceTypeName);
+        builder.Append("' to '{typeof(");
+        builder.Append(info.TypeParameterName);
+        builder.AppendLine(")}'.\");");
 
         builder.Append(indent);
         builder.AppendLine("    }");
