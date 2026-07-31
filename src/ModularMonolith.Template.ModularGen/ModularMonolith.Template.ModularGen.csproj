@@ -15,7 +15,6 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.IdentityModel.Tokens" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -25,10 +24,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ModularMonolith.Template.SourceGen.Common\ModularMonolith.Template.SourceGen.Common.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Configuration\" />
 	</ItemGroup>
 
 	<Target Name="IncludeCommonAssemblyAsAnalyzer" DependsOnTargets="ResolveProjectReferences">

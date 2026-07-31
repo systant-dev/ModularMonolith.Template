@@ -1,4 +1,5 @@
 using ModularMonolith.Template.SourceGen.Common.Collections;
+using ModularMonolith.Template.SourceGen.Common.Models;
 
 namespace ModularMonolith.Template.MappingGen.Models;
 

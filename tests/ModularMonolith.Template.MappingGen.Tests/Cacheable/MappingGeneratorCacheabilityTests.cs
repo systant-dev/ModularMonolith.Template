@@ -29,5 +29,12 @@ public sealed class MappingGeneratorCacheabilityTests
         TestSources.NoInvocations,
     ];
 
+    [Theory]
+    [MemberData(nameof(Sources))]
+    public void RemainsCachedAfterUnrelatedEdit(string source)
+    {
+        CacheableHelper.AssertUnchangedAfterUnrelatedEdit<MappingGenerator>(TrackingNames, source);
+    }
+
     #endregion
 }

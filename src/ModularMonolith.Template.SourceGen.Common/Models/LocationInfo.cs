@@ -1,9 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace ModularMonolith.Template.MappingGen.Models;
+namespace ModularMonolith.Template.SourceGen.Common.Models;
 
-internal readonly record struct LocationInfo(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
+public readonly record struct LocationInfo(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {
     #region Public Method Declarations
 
@@ -18,8 +18,7 @@ internal readonly record struct LocationInfo(string FilePath, TextSpan TextSpan,
             return null;
         }
 
-        LinePositionSpan lineSpan = location.GetLineSpan().Span;
-        return new LocationInfo(location.SourceTree.FilePath, location.SourceSpan, lineSpan);
+        return new LocationInfo(location.SourceTree.FilePath, location.SourceSpan, location.GetLineSpan().Span);
     }
 
     #endregion

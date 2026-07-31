@@ -45,5 +45,33 @@ public sealed class ModuleGeneratorCacheabilityTests
         diagnostics.Should().NotContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
+    [Fact]
+    public void RemainsCachedAfterUnrelatedEdit()
+    {
+        string source = $$"""
+            {{TestSources.MarkerTypes}}
+
+            {{TestSources.ExampleModule}}
+
+            namespace ModularMonolith.Template.Api.Modular
+            {
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Configuration;
+
+                public static partial class ModuleServiceCollectionExtensions
+                {
+                    [ModularMonolith.Template.SharedKernel.Modular.ModuleRegistrationTarget]
+                    private static partial void GetModules(IServiceCollection serviceCollection, IConfiguration configuration);
+                }
+            }
+            """;
+
+        const string assemblyAttributes = """
+            [assembly: ModularMonolith.Template.SharedKernel.Modular.ModuleRegistration<ExampleModuleA.Module>]
+            """;
+
+        CacheableHelper.AssertUnchangedAfterUnrelatedEdit<ModuleGenerator>(TrackingNames, source, assemblyAttributes);
+    }
+
     #endregion
 }

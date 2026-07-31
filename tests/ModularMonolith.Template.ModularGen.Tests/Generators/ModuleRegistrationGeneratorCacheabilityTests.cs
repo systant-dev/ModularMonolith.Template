@@ -30,5 +30,17 @@ public sealed class ModuleRegistrationGeneratorCacheabilityTests
         diagnostics.Should().NotContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
+    [Fact]
+    public void RemainsCachedAfterUnrelatedEdit()
+    {
+        string source = $$"""
+            {{TestSources.MarkerTypes}}
+
+            {{TestSources.ExampleModule}}
+            """;
+
+        CacheableHelper.AssertUnchangedAfterUnrelatedEdit<ModuleRegistrationGenerator>(TrackingNames, source);
+    }
+
     #endregion
 }

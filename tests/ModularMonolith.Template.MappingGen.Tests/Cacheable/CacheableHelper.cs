@@ -19,6 +19,35 @@ internal static class CacheableHelper
         return (runResult.Diagnostics, runResult.GeneratedTrees.Select(syntaxTree => syntaxTree.ToString()).ToArray());
     }
 
+    public static void AssertUnchangedAfterUnrelatedEdit<TGenerator>(string[] trackingNames, params string[] sources)
+        where TGenerator : IIncrementalGenerator, new()
+    {
+        CSharpCompilation compilation = GeneratorTestHelper.CreateCompilation(sources);
+
+        ISourceGenerator generator = new TGenerator().AsSourceGenerator();
+        GeneratorDriverOptions driverOptions = new(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], driverOptions: driverOptions);
+
+        driver = driver.RunGenerators(compilation);
+
+        CSharpCompilation modified = compilation.AddSyntaxTrees(
+            CSharpSyntaxTree.ParseText("namespace Unrelated { internal sealed class UnrelatedType { } }"));
+
+        GeneratorDriverRunResult runResult = driver.RunGenerators(modified).GetRunResult();
+
+        Dictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> trackedSteps = GetTrackedSteps(runResult, trackingNames);
+        trackedSteps.Should().NotBeEmpty();
+
+        foreach (KeyValuePair<string, ImmutableArray<IncrementalGeneratorRunStep>> keyValuePair in trackedSteps)
+        {
+            keyValuePair.Value
+                        .SelectMany(runStep => runStep.Outputs)
+                        .Should()
+                        .OnlyContain(output => output.Reason == IncrementalStepRunReason.Unchanged || output.Reason == IncrementalStepRunReason.Cached,
+                                     $"{keyValuePair.Key} should remain cached after an unrelated edit");
+        }
+    }
+
     #endregion
 
     #region Private Method Declarations
@@ -121,9 +150,9 @@ internal static class CacheableHelper
             return;
         }
 
-        node.Should().NotBeOfType<Compilation>(validationReason)
-                     .And.NotBeOfType<ISymbol>(validationReason)
-                     .And.NotBeOfType<SyntaxNode>(validationReason);
+        node.Should().NotBeAssignableTo<Compilation>(validationReason)
+                     .And.NotBeAssignableTo<ISymbol>(validationReason)
+                     .And.NotBeAssignableTo<SyntaxNode>(validationReason);
 
         Type type = node.GetType();
         if (type.IsPrimitive || type.IsEnum || type == typeof(string))
