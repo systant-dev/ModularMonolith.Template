@@ -17,11 +17,12 @@ public sealed class ModuleGeneratorTests
             namespace ModularMonolith.Template.Api.Modular
             {
                 using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Configuration;
 
                 public static partial class ModuleServiceCollectionExtensions
                 {
                     [ModularMonolith.Template.SharedKernel.Modular.ModuleRegistrationTarget]
-                    private static partial void GetModules(IServiceCollection serviceCollection);
+                    private static partial void GetModules(IServiceCollection serviceCollection, IConfiguration configuration);
                 }
             }
             """;

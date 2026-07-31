@@ -1,5 +1,6 @@
 ﻿using ExampleModuleA.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
 
 namespace ExampleModuleA;
@@ -12,7 +13,7 @@ public sealed class Module : IModule
     ///<inheritdoc/>
     public void RegisterServices(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddOptions<ExampleModuleAOptions>();
+        serviceCollection.AddValidatedOptions<ExampleModuleAOptions, ExampleModuleAOptionsValidator>(nameof(ExampleModuleA));
     }
 
     ///<inheritdoc/>

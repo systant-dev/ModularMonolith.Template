@@ -3,10 +3,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace ModularMonolith.Template.MappingGen.Models;
 
-/// <summary>
-/// A value-equatable representation of a <see cref="Location"/> that is safe to store in the
-/// incremental generator pipeline without breaking output caching.
-/// </summary>
 internal readonly record struct LocationInfo(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {
     #region Public Method Declarations
@@ -22,7 +18,8 @@ internal readonly record struct LocationInfo(string FilePath, TextSpan TextSpan,
             return null;
         }
 
-        return new LocationInfo(location.SourceTree.FilePath, location.SourceSpan, location.GetLineSpan().Span);
+        LinePositionSpan lineSpan = location.GetLineSpan().Span;
+        return new LocationInfo(location.SourceTree.FilePath, location.SourceSpan, lineSpan);
     }
 
     #endregion

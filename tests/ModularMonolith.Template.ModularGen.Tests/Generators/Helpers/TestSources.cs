@@ -10,6 +10,17 @@ internal static class TestSources
             public interface IServiceCollection { }
         }
 
+        namespace Microsoft.Extensions.Configuration
+        {
+            public interface IConfiguration { }
+
+            public static class ConfigurationBinder
+            {
+                public static T GetValue<T>(this IConfiguration configuration, string key) => default!;
+                public static T GetValue<T>(this IConfiguration configuration, string key, T defaultValue) => defaultValue;
+            }
+        }
+
         namespace ModularMonolith.Template.SharedKernel.Modular
         {
             using Microsoft.Extensions.DependencyInjection;

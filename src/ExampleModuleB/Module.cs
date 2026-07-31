@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using ExampleModuleB.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
 
 namespace ExampleModuleB;
@@ -11,7 +13,7 @@ public sealed class Module : IModule
     ///<inheritdoc/>
     public void RegisterServices(IServiceCollection serviceCollection)
     {
-        throw new NotImplementedException();
+        serviceCollection.AddValidatedOptions<ExampleModuleBOptions, ExampleModuleBOptionsValidator>(nameof(ExampleModuleB));
     }
 
     ///<inheritdoc/>

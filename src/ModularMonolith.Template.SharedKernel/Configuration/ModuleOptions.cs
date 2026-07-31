@@ -4,7 +4,7 @@ public abstract record ModuleOptions : IModuleOptions
 {
     #region Property Declarations
 
-    public required bool Enabled { get; init; }
+    public bool Enabled { get; init; } = true;
 
     #endregion
 

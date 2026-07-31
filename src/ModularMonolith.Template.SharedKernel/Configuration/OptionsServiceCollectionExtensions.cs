@@ -19,7 +19,7 @@ public static class OptionsServiceCollectionExtensions
             serviceCollection.AddSingleton<IValidator<TOptions>, TValidator>();
             serviceCollection.AddSingleton<IValidateOptions<TOptions>, FluentValidateModuleOptions<TOptions>>();
             serviceCollection.AddOptions<TOptions>()
-                             .BindConfiguration(sectionName)
+                             .BindConfiguration($"{ModuleConfiguration.SectionName}:{sectionName}")
                              .ValidateOnStart();
 
             return serviceCollection;

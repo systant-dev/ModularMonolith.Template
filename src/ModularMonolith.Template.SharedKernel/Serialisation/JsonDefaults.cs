@@ -20,7 +20,7 @@ public static class JsonDefaults
     private static JsonSerializerOptions CreateWeb()
     {
         JsonSerializerOptions options = new(JsonSerializerDefaults.Web);
-        options.MakeReadOnly();
+        options.MakeReadOnly(populateMissingResolver: true);
         return options;
     }
 
