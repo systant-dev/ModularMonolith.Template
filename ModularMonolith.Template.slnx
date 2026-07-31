@@ -26,7 +26,7 @@
     <Project Path="src/ModularMonolith.Template.Analysers/ModularMonolith.Template.Analysers.csproj" Id="722463ce-3b7c-47e3-bf27-9770142fbf64" />
     <Project Path="src/ModularMonolith.Template.MappingGen/ModularMonolith.Template.MappingGen.csproj" Id="424e197c-6138-4ca8-bce7-ae054fb2faf5" />
     <Project Path="src/ModularMonolith.Template.ModularGen/ModularMonolith.Template.ModularGen.csproj" Id="d4a3a334-b818-499b-9e29-b414ade8f43a" />
-    <Project Path="src/ModularMonolith.Template.SourceGen.Common/ModularMonolith.Template.SourceGen.Common.csproj" />
+    <Project Path="src/ModularMonolith.Template.SourceGenerators.Shared/ModularMonolith.Template.SourceGenerators.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ModularMonolith.Template.MappingGen.Tests/ModularMonolith.Template.MappingGen.Tests.csproj" Id="9f3d2c41-8b17-4e6a-9d2f-1c5b7a4e0d88" />

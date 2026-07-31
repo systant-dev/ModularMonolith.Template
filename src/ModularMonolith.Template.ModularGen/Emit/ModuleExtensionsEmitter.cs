@@ -1,5 +1,5 @@
 using ModularMonolith.Template.ModularGen.Models;
-using ModularMonolith.Template.SourceGen.Common.Collections;
+using ModularMonolith.Template.SourceGenerators.Shared.Collections;
 using System.Text;
 
 namespace ModularMonolith.Template.ModularGen.Emit;

@@ -3,7 +3,7 @@ using ModularMonolith.Template.ModularGen.Analysis;
 using ModularMonolith.Template.ModularGen.Diagnostics;
 using ModularMonolith.Template.ModularGen.Emit;
 using ModularMonolith.Template.ModularGen.Models;
-using ModularMonolith.Template.SourceGen.Common.Models;
+using ModularMonolith.Template.SourceGenerators.Shared.Models;
 using System.Collections.Immutable;
 
 namespace ModularMonolith.Template.ModularGen.Generators;
@@ -38,10 +38,11 @@ public sealed class ModuleRegistrationGenerator : IIncrementalGenerator
             {
                 if (candidate.TypeName is null)
                 {
-                    sourceContext.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostic moduleNotInstantiable = Diagnostic.Create(
                         ModularDiagnostics.ModuleNotInstantiable,
                         candidate.Location?.ToLocation(),
-                        candidate.DisplayName));
+                        candidate.DisplayName);
+                    sourceContext.ReportDiagnostic(moduleNotInstantiable);
                 }
             }
 

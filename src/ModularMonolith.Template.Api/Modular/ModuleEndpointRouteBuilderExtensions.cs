@@ -1,0 +1,19 @@
+using ModularMonolith.Template.SharedKernel.Modular;
+
+namespace ModularMonolith.Template.Api.Modular;
+
+public static partial class ModuleEndpointRouteBuilderExtensions
+{
+    public static IEndpointRouteBuilder MapModuleEndpoints(this IEndpointRouteBuilder endpoints, IConfiguration configuration)
+    {
+        MapEndpoints(endpoints, configuration);
+        return endpoints;
+    }
+
+    #region Private Method Declarations
+
+    [ModuleEndpointMappingTarget]
+    private static partial void MapEndpoints(IEndpointRouteBuilder endpoints, IConfiguration configuration);
+
+    #endregion
+}

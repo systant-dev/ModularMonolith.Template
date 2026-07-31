@@ -1,10 +1,11 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using ModularMonolith.Template.MappingGen.Analysis;
 using ModularMonolith.Template.MappingGen.Diagnostics;
 using ModularMonolith.Template.MappingGen.Emit;
 using ModularMonolith.Template.MappingGen.Models;
-using ModularMonolith.Template.SourceGen.Common.Models;
+using ModularMonolith.Template.SourceGenerators.Shared.Models;
 using System.Collections.Immutable;
 
 namespace ModularMonolith.Template.MappingGen.Generators;
@@ -70,21 +71,43 @@ public sealed class MappingGenerator : IIncrementalGenerator
 
             foreach (MapMethodInfo method in methods)
             {
-                ImmutableArray<MapTargetInfo> methodTargets = [.. targets
-                    .Where(target => target.Key == method.Key)
-                    .GroupBy(target => target.TargetTypeName)
-                    .Select(group => group.First())];
+                ImmutableArray<MapTargetInfo> matchingTargets = [.. targets.Where(target => target.Key == method.Key)];
+                ImmutableArray<MapTargetInfo> methodTargets = [.. matchingTargets.GroupBy(target => target.TargetTypeName).Select(group => group.First())];
 
-                foreach (MapTargetInfo target in targets.Where(target => target.Key == method.Key))
+                foreach (MapTargetInfo target in matchingTargets)
                 {
                     if (target.UnmappedRequiredMembers.Length > 0)
                     {
-                        sourceContext.ReportDiagnostic(Diagnostic.Create(
+                        Diagnostic missingRequiredMember = Diagnostic.Create(
                             MappingDiagnostics.MissingRequiredMember,
                             target.Location?.ToLocation(),
                             method.SourceTypeName,
                             target.TargetTypeName,
-                            string.Join(", ", target.UnmappedRequiredMembers)));
+                            string.Join(", ", target.UnmappedRequiredMembers));
+                        sourceContext.ReportDiagnostic(missingRequiredMember);
+                    }
+
+                    foreach (MapMemberTypeMismatch mismatch in target.IncompatibleMembers)
+                    {
+                        Diagnostic incompatibleMemberType = Diagnostic.Create(
+                            MappingDiagnostics.IncompatibleMemberType,
+                            target.Location?.ToLocation(),
+                            mismatch.PropertyName,
+                            method.SourceTypeName,
+                            target.TargetTypeName,
+                            mismatch.SourceTypeName,
+                            mismatch.TargetTypeName);
+                        sourceContext.ReportDiagnostic(incompatibleMemberType);
+                    }
+
+                    foreach (MapCycleMember cycle in target.CycleMembers)
+                    {
+                        Diagnostic recursiveMappingCycle = Diagnostic.Create(
+                            MappingDiagnostics.RecursiveMappingCycle,
+                            target.Location?.ToLocation(),
+                            cycle.PropertyName,
+                            cycle.TypeName);
+                        sourceContext.ReportDiagnostic(recursiveMappingCycle);
                     }
                 }
 
@@ -139,16 +162,16 @@ public sealed class MappingGenerator : IIncrementalGenerator
         INamedTypeSymbol containingType = methodSymbol.ContainingType;
 
         return new MapMethodInfo(
-            Key: CreateKey(containingType, methodSymbol.Name),
+            Key: SymbolFormatting.CreateKey(containingType, methodSymbol.Name),
             Namespace: containingType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : containingType.ContainingNamespace.ToDisplayString(),
             ContainingTypeName: containingType.Name,
-            ContainingTypeKeyword: GetTypeKeyword(containingType),
-            Accessibility: GetAccessibilityKeyword(methodSymbol.DeclaredAccessibility),
+            ContainingTypeKeyword: SymbolFormatting.GetTypeKeyword(containingType),
+            Accessibility: SymbolFormatting.GetAccessibilityKeyword(methodSymbol.DeclaredAccessibility),
             MethodName: methodSymbol.Name,
             TypeParameterName: typeParameter.Name,
-            ConstraintClause: GetConstraintClause(typeParameter),
+            ConstraintClause: SymbolFormatting.GetConstraintClause(typeParameter),
             SourceParameterName: methodSymbol.Parameters[0].Name,
             SourceTypeName: sourceType.ToDisplayString(FullyQualifiedFormat));
     }
@@ -201,13 +224,15 @@ public sealed class MappingGenerator : IIncrementalGenerator
             return null;
         }
 
-        ImmutableArray<MapPropertyAssignment> assignments = ComputeAssignments(sourceType, targetType, context.SemanticModel.Compilation, out ImmutableArray<string> unmappedRequiredMembers);
+        MappingResolution resolution = MappingResolver.Resolve(sourceType, targetType, definition.Parameters[0].Name, context.SemanticModel.Compilation);
 
         return new MapTargetInfo(
-            Key: CreateKey(definition.ContainingType, definition.Name),
+            Key: SymbolFormatting.CreateKey(definition.ContainingType, definition.Name),
             TargetTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
-            Assignments: assignments,
-            UnmappedRequiredMembers: unmappedRequiredMembers,
+            Assignments: resolution.Assignments,
+            UnmappedRequiredMembers: resolution.UnmappedRequiredMembers,
+            IncompatibleMembers: resolution.IncompatibleMembers,
+            CycleMembers: resolution.CycleMembers,
             Location: LocationInfo.CreateFrom(invocation));
     }
 
@@ -222,159 +247,6 @@ public sealed class MappingGenerator : IIncrementalGenerator
         }
 
         return false;
-    }
-
-    private static ImmutableArray<MapPropertyAssignment> ComputeAssignments(INamedTypeSymbol sourceType, INamedTypeSymbol targetType, Compilation compilation, out ImmutableArray<string> unmappedRequiredMembers)
-    {
-        Dictionary<string, IPropertySymbol> sourceProperties = GetReadableProperties(sourceType);
-        ImmutableArray<MapPropertyAssignment>.Builder builder = ImmutableArray.CreateBuilder<MapPropertyAssignment>();
-        ImmutableArray<string>.Builder unmappedRequired = ImmutableArray.CreateBuilder<string>();
-
-        foreach (IPropertySymbol targetProperty in GetWritableProperties(targetType))
-        {
-            bool mapped = false;
-
-            if (sourceProperties.TryGetValue(targetProperty.Name.ToLowerInvariant(), out IPropertySymbol sourceProperty))
-            {
-                Conversion conversion = compilation.ClassifyConversion(sourceProperty.Type, targetProperty.Type);
-                if (conversion.IsIdentity || conversion.IsImplicit)
-                {
-                    builder.Add(new MapPropertyAssignment(targetProperty.Name, sourceProperty.Name));
-                    mapped = true;
-                }
-            }
-
-            if (!mapped && targetProperty.IsRequired)
-            {
-                unmappedRequired.Add(targetProperty.Name);
-            }
-        }
-
-        unmappedRequiredMembers = unmappedRequired.ToImmutable();
-        return builder.ToImmutable();
-    }
-
-    private static Dictionary<string, IPropertySymbol> GetReadableProperties(INamedTypeSymbol type)
-    {
-        Dictionary<string, IPropertySymbol> properties = new(System.StringComparer.Ordinal);
-
-        for (INamedTypeSymbol? current = type; current is not null && current.SpecialType != SpecialType.System_Object; current = current.BaseType)
-        {
-            foreach (ISymbol member in current.GetMembers())
-            {
-                if (member is not IPropertySymbol property
-                    || property.DeclaredAccessibility != Accessibility.Public
-                    || property.IsStatic
-                    || property.IsIndexer
-                    || property.GetMethod is null
-                    || property.GetMethod.DeclaredAccessibility != Accessibility.Public)
-                {
-                    continue;
-                }
-
-                string key = property.Name.ToLowerInvariant();
-                if (!properties.ContainsKey(key))
-                {
-                    properties.Add(key, property);
-                }
-            }
-        }
-
-        return properties;
-    }
-
-    private static IEnumerable<IPropertySymbol> GetWritableProperties(INamedTypeSymbol type)
-    {
-        HashSet<string> seen = new(System.StringComparer.Ordinal);
-
-        for (INamedTypeSymbol? current = type; current is not null && current.SpecialType != SpecialType.System_Object; current = current.BaseType)
-        {
-            foreach (ISymbol member in current.GetMembers())
-            {
-                if (member is not IPropertySymbol property
-                    || property.DeclaredAccessibility != Accessibility.Public
-                    || property.IsStatic
-                    || property.IsIndexer
-                    || property.SetMethod is null
-                    || property.SetMethod.DeclaredAccessibility != Accessibility.Public)
-                {
-                    continue;
-                }
-
-                if (seen.Add(property.Name))
-                {
-                    yield return property;
-                }
-            }
-        }
-    }
-
-    private static string CreateKey(INamedTypeSymbol containingType, string methodName)
-    {
-        return $"{containingType.ToDisplayString()}.{methodName}";
-    }
-
-    private static string GetTypeKeyword(INamedTypeSymbol type)
-    {
-        if (type.IsRecord)
-        {
-            return type.TypeKind == TypeKind.Struct ? "record struct" : "record";
-        }
-
-        return type.TypeKind == TypeKind.Struct ? "struct" : "class";
-    }
-
-    private static string GetConstraintClause(ITypeParameterSymbol typeParameter)
-    {
-        List<string> constraints = [];
-
-        if (typeParameter.HasReferenceTypeConstraint)
-        {
-            constraints.Add("class");
-        }
-        else if (typeParameter.HasUnmanagedTypeConstraint)
-        {
-            constraints.Add("unmanaged");
-        }
-        else if (typeParameter.HasValueTypeConstraint)
-        {
-            constraints.Add("struct");
-        }
-        else if (typeParameter.HasNotNullConstraint)
-        {
-            constraints.Add("notnull");
-        }
-
-        foreach (ITypeSymbol constraintType in typeParameter.ConstraintTypes)
-        {
-            constraints.Add(constraintType.ToDisplayString(FullyQualifiedFormat));
-        }
-
-        if (typeParameter.HasConstructorConstraint)
-        {
-            constraints.Add("new()");
-        }
-
-        if (constraints.Count == 0)
-        {
-            return string.Empty;
-        }
-
-        return $" where {typeParameter.Name} : {string.Join(", ", constraints)}";
-    }
-
-    private static string GetAccessibilityKeyword(Accessibility accessibility)
-    {
-        return accessibility switch
-        {
-            Accessibility.Public => "public",
-            Accessibility.Internal => "internal",
-            Accessibility.Protected => "protected",
-            Accessibility.ProtectedOrInternal => "protected internal",
-            Accessibility.ProtectedAndInternal => "private protected",
-            Accessibility.Private => "private",
-            _ => "internal",
-        };
     }
 
     private static string GenerateMapMethod(MapMethodInfo info, ImmutableArray<MapTargetInfo> targets)

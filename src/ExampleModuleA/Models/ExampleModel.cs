@@ -1,6 +1,4 @@
-﻿using ModularMonolith.Template.MappingGen;
-
-namespace ExampleModuleA.Models;
+﻿namespace ExampleModuleA.Models;
 
 internal sealed partial record ExampleModel
 {
@@ -17,16 +15,6 @@ internal sealed partial record ExampleModel
     {
         _ = this.To<ExampleResponse>();
     }
-
-    #endregion
-}
-
-internal static partial class ExampleModelMappings
-{
-    #region Public Method Declarations
-
-    [Map]
-    public static partial TTarget To<TTarget>(this ExampleModel source);
 
     #endregion
 }

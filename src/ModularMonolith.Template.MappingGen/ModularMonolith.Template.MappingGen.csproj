@@ -23,13 +23,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ModularMonolith.Template.SourceGen.Common\ModularMonolith.Template.SourceGen.Common.csproj" />
+		<ProjectReference Include="..\ModularMonolith.Template.SourceGenerators.Shared\ModularMonolith.Template.SourceGenerators.Shared.csproj" />
 	</ItemGroup>
 
 	<Target Name="IncludeCommonAssemblyAsAnalyzer" DependsOnTargets="ResolveProjectReferences">
 		<ItemGroup>
 			<TargetPathWithTargetPlatformMoniker Include="@(_ResolvedProjectReferencePaths)"
-												 Condition="'%(FileName)' == 'ModularMonolith.Template.SourceGen.Common'"
+												 Condition="'%(FileName)' == 'ModularMonolith.Template.SourceGenerators.Shared'"
 												 IncludeRuntimeDependency="false" />
 		</ItemGroup>
 	</Target>

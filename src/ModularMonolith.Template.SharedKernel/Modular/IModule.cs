@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ModularMonolith.Template.SharedKernel.Modular;
 
@@ -8,7 +9,7 @@ public interface IModule
 
     void RegisterServices(IServiceCollection serviceCollection);
 
-    void MapEndpoints();
+    void MapEndpoints(IEndpointRouteBuilder endpoints);
 
     #endregion
 }

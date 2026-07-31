@@ -83,9 +83,7 @@ internal static class MappingMethodEmitter
                     builder.Append("                ");
                     builder.Append(assignment.TargetProperty);
                     builder.Append(" = ");
-                    builder.Append(info.SourceParameterName);
-                    builder.Append('.');
-                    builder.Append(assignment.SourceProperty);
+                    builder.Append(assignment.ValueExpression);
                     builder.AppendLine(",");
                 }
 

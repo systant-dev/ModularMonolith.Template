@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Modular;
 
@@ -12,7 +13,7 @@ public sealed class ModuleRegistrationAttributeTests
         {
         }
 
-        public void MapEndpoints()
+        public void MapEndpoints(IEndpointRouteBuilder endpoints)
         {
         }
     }

@@ -21,8 +21,34 @@ internal static class TestSources
             }
         }
 
+        namespace Microsoft.AspNetCore.Routing
+        {
+            public interface IEndpointRouteBuilder { }
+        }
+
+        namespace Microsoft.AspNetCore.Builder
+        {
+            using Microsoft.AspNetCore.Routing;
+
+            public static class EndpointRouteBuilderExtensions
+            {
+                public static IEndpointRouteBuilder MapGroup(this IEndpointRouteBuilder builder, string prefix) => builder;
+            }
+        }
+
+        namespace Microsoft.AspNetCore.Http
+        {
+            using Microsoft.AspNetCore.Routing;
+
+            public static class EndpointConventionExtensions
+            {
+                public static IEndpointRouteBuilder WithTags(this IEndpointRouteBuilder builder, params string[] tags) => builder;
+            }
+        }
+
         namespace ModularMonolith.Template.SharedKernel.Modular
         {
+            using Microsoft.AspNetCore.Routing;
             using Microsoft.Extensions.DependencyInjection;
 
             [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = false)]
@@ -31,7 +57,7 @@ internal static class TestSources
             public interface IModule
             {
                 void RegisterServices(IServiceCollection serviceCollection);
-                void MapEndpoints();
+                void MapEndpoints(IEndpointRouteBuilder endpoints);
             }
 
             [System.AttributeUsage(System.AttributeTargets.Assembly, AllowMultiple = true)]
@@ -40,12 +66,16 @@ internal static class TestSources
 
             [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = false)]
             public sealed class ModuleRegistrationTargetAttribute : System.Attribute { }
+
+            [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = false)]
+            public sealed class ModuleEndpointMappingTargetAttribute : System.Attribute { }
         }
         """;
 
     public const string ExampleModule = """
         namespace ExampleModuleA
         {
+            using Microsoft.AspNetCore.Routing;
             using Microsoft.Extensions.DependencyInjection;
             using ModularMonolith.Template.SharedKernel.Modular;
 
@@ -53,7 +83,7 @@ internal static class TestSources
             public sealed class Module : IModule
             {
                 public void RegisterServices(IServiceCollection serviceCollection) { }
-                public void MapEndpoints() { }
+                public void MapEndpoints(IEndpointRouteBuilder endpoints) { }
             }
         }
         """;

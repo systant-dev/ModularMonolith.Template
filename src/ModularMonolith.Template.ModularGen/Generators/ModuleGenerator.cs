@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ModularMonolith.Template.ModularGen.Analysis;
 using ModularMonolith.Template.ModularGen.Diagnostics;
 using ModularMonolith.Template.ModularGen.Emit;
-using ModularMonolith.Template.SourceGen.Common.Collections;
-using ModularMonolith.Template.SourceGen.Common.Models;
+using ModularMonolith.Template.SourceGenerators.Shared.Collections;
+using ModularMonolith.Template.SourceGenerators.Shared.Models;
 using ModularMonolith.Template.ModularGen.Models;
 using System.Collections.Immutable;
 
@@ -56,10 +56,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
             for (int index = 1; index < orderedStubs.Length; index++)
             {
-                sourceContext.ReportDiagnostic(Diagnostic.Create(
+                Diagnostic multipleRegistrationTargets = Diagnostic.Create(
                     ModularDiagnostics.MultipleRegistrationTargets,
                     orderedStubs[index].Location?.ToLocation(),
-                    $"{stub.ClassName}.{stub.MethodName}"));
+                    $"{stub.ClassName}.{stub.MethodName}");
+                sourceContext.ReportDiagnostic(multipleRegistrationTargets);
             }
 
             string source = GenerateModuleExtensions(stub, pair.Right);
@@ -134,7 +135,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
                 continue;
             }
 
-            modules.Add(new ModuleInfo(moduleType.Name, moduleType.ContainingNamespace.ToDisplayString()));
+            ModuleInfo moduleInfo = new(moduleType.Name, moduleType.ContainingNamespace.ToDisplayString());
+            modules.Add(moduleInfo);
         }
     }
 

@@ -1,4 +1,6 @@
 ﻿using ExampleModuleB.Configuration;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
@@ -17,9 +19,9 @@ public sealed class Module : IModule
     }
 
     ///<inheritdoc/>
-    public void MapEndpoints()
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        throw new NotImplementedException();
+        endpoints.MapGet("/example-module-b", () => nameof(ExampleModuleB));
     }
 
     #endregion  

@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace ModularMonolith.Template.SourceGen.Common.Models;
+namespace ModularMonolith.Template.SourceGenerators.Shared.Models;
 
 public readonly record struct LocationInfo(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {

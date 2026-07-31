@@ -11,11 +11,15 @@ public static class HttpClientBuilderExtensions
     {
         public IHttpClientBuilder ConfigureSharedPrimaryHandler()
         {
-            builder.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            builder.ConfigurePrimaryHttpMessageHandler(() =>
             {
-                AutomaticDecompression = DecompressionMethods.All,
-                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-                EnableMultipleHttp2Connections = true
+                SocketsHttpHandler handler = new()
+                {
+                    AutomaticDecompression = DecompressionMethods.All,
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                    EnableMultipleHttp2Connections = true
+                };
+                return handler;
             });
 
             return builder;

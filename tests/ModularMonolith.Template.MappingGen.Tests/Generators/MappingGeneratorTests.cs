@@ -73,6 +73,86 @@ public sealed class MappingGeneratorTests
         diagnostic.GetMessage().Should().Contain("Name");
     }
 
+    [Fact]
+    public void AppliesToStringAndExplicitNumericAndEnumConversions()
+    {
+        GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.TypeConversions);
+
+        string generated = GetGeneratedSource(driver, "ConversionMapper");
+
+        generated.Should().Contain("Code = source.Code.ToString(),");
+        generated.Should().Contain("Big = (int)(source.Big),");
+        generated.Should().Contain("Shade = (int)(source.Shade),");
+    }
+
+    [Fact]
+    public void MapsNestedReferenceTypeRecursively()
+    {
+        GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.NestedMapping);
+
+        string generated = GetGeneratedSource(driver, "PersonMapper");
+
+        generated.Should().Contain("HomeAddress = source.HomeAddress is null ? null : new global::Contracts.AddressDto");
+        generated.Should().Contain("City = source.HomeAddress.City");
+        generated.Should().Contain("Zip = source.HomeAddress.Zip");
+    }
+
+    [Fact]
+    public void MapsCollectionElementsAndMaterialisesToArray()
+    {
+        GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.CollectionMapping);
+
+        string generated = GetGeneratedSource(driver, "BasketMapper");
+
+        generated.Should().Contain("global::System.Linq.Enumerable.ToArray(");
+        generated.Should().Contain("global::System.Linq.Enumerable.Select(source.Items, item =>");
+        generated.Should().Contain("new global::Contracts.ItemDto");
+    }
+
+    [Fact]
+    public void ReportsDiagnosticForRecursiveMappingCycle()
+    {
+        System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics =
+            GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.RecursiveCycle);
+
+        Microsoft.CodeAnalysis.Diagnostic diagnostic = diagnostics.Should().ContainSingle(d => d.Id == "MAP003").Subject;
+        diagnostic.GetMessage().Should().Contain("Next");
+    }
+
+    [Fact]
+    public void ReportsDiagnosticForIncompatibleOptionalMember()
+    {
+        System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics =
+            GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.IncompatibleOptionalMember);
+
+        Microsoft.CodeAnalysis.Diagnostic diagnostic = diagnostics.Should().ContainSingle(d => d.Id == "MAP002").Subject;
+        diagnostic.GetMessage().Should().Contain("Amount");
+    }
+
+    [Fact]
+    public void MapsNestedComplexCollectionToList()
+    {
+        GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.NestedCollectionMapping);
+
+        string generated = GetGeneratedSource(driver, "InvoiceMapper");
+
+        generated.Should().Contain("global::System.Linq.Enumerable.ToList(");
+        generated.Should().Contain("new global::Contracts.LineDto");
+        generated.Should().Contain("new global::Contracts.OrderDto");
+    }
+
+    [Fact]
+    public void MapsPropertiesInheritedFromBaseClass()
+    {
+        GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.InheritedProperties);
+
+        string generated = GetGeneratedSource(driver, "EmployeeMapper");
+
+        generated.Should().Contain("Id = source.Id,");
+        generated.Should().Contain("Name = source.Name,");
+        generated.Should().Contain("Department = source.Department,");
+    }
+
     #endregion
 
     #region Private Method Declarations
