@@ -7,7 +7,7 @@ public static class AzureCredentialFactory
 {
     #region Public Method Declarations
 
-    public static TokenCredential CreateDefault(bool isDevelopment)
+    public static TokenCredential CreateDefault(bool isDevelopment, Action<DefaultAzureCredentialOptions>? configure = null)
     {
         DefaultAzureCredentialOptions options = new()
         {
@@ -16,6 +16,9 @@ public static class AzureCredentialFactory
             ExcludeVisualStudioCredential = !isDevelopment,
             ExcludeAzurePowerShellCredential = true,
         };
+
+        configure?.Invoke(options);
+
         return new DefaultAzureCredential(options);
     }
 

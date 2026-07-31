@@ -9,6 +9,8 @@ namespace ModularMonolith.Template.MappingGen.Models;
 /// </summary>
 internal readonly record struct LocationInfo(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
 {
+    #region Public Method Declarations
+
     public Location ToLocation() => Location.Create(FilePath, TextSpan, LineSpan);
 
     public static LocationInfo? CreateFrom(SyntaxNode node) => CreateFrom(node.GetLocation());
@@ -22,4 +24,6 @@ internal readonly record struct LocationInfo(string FilePath, TextSpan TextSpan,
 
         return new LocationInfo(location.SourceTree.FilePath, location.SourceSpan, location.GetLineSpan().Span);
     }
+
+    #endregion
 }

@@ -27,7 +27,6 @@
 		<ProjectReference Include="..\ModularMonolith.Template.SourceGen.Common\ModularMonolith.Template.SourceGen.Common.csproj" />
 	</ItemGroup>
 
-	<!-- Ensure the shared common assembly ships alongside the generator so the analyzer host can load it. -->
 	<Target Name="IncludeCommonAssemblyAsAnalyzer" DependsOnTargets="ResolveProjectReferences">
 		<ItemGroup>
 			<TargetPathWithTargetPlatformMoniker Include="@(_ResolvedProjectReferencePaths)"

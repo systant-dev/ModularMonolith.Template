@@ -6,6 +6,8 @@ namespace ModularMonolith.Template.SharedKernel.Configuration;
 
 public static class OptionsServiceCollectionExtensions
 {
+    #region Public Method Declarations
+
     extension(IServiceCollection serviceCollection)
     {
         public IServiceCollection AddValidatedOptions<TOptions, TValidator>(string sectionName)
@@ -23,4 +25,6 @@ public static class OptionsServiceCollectionExtensions
             return serviceCollection;
         }
     }
+
+    #endregion
 }

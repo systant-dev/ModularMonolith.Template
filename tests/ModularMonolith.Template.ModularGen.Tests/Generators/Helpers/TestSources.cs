@@ -2,6 +2,8 @@ namespace ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
 
 internal static class TestSources
 {
+    #region Field Declarations
+
     public const string MarkerTypes = """
         namespace Microsoft.Extensions.DependencyInjection
         {
@@ -44,4 +46,6 @@ internal static class TestSources
             }
         }
         """;
+
+    #endregion
 }
