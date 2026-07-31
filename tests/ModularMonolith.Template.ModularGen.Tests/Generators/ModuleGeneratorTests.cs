@@ -1,4 +1,5 @@
 using ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
+using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
 namespace ModularMonolith.Template.ModularGen.Tests.Generators;
 

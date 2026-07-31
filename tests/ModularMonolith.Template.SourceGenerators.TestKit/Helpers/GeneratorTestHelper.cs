@@ -1,15 +1,18 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
 
-namespace ModularMonolith.Template.MappingGen.Tests.Generators.Helpers;
+namespace ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
-internal static class GeneratorTestHelper
+public static class GeneratorTestHelper
 {
-    #region Internal Method Declarations
+    #region Public Method Declarations
 
     public static CSharpCompilation CreateCompilation(params string[] sources)
     {
-        IEnumerable<SyntaxTree> syntaxTrees = sources.Select(static source => CSharpSyntaxTree.ParseText(source));
+        IEnumerable<SyntaxTree> syntaxTrees = sources
+            .Where(static source => !string.IsNullOrWhiteSpace(source))
+            .Select(static source => CSharpSyntaxTree.ParseText(source));
 
         IEnumerable<MetadataReference> references = AppDomain.CurrentDomain.GetAssemblies()
             .Where(static assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
@@ -22,10 +25,10 @@ internal static class GeneratorTestHelper
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
-    public static GeneratorDriver RunGenerator<TGenerator>(string source)
+    public static GeneratorDriver RunGenerator<TGenerator>(string source, string? assemblyAttributes = null)
         where TGenerator : IIncrementalGenerator, new()
     {
-        CSharpCompilation compilation = CreateCompilation(source);
+        CSharpCompilation compilation = CreateCompilation(source, assemblyAttributes ?? string.Empty);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new TGenerator());
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation outputCompilation, out _);
@@ -41,10 +44,10 @@ internal static class GeneratorTestHelper
         return driver;
     }
 
-    public static ImmutableArray<Diagnostic> RunGeneratorDiagnostics<TGenerator>(string source)
+    public static ImmutableArray<Diagnostic> RunGeneratorDiagnostics<TGenerator>(string source, string? assemblyAttributes = null)
         where TGenerator : IIncrementalGenerator, new()
     {
-        CSharpCompilation compilation = CreateCompilation(source);
+        CSharpCompilation compilation = CreateCompilation(source, assemblyAttributes ?? string.Empty);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new TGenerator());
         driver = driver.RunGenerators(compilation);

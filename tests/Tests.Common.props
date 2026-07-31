@@ -1,0 +1,30 @@
+<Project>
+
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="Moq" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+		<PackageReference Include="xunit.v3" />
+		<PackageReference Include="Verify.ClipboardAccept" />
+		<PackageReference Include="Verify.SourceGenerators" />
+		<PackageReference Include="Verify.XunitV3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ModularMonolith.Template.SourceGenerators.TestKit\ModularMonolith.Template.SourceGenerators.TestKit.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+		<Using Include="VerifyXunit" />
+		<Using Include="Microsoft.CodeAnalysis" />
+		<Using Include="ModularMonolith.Template.SourceGenerators.TestKit" />
+	</ItemGroup>
+
+</Project>

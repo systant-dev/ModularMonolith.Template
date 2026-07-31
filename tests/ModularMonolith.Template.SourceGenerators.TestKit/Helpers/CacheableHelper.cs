@@ -1,13 +1,13 @@
 using FluentAssertions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
 using System.Collections;
 using System.Collections.Immutable;
 using System.Reflection;
 
-namespace ModularMonolith.Template.ModularGen.Tests.Cacheable;
+namespace ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
-internal static class CacheableHelper
+public static class CacheableHelper
 {
     #region Public Method Declarations
 
