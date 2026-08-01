@@ -5,5 +5,5 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-MOD001  | Modular  | Warning  | More than one [ModuleRegistrationTarget] method exists.
-MOD002  | Modular  | Warning  | A [Module] type is not an instantiable module.
+MOD001  | Modular  | Error    | More than one [ModuleRegistrationTarget] method exists.
+MOD002  | Modular  | Error    | A [Module] type is not an instantiable module.

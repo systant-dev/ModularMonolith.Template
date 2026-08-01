@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace ModularMonolith.Template.Analysers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-public sealed class ModuleAttributeAnalyzer : DiagnosticAnalyzer
+public sealed class ModuleAttributeAnalyser : DiagnosticAnalyzer
 {
     #region Field Declarations
 
@@ -34,14 +34,14 @@ public sealed class ModuleAttributeAnalyzer : DiagnosticAnalyzer
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-        context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
+        context.RegisterSymbolAction(AnalyseNamedType, SymbolKind.NamedType);
     }
 
     #endregion
 
     #region Private Method Declarations
 
-    private static void AnalyzeNamedType(SymbolAnalysisContext context)
+    private static void AnalyseNamedType(SymbolAnalysisContext context)
     {
         INamedTypeSymbol namedType = (INamedTypeSymbol)context.Symbol;
         ImmutableArray<AttributeData> attrs = namedType.GetAttributes();
@@ -55,7 +55,7 @@ public sealed class ModuleAttributeAnalyzer : DiagnosticAnalyzer
 
                 bool implementsInterface = false;
 
-                if (moduleInterface != null)
+                if (moduleInterface is not null)
                 {
                     implementsInterface = namedType.AllInterfaces.Contains(moduleInterface, SymbolEqualityComparer.Default);
                 }

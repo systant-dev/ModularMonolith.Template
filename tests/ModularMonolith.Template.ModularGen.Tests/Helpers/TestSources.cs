@@ -1,4 +1,4 @@
-namespace ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
+namespace ModularMonolith.Template.ModularGen.Tests.Helpers;
 
 internal static class TestSources
 {

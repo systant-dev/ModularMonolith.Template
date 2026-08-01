@@ -1,5 +1,5 @@
 using FluentAssertions;
-using ModularMonolith.Template.MappingGen.Tests.Generators.Helpers;
+using ModularMonolith.Template.MappingGen.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
 namespace ModularMonolith.Template.MappingGen.Tests.Generators;

@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
+namespace ModularMonolith.Template.MappingGen.Tests.Helpers;
 
 internal static class ModuleInitializer
 {

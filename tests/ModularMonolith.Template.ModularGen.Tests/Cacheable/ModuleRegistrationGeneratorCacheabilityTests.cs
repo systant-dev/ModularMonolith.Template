@@ -1,9 +1,9 @@
 using FluentAssertions;
 using ModularMonolith.Template.ModularGen.Generators;
-using ModularMonolith.Template.ModularGen.Tests.Generators.Helpers;
+using ModularMonolith.Template.ModularGen.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
-namespace ModularMonolith.Template.ModularGen.Tests.Generators;
+namespace ModularMonolith.Template.ModularGen.Tests.Cacheable;
 
 public sealed class ModuleRegistrationGeneratorCacheabilityTests
 {

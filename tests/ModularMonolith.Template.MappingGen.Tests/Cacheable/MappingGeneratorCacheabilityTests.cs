@@ -1,5 +1,5 @@
 using FluentAssertions;
-using ModularMonolith.Template.MappingGen.Tests.Generators.Helpers;
+using ModularMonolith.Template.MappingGen.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
 namespace ModularMonolith.Template.MappingGen.Tests.Cacheable;
@@ -22,6 +22,17 @@ public sealed class MappingGeneratorCacheabilityTests
         diagnostics.Should().NotContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
+    [Theory]
+    [MemberData(nameof(Sources))]
+    public void RemainsCachedAfterUnrelatedEdit(string source)
+    {
+        CacheableHelper.AssertUnchangedAfterUnrelatedEdit<MappingGenerator>(TrackingNames, source);
+    }
+
+    #endregion
+
+    #region Public Method Declarations
+
     public static TheoryData<string> Sources() =>
     [
         TestSources.MatchingProperties,
@@ -29,13 +40,6 @@ public sealed class MappingGeneratorCacheabilityTests
         TestSources.MultipleTargets,
         TestSources.NoInvocations,
     ];
-
-    [Theory]
-    [MemberData(nameof(Sources))]
-    public void RemainsCachedAfterUnrelatedEdit(string source)
-    {
-        CacheableHelper.AssertUnchangedAfterUnrelatedEdit<MappingGenerator>(TrackingNames, source);
-    }
 
     #endregion
 }
