@@ -1,9 +1,13 @@
+using ModularMonolith.Template.Api.Exceptions;
 using ModularMonolith.Template.Api.Modular;
+using ModularMonolith.Template.Api.RequestPipeline;
 using Scalar.AspNetCore;
 
 WebApplicationBuilder webApplicationBuilder = WebApplication.CreateBuilder(args);
-webApplicationBuilder.Services.AddOpenApi();
 webApplicationBuilder.Services.AddModules(webApplicationBuilder.Configuration);
+
+webApplicationBuilder.Services.AddOpenApi();
+webApplicationBuilder.Services.AddCustomProblemDetails();
 
 WebApplication webApplication = webApplicationBuilder.Build();
 
@@ -16,6 +20,10 @@ if (webApplication.Environment.IsDevelopment())
     });
 }
 
-webApplication.UseHttpsRedirection();
 webApplication.MapModuleEndpoints(webApplication.Configuration);
+webApplication.UseMiddleware<CorrelationIdMiddleware>();
+webApplication.UseCustomExceptionHandler();
+webApplication.UseHttpsRedirection();
+webApplication.UseStatusCodePages();
+
 webApplication.Run();
