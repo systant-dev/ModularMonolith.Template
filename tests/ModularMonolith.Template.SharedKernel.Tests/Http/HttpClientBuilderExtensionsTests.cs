@@ -81,6 +81,10 @@ public sealed class HttpClientBuilderExtensionsTests
         options.Retry.MaxRetryAttempts.Should().Be(5);
     }
 
+    #endregion
+
+    #region Private Method Declarations
+
     private static HttpStandardResilienceOptions GetResilienceOptions(IServiceProvider provider, string clientName)
     {
         IOptionsMonitor<HttpStandardResilienceOptions> monitor =
@@ -89,8 +93,14 @@ public sealed class HttpClientBuilderExtensionsTests
         return monitor.Get($"{clientName}-standard");
     }
 
+    #endregion
+
+    #region Nested Types
+
     private sealed class HttpMessageHandlerFactory(IServiceProvider provider)
     {
+        #region Public Method Declarations
+
         public SocketsHttpHandler GetPrimaryHandler(string name)
         {
             IHttpMessageHandlerFactory factory = provider.GetRequiredService<IHttpMessageHandlerFactory>();
@@ -104,6 +114,8 @@ public sealed class HttpClientBuilderExtensionsTests
 
             return (SocketsHttpHandler)current;
         }
+
+        #endregion
     }
 
     #endregion

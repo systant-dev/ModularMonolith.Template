@@ -18,20 +18,17 @@ internal static class ClassificationProfileAnalyser
 
     #endregion
 
-    #region Internal Method Declarations
+    #region Public Method Declarations
 
     public static bool IsCandidateProfile(SyntaxNode node)
     {
-        return node is ClassDeclarationSyntax classDeclaration
-            && classDeclaration.BaseList is not null
-            && classDeclaration.BaseList.Types.Count > 0;
+        return node is ClassDeclarationSyntax;
     }
 
-    public static ClassificationProfileInfo? GetProfileInfo(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+    public static ClassificationProfileInfo? GetProfileInfo(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
     {
-        ClassDeclarationSyntax classDeclaration = (ClassDeclarationSyntax)context.Node;
-
-        if (context.SemanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken) is not INamedTypeSymbol profileSymbol)
+        if (context.TargetNode is not ClassDeclarationSyntax classDeclaration
+            || context.TargetSymbol is not INamedTypeSymbol profileSymbol)
         {
             return null;
         }
@@ -39,12 +36,9 @@ internal static class ClassificationProfileAnalyser
         INamedTypeSymbol? baseType = profileSymbol.BaseType;
         if (baseType is null
             || baseType.OriginalDefinition.MetadataName != "ClassificationProfile`1"
-            || baseType.OriginalDefinition.ContainingNamespace?.ToDisplayString() != "ModularMonolith.Template.SharedKernel.Compliance")
-        {
-            return null;
-        }
-
-        if (baseType.TypeArguments.Length != 1 || baseType.TypeArguments[0] is not INamedTypeSymbol modelType)
+            || baseType.OriginalDefinition.ContainingNamespace?.ToDisplayString() != "ModularMonolith.Template.SharedKernel.Compliance"
+            || baseType.TypeArguments.Length != 1
+            || baseType.TypeArguments[0] is not INamedTypeSymbol modelType)
         {
             return null;
         }

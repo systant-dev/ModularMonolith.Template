@@ -5,6 +5,7 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
     #region Field Declarations
 
     public const string CorrelationIdHeaderName = "X-Correlation-ID";
+
     public const string CorrelationIdItemKey = "correlationId";
 
     #endregion

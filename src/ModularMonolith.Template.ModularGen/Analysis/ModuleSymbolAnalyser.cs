@@ -4,7 +4,7 @@ namespace ModularMonolith.Template.ModularGen.Analysis;
 
 internal static class ModuleSymbolAnalyser
 {
-    #region Internal Method Declarations
+    #region Public Method Declarations
 
     public static bool IsInstantiableModule(INamedTypeSymbol type, INamedTypeSymbol moduleInterface)
     {

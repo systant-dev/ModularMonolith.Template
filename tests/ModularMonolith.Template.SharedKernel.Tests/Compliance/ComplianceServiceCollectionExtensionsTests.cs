@@ -70,16 +70,24 @@ public sealed class ComplianceServiceCollectionExtensionsTests
 
     public sealed class SampleModel
     {
+        #region Property Declarations
+
         public string Name { get; set; } = string.Empty;
+
+        #endregion
     }
 
     public sealed class SampleModelRedactor : IModelRedactor<SampleModel>
     {
+        #region Public Method Declarations
+
         public SampleModel Redact(SampleModel model, IRedactorProvider redactorProvider)
         {
             model.Name = redactorProvider.GetRedactor(DataClassification.Personal).Redact(model.Name);
             return model;
         }
+
+        #endregion
     }
 
     #endregion

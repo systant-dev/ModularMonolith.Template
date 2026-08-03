@@ -9,17 +9,6 @@ namespace ModularMonolith.Template.SharedKernel.Tests.Modular;
 [Category(TestCategory.Modular)]
 public sealed class ModuleRegistrationAttributeTests
 {
-    private sealed class TestModule : IModule
-    {
-        public void RegisterServices(IServiceCollection serviceCollection)
-        {
-        }
-
-        public void MapEndpoints(IEndpointRouteBuilder endpoints)
-        {
-        }
-    }
-
     #region Test Method Declarations
 
     [Fact]
@@ -40,6 +29,25 @@ public sealed class ModuleRegistrationAttributeTests
 
         usage.ValidOn.Should().Be(AttributeTargets.Assembly);
         usage.AllowMultiple.Should().BeTrue();
+    }
+
+    #endregion
+
+    #region Nested Types
+
+    private sealed class TestModule : IModule
+    {
+        #region Public Method Declarations
+
+        public void RegisterServices(IServiceCollection serviceCollection)
+        {
+        }
+
+        public void MapEndpoints(IEndpointRouteBuilder endpoints)
+        {
+        }
+
+        #endregion
     }
 
     #endregion

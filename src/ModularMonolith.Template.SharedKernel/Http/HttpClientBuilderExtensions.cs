@@ -5,8 +5,6 @@ namespace ModularMonolith.Template.SharedKernel.Http;
 
 public static class HttpClientBuilderExtensions
 {
-    #region Public Method Declarations
-
     extension(IHttpClientBuilder builder)
     {
         public IHttpClientBuilder ConfigureSharedPrimaryHandler()
@@ -41,6 +39,4 @@ public static class HttpClientBuilderExtensions
             return builder;
         }
     }
-
-    #endregion
 }

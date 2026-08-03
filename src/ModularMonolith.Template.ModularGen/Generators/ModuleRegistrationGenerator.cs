@@ -13,6 +13,7 @@ public sealed class ModuleRegistrationGenerator : IIncrementalGenerator
     #region Field Declarations
 
     private const string ModuleAttributeName = "ModularMonolith.Template.SharedKernel.Modular.ModuleAttribute";
+
     private const string ModuleInterfaceName = "ModularMonolith.Template.SharedKernel.Modular.IModule";
 
     #endregion

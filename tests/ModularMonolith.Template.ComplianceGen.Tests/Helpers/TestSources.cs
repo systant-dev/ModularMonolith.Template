@@ -2,12 +2,8 @@ namespace ModularMonolith.Template.ComplianceGen.Tests.Helpers;
 
 internal static class TestSources
 {
-    #region Public Field Declarations
+    #region Field Declarations
 
-    /// <summary>
-    /// The SharedKernel compliance abstractions, provided as source so generator tests compile
-    /// deterministically without depending on the referenced assembly being loaded into the AppDomain.
-    /// </summary>
     public const string Abstractions = """
         namespace ModularMonolith.Template.SharedKernel.Compliance
         {
@@ -18,6 +14,11 @@ internal static class TestSources
             public interface IRedactorProvider { IStringRedactor GetRedactor(DataClassification classification); }
 
             public interface IModelRedactor<T> { T Redact(T model, IRedactorProvider redactorProvider); }
+
+            [global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+            public sealed class ClassificationProfileAttribute : global::System.Attribute
+            {
+            }
 
             public abstract class ClassificationProfile<T>
             {
@@ -30,7 +31,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A model with two string members classified via a fluent profile.</summary>
     public const string SimpleProfile = """
         namespace Contracts
         {
@@ -41,6 +41,7 @@ internal static class TestSources
                 public int Age { get; set; }
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             public sealed partial class CustomerClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Customer>
             {
                 public CustomerClassification()
@@ -52,7 +53,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A profile classifying a nested member path.</summary>
     public const string NestedProfile = """
         namespace Contracts
         {
@@ -67,6 +67,7 @@ internal static class TestSources
                 public Address ShipTo { get; set; } = new();
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             public sealed partial class OrderClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Order>
             {
                 public OrderClassification()
@@ -78,7 +79,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A profile classifying a non-string member, which is diagnosed (CMP002).</summary>
     public const string NonStringMember = """
         namespace Contracts
         {
@@ -88,6 +88,7 @@ internal static class TestSources
                 public int Balance { get; set; }
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             public sealed partial class AccountClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Account>
             {
                 public AccountClassification()
@@ -99,7 +100,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A profile whose selector is not a member access, which is diagnosed (CMP001).</summary>
     public const string UnsupportedSelector = """
         namespace Contracts
         {
@@ -108,6 +108,7 @@ internal static class TestSources
                 public string Text { get; set; } = string.Empty;
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             public sealed partial class NoteClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Note>
             {
                 public NoteClassification()
@@ -118,7 +119,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>Source that declares no classification profiles.</summary>
     public const string NoProfiles = """
         namespace Contracts
         {
@@ -129,7 +129,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>Two profiles declared in the same compilation, each producing its own redactor.</summary>
     public const string MultipleProfiles = """
         namespace Contracts
         {
@@ -143,6 +142,7 @@ internal static class TestSources
                 public string ContactEmail { get; set; } = string.Empty;
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             public sealed partial class CustomerClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Customer>
             {
                 public CustomerClassification()
@@ -151,6 +151,7 @@ internal static class TestSources
                 }
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             public sealed partial class SupplierClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Supplier>
             {
                 public SupplierClassification()
@@ -161,13 +162,13 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A profile declared in the global namespace, exercising the namespace-less key path.</summary>
     public const string GlobalNamespaceProfile = """
         public sealed class Account
         {
             public string Owner { get; set; } = string.Empty;
         }
 
+        [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
         public sealed partial class AccountClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Account>
         {
             public AccountClassification()
@@ -177,7 +178,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A profile classifying a member three levels deep, exercising nested null guards.</summary>
     public const string DeeplyNestedProfile = """
         namespace Contracts
         {
@@ -196,6 +196,7 @@ internal static class TestSources
                 public Address HomeAddress { get; set; } = new();
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             public sealed partial class CustomerClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Customer>
             {
                 public CustomerClassification()
@@ -206,7 +207,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>An internal, non-sealed profile, exercising accessibility and type-keyword emission.</summary>
     public const string InternalProfile = """
         namespace Contracts
         {
@@ -215,6 +215,7 @@ internal static class TestSources
                 public string Subject { get; set; } = string.Empty;
             }
 
+            [ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile]
             internal partial class TicketClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Ticket>
             {
                 public TicketClassification()

@@ -9,7 +9,9 @@ internal static class ModuleEndpointExtensionsEmitter
     #region Field Declarations
 
     private const string ModulesConfigurationSection = "Modules";
+
     private const string ModuleEnabledConfigurationKey = "Enabled";
+
     private const bool ModuleEnabledByDefault = true;
 
     #endregion

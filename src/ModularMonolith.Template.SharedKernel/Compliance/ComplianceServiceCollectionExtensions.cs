@@ -3,23 +3,10 @@ using System.Reflection;
 
 namespace ModularMonolith.Template.SharedKernel.Compliance;
 
-/// <summary>
-/// Registration helpers for the compliance redaction pipeline.
-/// </summary>
 public static class ComplianceServiceCollectionExtensions
 {
-    #region Public Method Declarations
-
     extension(IServiceCollection serviceCollection)
     {
-        /// <summary>
-        /// Registers the compliance redaction pipeline: a configured <see cref="IRedactorProvider"/>
-        /// and every generated <see cref="IModelRedactor{T}"/> discovered in the supplied assemblies.
-        /// </summary>
-        /// <param name="configure">Optional callback to map classifications to redactors.</param>
-        /// <param name="assemblies">
-        /// Assemblies to scan for generated redactors. Defaults to the calling assembly when none are supplied.
-        /// </param>
         public IServiceCollection AddCompliance(Action<ComplianceOptions>? configure = null, params Assembly[] assemblies)
         {
             ComplianceOptions options = new();
@@ -40,8 +27,6 @@ public static class ComplianceServiceCollectionExtensions
             return serviceCollection;
         }
     }
-
-    #endregion
 
     #region Private Method Declarations
 

@@ -60,9 +60,13 @@ public readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable<E
 
     public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)(_array.IsDefault ? [] : _array)).GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
     public static implicit operator EquatableArray<T>(ImmutableArray<T> array) => new(array);
+
+    #endregion
+
+    #region Private Method Declarations
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     #endregion
 }

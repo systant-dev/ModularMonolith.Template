@@ -57,24 +57,38 @@ public sealed class ComplianceLoggingIntegrationTests
 
     public sealed class Person
     {
+        #region Property Declarations
+
         public string Name { get; set; } = string.Empty;
 
         public string Email { get; set; } = string.Empty;
+
+        #endregion
     }
 
     public sealed class PersonRedactor : IModelRedactor<Person>
     {
+        #region Public Method Declarations
+
         public Person Redact(Person model, IRedactorProvider redactorProvider)
         {
             model.Name = redactorProvider.GetRedactor(DataClassification.Personal).Redact(model.Name);
             model.Email = redactorProvider.GetRedactor(DataClassification.Sensitive).Redact(model.Email);
             return model;
         }
+
+        #endregion
     }
 
     private sealed class InMemoryLoggerProvider : ILoggerProvider
     {
+        #region Field Declarations
+
         private readonly ConcurrentQueue<string> _messages = new();
+
+        #endregion
+
+        #region Public Method Declarations
 
         public ILogger CreateLogger(string categoryName) => new InMemoryLogger(_messages);
 
@@ -84,8 +98,14 @@ public sealed class ComplianceLoggingIntegrationTests
         {
         }
 
+        #endregion
+
+        #region Nested Types
+
         private sealed class InMemoryLogger(ConcurrentQueue<string> messages) : ILogger
         {
+            #region Public Method Declarations
+
             public IDisposable? BeginScope<TState>(TState state)
                 where TState : notnull => null;
 
@@ -100,7 +120,11 @@ public sealed class ComplianceLoggingIntegrationTests
             {
                 messages.Enqueue(formatter(state, exception));
             }
+
+            #endregion
         }
+
+        #endregion
     }
 
     #endregion

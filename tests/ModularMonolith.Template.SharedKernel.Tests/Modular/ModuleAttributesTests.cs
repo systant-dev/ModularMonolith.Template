@@ -21,15 +21,19 @@ public sealed class ModuleAttributeTests
         usage.AllowMultiple.Should().BeFalse();
     }
 
-    [Module]
-    private sealed class DecoratedClass;
-
     [Fact]
     public void ModuleAttribute_CanDecorateClass()
     {
         typeof(DecoratedClass).GetCustomAttributes(typeof(ModuleAttribute), inherit: false)
                               .Should().ContainSingle();
     }
+
+    #endregion
+
+    #region Nested Types
+
+    [Module]
+    private sealed class DecoratedClass;
 
     #endregion
 }

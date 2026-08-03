@@ -10,14 +10,21 @@ namespace ModularMonolith.Template.ComplianceGen.Generators;
 [Generator]
 public sealed class ComplianceGenerator : IIncrementalGenerator
 {
+    #region Field Declarations
+
+    private const string ClassificationProfileAttributeName = "ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfileAttribute";
+
+    #endregion
+
     #region Public Method Declarations
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         IncrementalValueProvider<ImmutableArray<ClassificationProfileInfo>> profileProvider = context.SyntaxProvider
-            .CreateSyntaxProvider(
+            .ForAttributeWithMetadataName(
+                ClassificationProfileAttributeName,
                 predicate: static (node, _) => ClassificationProfileAnalyser.IsCandidateProfile(node),
-                transform: static (syntaxContext, cancellationToken) => ClassificationProfileAnalyser.GetProfileInfo(syntaxContext, cancellationToken))
+                transform: static (attributeContext, cancellationToken) => ClassificationProfileAnalyser.GetProfileInfo(attributeContext, cancellationToken))
             .Where(static profile => profile is not null)
             .Select(static (profile, _) => profile!.Value)
             .Collect()
@@ -25,6 +32,11 @@ public sealed class ComplianceGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(profileProvider, static (sourceContext, profiles) =>
         {
+            if (profiles.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
             foreach (ClassificationProfileInfo profile in profiles)
             {
                 foreach (Diagnostic diagnostic in ComplianceDiagnostics.GetDiagnostics(profile))

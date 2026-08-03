@@ -11,17 +11,15 @@ public sealed class Module : IModule
 {
     #region Public Method Declarations
 
-    ///<inheritdoc/>
     public void RegisterServices(IServiceCollection serviceCollection)
     {
         serviceCollection.AddValidatedOptions<ExampleModuleAOptions, ExampleModuleAOptionsValidator>(nameof(ExampleModuleA));
     }
 
-    ///<inheritdoc/>
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/example-module-a", () => nameof(ExampleModuleA));
     }
 
-    #endregion  
+    #endregion
 }

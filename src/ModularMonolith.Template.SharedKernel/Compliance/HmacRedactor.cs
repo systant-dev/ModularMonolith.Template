@@ -3,10 +3,6 @@ using System.Text;
 
 namespace ModularMonolith.Template.SharedKernel.Compliance;
 
-/// <summary>
-/// A redactor that replaces the value with a deterministic, keyed HMAC-SHA256 hash. This preserves
-/// the ability to correlate identical values across records without exposing the original content.
-/// </summary>
 public sealed class HmacRedactor : IStringRedactor, IDisposable
 {
     #region Field Declarations
@@ -17,8 +13,6 @@ public sealed class HmacRedactor : IStringRedactor, IDisposable
 
     #region Constructor Declarations
 
-    /// <summary>Creates an HMAC redactor using the supplied key.</summary>
-    /// <param name="key">The secret key used to compute the HMAC. Must be non-empty.</param>
     public HmacRedactor(byte[] key)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -30,8 +24,6 @@ public sealed class HmacRedactor : IStringRedactor, IDisposable
         _hmac = new HMACSHA256(key);
     }
 
-    /// <summary>Creates an HMAC redactor using the UTF-8 bytes of the supplied key.</summary>
-    /// <param name="key">The secret key used to compute the HMAC. Must be non-empty.</param>
     public HmacRedactor(string key)
         : this(Encoding.UTF8.GetBytes(key ?? throw new ArgumentNullException(nameof(key))))
     {

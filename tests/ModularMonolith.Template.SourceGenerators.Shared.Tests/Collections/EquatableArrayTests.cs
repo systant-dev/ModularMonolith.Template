@@ -7,7 +7,7 @@ namespace ModularMonolith.Template.SourceGenerators.Shared.Tests.Collections;
 [Category(TestCategory.Cacheability)]
 public sealed class EquatableArrayTests
 {
-    #region Equality
+    #region Test Method Declarations
 
     [Fact]
     public void Equals_ReturnsTrue_ForSameElementsInSameOrder()
@@ -53,10 +53,6 @@ public sealed class EquatableArrayTests
         left.Equals(right).Should().BeFalse();
     }
 
-    #endregion
-
-    #region Hashing
-
     [Fact]
     public void GetHashCode_IsEqual_ForEqualArrays()
     {
@@ -75,10 +71,6 @@ public sealed class EquatableArrayTests
         left.GetHashCode().Should().NotBe(right.GetHashCode());
     }
 
-    #endregion
-
-    #region Default And Empty
-
     [Fact]
     public void Empty_HasZeroLength()
     {
@@ -95,10 +87,6 @@ public sealed class EquatableArrayTests
         defaultArray.Equals(EquatableArray<int>.Empty).Should().BeTrue();
     }
 
-    #endregion
-
-    #region Indexing And Enumeration
-
     [Fact]
     public void Indexer_ReturnsElementAtPosition()
     {
@@ -114,10 +102,6 @@ public sealed class EquatableArrayTests
 
         array.Should().Equal(10, 20, 30);
     }
-
-    #endregion
-
-    #region Conversion
 
     [Fact]
     public void ImplicitConversion_FromImmutableArray_PreservesElements()

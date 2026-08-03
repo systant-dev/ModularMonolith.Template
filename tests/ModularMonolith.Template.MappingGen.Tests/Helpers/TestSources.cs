@@ -2,9 +2,8 @@ namespace ModularMonolith.Template.MappingGen.Tests.Helpers;
 
 internal static class TestSources
 {
-    #region Public Field Declarations
+    #region Field Declarations
 
-    /// <summary>A source type, a matching target type and a mapper with a single call site.</summary>
     public const string MatchingProperties = """
         namespace Contracts
         {
@@ -35,7 +34,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>Property names differ only by casing and a widening numeric conversion is required.</summary>
     public const string CaseInsensitiveAndConvertible = """
         namespace Contracts
         {
@@ -66,7 +64,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A single mapper used with two different concrete target types.</summary>
     public const string MultipleTargets = """
         namespace Contracts
         {
@@ -101,7 +98,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A mapper that is declared but never invoked with a concrete target.</summary>
     public const string NoInvocations = """
         namespace Contracts
         {
@@ -118,7 +114,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A target with a required member that has no matching source property.</summary>
     public const string UnmappableRequiredMember = """
         namespace Contracts
         {
@@ -146,7 +141,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>Requires ToString(), explicit numeric narrowing and enum-to-int conversions.</summary>
     public const string TypeConversions = """
         namespace Contracts
         {
@@ -179,7 +173,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A nested reference-typed property that requires recursive mapping.</summary>
     public const string NestedMapping = """
         namespace Contracts
         {
@@ -220,7 +213,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A collection property whose element type must be mapped and materialised to an array.</summary>
     public const string CollectionMapping = """
         using System.Collections.Generic;
 
@@ -259,7 +251,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A self-referential type that must trigger cycle detection during nested mapping.</summary>
     public const string RecursiveCycle = """
         namespace Contracts
         {
@@ -288,7 +279,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>An optional member that matches by name but has an unconvertible type, triggering MAP002.</summary>
     public const string IncompatibleOptionalMember = """
         namespace Contracts
         {
@@ -317,7 +307,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>A collection of complex elements materialised to a List, nested inside another mapped object.</summary>
     public const string NestedCollectionMapping = """
         using System.Collections.Generic;
 
@@ -366,7 +355,6 @@ internal static class TestSources
         }
         """;
 
-    /// <summary>Source and target that both inherit mappable properties from a base class.</summary>
     public const string InheritedProperties = """
         namespace Contracts
         {

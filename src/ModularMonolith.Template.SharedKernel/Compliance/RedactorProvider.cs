@@ -1,9 +1,5 @@
 namespace ModularMonolith.Template.SharedKernel.Compliance;
 
-/// <summary>
-/// The default <see cref="IRedactorProvider"/>. Resolves redactors from a configured
-/// <see cref="ComplianceOptions"/> instance.
-/// </summary>
 public sealed class RedactorProvider : IRedactorProvider
 {
     #region Field Declarations
@@ -14,7 +10,6 @@ public sealed class RedactorProvider : IRedactorProvider
 
     #region Constructor Declarations
 
-    /// <summary>Creates a provider backed by the supplied options.</summary>
     public RedactorProvider(ComplianceOptions options)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));

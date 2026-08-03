@@ -84,7 +84,6 @@ internal static class RedactorEmitter
 
         if (isNested)
         {
-            // Guard every intermediate member on the path so a null parent does not throw.
             string guard = string.Join(" && ", BuildNullGuards(segments));
             builder.Append(indent);
             builder.Append("        if (");

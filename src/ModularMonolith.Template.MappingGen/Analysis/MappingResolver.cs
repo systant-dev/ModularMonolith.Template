@@ -13,7 +13,7 @@ internal static class MappingResolver
 
     #endregion
 
-    #region Internal Method Declarations
+    #region Public Method Declarations
 
     public static MappingResolution Resolve(INamedTypeSymbol sourceType, INamedTypeSymbol targetType, string sourceAccessor, Compilation compilation)
     {

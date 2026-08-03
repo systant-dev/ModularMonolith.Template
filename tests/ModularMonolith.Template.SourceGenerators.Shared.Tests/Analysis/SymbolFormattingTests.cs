@@ -9,7 +9,7 @@ namespace ModularMonolith.Template.SourceGenerators.Shared.Tests.Analysis;
 [Category(TestCategory.Generators)]
 public sealed class SymbolFormattingTests
 {
-    #region CreateKey
+    #region Test Method Declarations
 
     [Fact]
     public void CreateKey_CombinesContainingTypeDisplayAndMethodName()
@@ -20,10 +20,6 @@ public sealed class SymbolFormattingTests
 
         key.Should().Be("Sample.Widget.Build");
     }
-
-    #endregion
-
-    #region GetTypeKeyword
 
     [Theory]
     [InlineData("public class Target { }", "class")]
@@ -37,10 +33,6 @@ public sealed class SymbolFormattingTests
         SymbolFormatting.GetTypeKeyword(type).Should().Be(expected);
     }
 
-    #endregion
-
-    #region GetAccessibilityKeyword
-
     [Theory]
     [InlineData(Accessibility.Public, "public")]
     [InlineData(Accessibility.Internal, "internal")]
@@ -53,10 +45,6 @@ public sealed class SymbolFormattingTests
     {
         SymbolFormatting.GetAccessibilityKeyword(accessibility).Should().Be(expected);
     }
-
-    #endregion
-
-    #region GetConstraintClause
 
     [Fact]
     public void GetConstraintClause_ReturnsEmpty_WhenNoConstraints()
@@ -124,7 +112,7 @@ public sealed class SymbolFormattingTests
 
     #endregion
 
-    #region Helpers
+    #region Private Method Declarations
 
     private static INamedTypeSymbol GetNamedType(string source, string metadataName)
     {
