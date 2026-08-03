@@ -1,12 +1,7 @@
 using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
 
 namespace ModularMonolith.Template.MappingGen.Analysis;
 
-/// <summary>
-/// Formats symbols into the C# fragments (keys, type keywords, constraint clauses and
-/// accessibility modifiers) used when emitting the generated mapper methods.
-/// </summary>
 internal static class SymbolFormatting
 {
     #region Field Declarations

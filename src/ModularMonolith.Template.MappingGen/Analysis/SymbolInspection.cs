@@ -1,18 +1,14 @@
 using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
 
 namespace ModularMonolith.Template.MappingGen.Analysis;
 
-/// <summary>
-/// Stateless helpers for probing Roslyn type and property symbols: nullability, numeric/enum
-/// classification, collection element discovery, user-mappability, and readable/writable property enumeration.
-/// </summary>
 internal static class SymbolInspection
 {
+    #region Public Method Declarations
+
     public static bool CanBeNull(ITypeSymbol type)
     {
-        return type.IsReferenceType
-            || (type is INamedTypeSymbol named && named.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T);
+        return type.IsReferenceType || (type is INamedTypeSymbol named && named.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T);
     }
 
     public static bool IsNumericOrEnum(ITypeSymbol type)
@@ -173,7 +169,7 @@ internal static class SymbolInspection
 
     public static IEnumerable<IPropertySymbol> GetWritableProperties(INamedTypeSymbol type)
     {
-        HashSet<string> seen = new(System.StringComparer.Ordinal);
+        HashSet<string> seen = new(StringComparer.Ordinal);
 
         for (INamedTypeSymbol? current = type; current is not null && current.SpecialType != SpecialType.System_Object; current = current.BaseType)
         {
@@ -196,4 +192,6 @@ internal static class SymbolInspection
             }
         }
     }
+
+    #endregion
 }

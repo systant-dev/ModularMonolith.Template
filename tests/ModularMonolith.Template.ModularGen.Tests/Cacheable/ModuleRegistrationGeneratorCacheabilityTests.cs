@@ -1,5 +1,4 @@
 using FluentAssertions;
-using ModularMonolith.Template.ModularGen.Generators;
 using ModularMonolith.Template.ModularGen.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 

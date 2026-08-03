@@ -2,7 +2,6 @@ using Microsoft.CodeAnalysis;
 using ModularMonolith.Template.ModularGen.Analysis;
 using ModularMonolith.Template.ModularGen.Diagnostics;
 using ModularMonolith.Template.ModularGen.Emit;
-using ModularMonolith.Template.ModularGen.Models;
 using ModularMonolith.Template.SourceGenerators.Shared.Models;
 using System.Collections.Immutable;
 

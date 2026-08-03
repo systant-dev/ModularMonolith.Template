@@ -21,9 +21,10 @@ if (webApplication.Environment.IsDevelopment())
 }
 
 webApplication.MapModuleEndpoints(webApplication.Configuration);
-webApplication.UseMiddleware<CorrelationIdMiddleware>();
+
 webApplication.UseCustomExceptionHandler();
 webApplication.UseHttpsRedirection();
+webApplication.UseMiddleware<CorrelationIdMiddleware>();
 webApplication.UseStatusCodePages();
 
 webApplication.Run();

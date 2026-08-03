@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Modular;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Modular;

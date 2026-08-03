@@ -6,11 +6,11 @@ namespace ModularMonolith.Template.Api.Exceptions;
 
 public static class ProblemDetailsExtensions
 {
-    extension(IServiceCollection services)
+    extension(IServiceCollection serviceCollection)
     {
         public IServiceCollection AddCustomProblemDetails()
         {
-            services.AddProblemDetails(options =>
+            serviceCollection.AddProblemDetails(options =>
             {
                 options.CustomizeProblemDetails = context =>
                 {
@@ -30,7 +30,7 @@ public static class ProblemDetailsExtensions
 
                 };
             });
-            return services;
+            return serviceCollection;
         }
     }
 }

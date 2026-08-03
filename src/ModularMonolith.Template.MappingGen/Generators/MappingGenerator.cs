@@ -111,7 +111,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
                     }
                 }
 
-                string source = GenerateMapMethod(method, methodTargets);
+                string source = MappingMethodEmitter.Emit(method, targets);
                 string hintName = $"{method.Key}.g.cs";
                 sourceContext.AddSource(hintName, source);
             }
@@ -161,7 +161,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
 
         INamedTypeSymbol containingType = methodSymbol.ContainingType;
 
-        return new MapMethodInfo(
+        MapMethodInfo mapMethodInfo = new(
             Key: SymbolFormatting.CreateKey(containingType, methodSymbol.Name),
             Namespace: containingType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
@@ -174,6 +174,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
             ConstraintClause: SymbolFormatting.GetConstraintClause(typeParameter),
             SourceParameterName: methodSymbol.Parameters[0].Name,
             SourceTypeName: sourceType.ToDisplayString(FullyQualifiedFormat));
+        return mapMethodInfo;
     }
 
     private static bool IsCandidateInvocation(SyntaxNode node)
@@ -195,12 +196,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
 
     private static MapTargetInfo? GetMapTargetInfo(GeneratorSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.Node is not InvocationExpressionSyntax invocation)
-        {
-            return null;
-        }
-
-        if (context.SemanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol is not IMethodSymbol methodSymbol)
+        if (context.Node is not InvocationExpressionSyntax invocation || context.SemanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol is not IMethodSymbol methodSymbol)
         {
             return null;
         }
@@ -226,7 +222,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
 
         MappingResolution resolution = MappingResolver.Resolve(sourceType, targetType, definition.Parameters[0].Name, context.SemanticModel.Compilation);
 
-        return new MapTargetInfo(
+        MapTargetInfo mapTargetInfo = new(
             Key: SymbolFormatting.CreateKey(definition.ContainingType, definition.Name),
             TargetTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
             Assignments: resolution.Assignments,
@@ -234,6 +230,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
             IncompatibleMembers: resolution.IncompatibleMembers,
             CycleMembers: resolution.CycleMembers,
             Location: LocationInfo.CreateFrom(invocation));
+        return mapTargetInfo;
     }
 
     private static bool HasMapAttribute(IMethodSymbol methodSymbol)
@@ -245,13 +242,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
                 return true;
             }
         }
-
         return false;
-    }
-
-    private static string GenerateMapMethod(MapMethodInfo info, ImmutableArray<MapTargetInfo> targets)
-    {
-        return MappingMethodEmitter.Emit(info, targets);
     }
 
     #endregion

@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ModularMonolith.Template.ModularGen.Analysis;
 using ModularMonolith.Template.ModularGen.Diagnostics;
 using ModularMonolith.Template.ModularGen.Emit;
+using ModularMonolith.Template.ModularGen.Models;
 using ModularMonolith.Template.SourceGenerators.Shared.Collections;
 using ModularMonolith.Template.SourceGenerators.Shared.Models;
-using ModularMonolith.Template.ModularGen.Models;
 using System.Collections.Immutable;
 
 namespace ModularMonolith.Template.ModularGen.Generators;

@@ -1,15 +1,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using ModularMonolith.Template.MappingGen.Models;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace ModularMonolith.Template.MappingGen.Analysis;
 
-/// <summary>
-/// Resolves how the public properties of a source type map onto a target type, producing the
-/// value expressions to emit and the diagnostics (missing required, incompatible, cycle) to report.
-/// </summary>
 internal static class MappingResolver
 {
     #region Field Declarations
@@ -28,7 +23,7 @@ internal static class MappingResolver
         List<MapMemberTypeMismatch> incompatible = [];
         List<MapCycleMember> cycles = [];
 
-        ImmutableHashSet<string> visited = ImmutableHashSet.Create(System.StringComparer.Ordinal, targetType.ToDisplayString(FullyQualifiedFormat));
+        ImmutableHashSet<string> visited = ImmutableHashSet.Create(StringComparer.Ordinal, targetType.ToDisplayString(FullyQualifiedFormat));
 
         foreach (IPropertySymbol targetProperty in SymbolInspection.GetWritableProperties(targetType))
         {
@@ -53,10 +48,7 @@ internal static class MappingResolver
                         break;
 
                     default:
-                        MapMemberTypeMismatch mismatch = new(
-                            targetProperty.Name,
-                            sourceProperty.Type.ToDisplayString(),
-                            targetProperty.Type.ToDisplayString());
+                        MapMemberTypeMismatch mismatch = new(targetProperty.Name, sourceProperty.Type.ToDisplayString(), targetProperty.Type.ToDisplayString());
                         incompatible.Add(mismatch);
                         break;
                 }
@@ -68,23 +60,13 @@ internal static class MappingResolver
             }
         }
 
-        return new MappingResolution(
-            builder.ToImmutable(),
-            unmappedRequired.ToImmutable(),
-            [.. incompatible],
-            [.. cycles]);
+        MappingResolution mappingResolution = new(builder.ToImmutable(), unmappedRequired.ToImmutable(), [.. incompatible], [.. cycles]);
+        return mappingResolution;
     }
 
     #endregion
 
     #region Private Method Declarations
-
-    private enum MapOutcome
-    {
-        Mapped,
-        Incompatible,
-        Cycle,
-    }
 
     private static (MapOutcome Outcome, string? Expression) BuildValueExpression(ITypeSymbol sourceType, ITypeSymbol targetType, string accessor, Compilation compilation, ImmutableHashSet<string> visited, List<MapMemberTypeMismatch> incompatible, List<MapCycleMember> cycles)
     {
@@ -133,9 +115,7 @@ internal static class MappingResolver
             }
 
             string? initializer = TryBuildObjectInitializer(namedSource, namedTarget, accessor, compilation, visited.Add(targetKey), incompatible, cycles);
-            return initializer is null
-                ? (MapOutcome.Incompatible, null)
-                : (MapOutcome.Mapped, initializer);
+            return initializer is null ? (MapOutcome.Incompatible, null) : (MapOutcome.Mapped, initializer);
         }
 
         return (MapOutcome.Incompatible, null);
@@ -193,10 +173,7 @@ internal static class MappingResolver
         }
 
         string typeName = targetType.ToDisplayString(FullyQualifiedFormat);
-        string body = assignments.Count == 0
-            ? $"new {typeName}()"
-            : $"new {typeName} {{ {string.Join(", ", assignments)} }}";
-
+        string body = assignments.Count == 0 ? $"new {typeName}()" : $"new {typeName} {{ {string.Join(", ", assignments)} }}";
         return SymbolInspection.CanBeNull(sourceType) ? $"{accessor} is null ? null : {body}" : body;
     }
 

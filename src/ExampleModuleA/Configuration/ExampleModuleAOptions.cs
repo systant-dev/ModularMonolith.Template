@@ -2,7 +2,7 @@
 
 namespace ExampleModuleA.Configuration;
 
-internal sealed record ExampleModuleAOptions: ModuleOptions
+internal sealed record ExampleModuleAOptions : ModuleOptions
 {
     #region Property Declarations
     #endregion

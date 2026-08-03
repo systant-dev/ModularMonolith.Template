@@ -44,11 +44,11 @@ public sealed class ModuleAttributeAnalyser : DiagnosticAnalyzer
     private static void AnalyseNamedType(SymbolAnalysisContext context)
     {
         INamedTypeSymbol namedType = (INamedTypeSymbol)context.Symbol;
-        ImmutableArray<AttributeData> attrs = namedType.GetAttributes();
+        ImmutableArray<AttributeData> attributes = namedType.GetAttributes();
 
-        foreach (AttributeData attr in attrs)
+        foreach (AttributeData attribute in attributes)
         {
-            if (attr.AttributeClass?.ToDisplayString() == "ModularMonolith.Template.SharedKernel.Modular.ModuleAttribute")
+            if (attribute.AttributeClass?.ToDisplayString() == "ModularMonolith.Template.SharedKernel.Modular.ModuleAttribute")
             {
                 Compilation compilation = context.Compilation;
                 INamedTypeSymbol? moduleInterface = compilation.GetTypeByMetadataName("ModularMonolith.Template.SharedKernel.Modular.IModule");
@@ -66,7 +66,7 @@ public sealed class ModuleAttributeAnalyser : DiagnosticAnalyzer
 
                 if (!implementsInterface)
                 {
-                    Location? location = attr.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken).GetLocation() ?? namedType.Locations.FirstOrDefault();
+                    Location? location = attribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken).GetLocation() ?? namedType.Locations.FirstOrDefault();
                     Diagnostic diagnostic = Diagnostic.Create(Rule, location ?? namedType.Locations.First(), namedType.Name);
                     context.ReportDiagnostic(diagnostic);
                 }
