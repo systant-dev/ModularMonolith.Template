@@ -6,6 +6,7 @@ public enum TestCategory
     Generators,
     Cacheability,
     Azure,
+    Compliance,
     Configuration,
     Http,
     Modular,
