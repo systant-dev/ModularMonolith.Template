@@ -6,7 +6,7 @@ public sealed class ComplianceOptions
 {
     #region Field Declarations
 
-    private readonly Dictionary<DataClassification, IStringRedactor> _redactors = new();
+    private readonly Dictionary<DataClassification, IStringRedactor> _redactors = [];
 
     #endregion
 

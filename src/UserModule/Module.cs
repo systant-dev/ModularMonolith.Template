@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
-using ModularMonolith.Template.SharedKernel.Compliance;
+using System.Linq;
 using ModularMonolith.Template.SharedKernel.Compliance.Redaction;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ModularMonolith.Template.SharedKernel.Compliance;
 using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
 using UserModule.Configuration;
@@ -37,26 +39,24 @@ public sealed class Module : IModule
     {
         RouteGroupBuilder group = endpoints.MapGroup("/users");
 
-        group.MapGet("/", Ok<IEnumerable<UserResponse>> (UserStore store, IModelRedactor<User> redactor, IRedactorProvider redactorProvider) =>
+        group.MapGet("/", Ok<IEnumerable<UserResponse>> (UserStore store) =>
         {
-            IEnumerable<UserResponse> users = store.GetAll()
-                .Select(user => redactor.Redact(user, redactorProvider).To<UserResponse>());
+            IEnumerable<UserResponse> users = store.GetAll().Select(user => user.To<UserResponse>());
             return TypedResults.Ok(users);
         });
 
-        group.MapGet("/{id:int}", Results<Ok<UserResponse>, NotFound> (int id, UserStore store, IModelRedactor<User> redactor, IRedactorProvider redactorProvider) =>
+        group.MapGet("/{id:int}", Results<Ok<UserResponse>, NotFound> (int id, UserStore store) =>
         {
             User? user = store.Get(id);
-            return user is null
-                ? TypedResults.NotFound()
-                : TypedResults.Ok(redactor.Redact(user, redactorProvider).To<UserResponse>());
+            return user is null ? TypedResults.NotFound() : TypedResults.Ok(user.To<UserResponse>());
         });
 
-        group.MapPost("/", async Task<Results<Created<UserResponse>, ValidationProblem>> (CreateUserRequest request, UserStore store, IValidator<CreateUserRequest> validator) =>
+        group.MapPost("/", async Task<Results<Created<UserResponse>, ValidationProblem>> (CreateUserRequest request, UserStore store, IValidator<CreateUserRequest> validator, IModelRedactor<User> redactor, IRedactorProvider redactorProvider, ILogger<Module> logger) =>
         {
             ValidationResult validation = await validator.ValidateAsync(request);
             if (!validation.IsValid)
             {
+                logger.LogWarning("Validation failed for CreateUserRequest");
                 return TypedResults.ValidationProblem(validation.ToDictionary());
             }
 
@@ -67,7 +67,8 @@ public sealed class Module : IModule
                 Email = request.Email,
                 PhoneNumber = request.PhoneNumber,
             });
-
+            User safe = redactor.Redact(created, redactorProvider);
+            logger.LogInformation("User created with ID {UserId} and name {UserName}", safe.Id, safe.FullName);
             return TypedResults.Created($"/users/{created.Id}", created.To<UserResponse>());
         });
 
@@ -90,9 +91,15 @@ public sealed class Module : IModule
             return updated is null ? TypedResults.NotFound() : TypedResults.Ok(updated.To<UserResponse>());
         });
 
-        group.MapDelete("/{id:int}", Results<NoContent, NotFound> (int id, UserStore store) =>
-            store.Remove(id) ? TypedResults.NoContent() : TypedResults.NotFound());
+        group.MapDelete("/{id:int}", Results<NoContent, NotFound> (int id, UserStore store) => store.Remove(id) ? TypedResults.NoContent() : TypedResults.NotFound());
     }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    // No manual redaction helpers here — rely on the shared compliance redactors registered
+    // via serviceCollection.AddCompliance(...) and injected IModelRedactor<T> instances.
 
     #endregion
 }

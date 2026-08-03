@@ -8,8 +8,7 @@ internal sealed class UserModuleOptionsValidator : AbstractValidator<UserModuleO
 
     public UserModuleOptionsValidator()
     {
-        RuleFor(options => options.MaxUsers)
-            .GreaterThan(0);
+        RuleFor(options => options.MaxUsers).GreaterThan(0);
     }
 
     #endregion
