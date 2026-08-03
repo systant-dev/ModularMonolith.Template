@@ -55,5 +55,13 @@ public static class GeneratorTestHelper
         return driver.GetRunResult().Diagnostics;
     }
 
+    public static string GetGeneratedSource(GeneratorDriver driver, string hintNameFragment)
+    {
+        SyntaxTree tree = driver.GetRunResult().GeneratedTrees
+            .Single(generatedTree => generatedTree.FilePath.Contains(hintNameFragment));
+
+        return tree.ToString();
+    }
+
     #endregion
 }

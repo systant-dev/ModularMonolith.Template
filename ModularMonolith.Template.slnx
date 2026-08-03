@@ -14,12 +14,12 @@
     <Project Path="src/ModularMonolith.Template.Api/ModularMonolith.Template.Api.csproj" />
     <Project Path="src/ModularMonolith.Template.SharedKernel/ModularMonolith.Template.SharedKernel.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/" />
-  <Folder Name="/src/Modules/ExampleModuleA/">
+  <Folder Name="/src/Example Modules/" />
+  <Folder Name="/src/Example Modules/ExampleModuleA/">
     <Project Path="src/ExampleModuleA.Contracts/ExampleModuleA.Contracts.csproj" />
     <Project Path="src/ExampleModuleA/ExampleModuleA.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/ExampleModuleB/">
+  <Folder Name="/src/Example Modules/ExampleModuleB/">
     <Project Path="src/ExampleModuleB.Contracts/ExampleModuleB.Contracts.csproj" />
     <Project Path="src/ExampleModuleB/ExampleModuleB.csproj" />
   </Folder>
@@ -36,6 +36,7 @@
     <Project Path="tests/ModularMonolith.Template.MappingGen.Tests/ModularMonolith.Template.MappingGen.Tests.csproj" Id="9f3d2c41-8b17-4e6a-9d2f-1c5b7a4e0d88" />
     <Project Path="tests/ModularMonolith.Template.ModularGen.Tests/ModularMonolith.Template.ModularGen.Tests.csproj" Id="d804d66f-270a-4a8d-924e-a233f160d83f" />
     <Project Path="tests/ModularMonolith.Template.SharedKernel.Tests/ModularMonolith.Template.SharedKernel.Tests.csproj" />
+    <Project Path="tests/ModularMonolith.Template.SourceGenerators.Shared.Tests/ModularMonolith.Template.SourceGenerators.Shared.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.SourceGenerators.TestKit/ModularMonolith.Template.SourceGenerators.TestKit.csproj" />
   </Folder>
 </Solution>

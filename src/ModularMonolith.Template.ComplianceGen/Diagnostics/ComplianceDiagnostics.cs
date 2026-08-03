@@ -1,4 +1,6 @@
 using Microsoft.CodeAnalysis;
+using ModularMonolith.Template.ComplianceGen.Models;
+using System.Collections.Generic;
 
 namespace ModularMonolith.Template.ComplianceGen.Diagnostics;
 
@@ -23,6 +25,37 @@ internal static class ComplianceDiagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Redactors operate on string values; classify a string member or convert the value before redaction.");
+
+    #endregion
+
+    #region Public Method Declarations
+
+    public static IEnumerable<Diagnostic> GetDiagnostics(ClassificationProfileInfo profile)
+    {
+        foreach (ClassifiedMemberInfo member in profile.Members)
+        {
+            Location? location = member.Location?.ToLocation();
+
+            if (!member.IsSupportedSelector)
+            {
+                yield return Diagnostic.Create(
+                    UnsupportedSelector,
+                    location,
+                    profile.ProfileTypeName);
+                continue;
+            }
+
+            if (!member.IsString)
+            {
+                yield return Diagnostic.Create(
+                    NonStringMember,
+                    location,
+                    member.MemberPath,
+                    profile.ProfileTypeName,
+                    member.MemberTypeName);
+            }
+        }
+    }
 
     #endregion
 }

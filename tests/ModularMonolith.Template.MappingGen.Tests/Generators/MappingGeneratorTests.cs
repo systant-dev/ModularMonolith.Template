@@ -15,7 +15,7 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.NoInvocations);
 
-        string attribute = GetGeneratedSource(driver, "MapAttribute");
+        string attribute = GeneratorTestHelper.GetGeneratedSource(driver, "MapAttribute");
 
         attribute.Should().Contain("internal sealed class MapAttribute : global::System.Attribute");
         return Task.CompletedTask;
@@ -40,7 +40,7 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.CaseInsensitiveAndConvertible);
 
-        string generated = GetGeneratedSource(driver, "SourceMapper");
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "SourceMapper");
 
         generated.Should().Contain("NAME = source.Name,");
         generated.Should().Contain("Count = source.Count,");
@@ -60,7 +60,7 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.NoInvocations);
 
-        string generated = GetGeneratedSource(driver, "WidgetMapper");
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "WidgetMapper");
 
         generated.Should().Contain("throw new global::System.NotSupportedException(");
         generated.Should().NotContain("typeof(TTarget) ==");
@@ -81,7 +81,7 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.TypeConversions);
 
-        string generated = GetGeneratedSource(driver, "ConversionMapper");
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "ConversionMapper");
 
         generated.Should().Contain("Code = source.Code.ToString(),");
         generated.Should().Contain("Big = (int)(source.Big),");
@@ -93,7 +93,7 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.NestedMapping);
 
-        string generated = GetGeneratedSource(driver, "PersonMapper");
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "PersonMapper");
 
         generated.Should().Contain("HomeAddress = source.HomeAddress is null ? null : new global::Contracts.AddressDto");
         generated.Should().Contain("City = source.HomeAddress.City");
@@ -105,7 +105,7 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.CollectionMapping);
 
-        string generated = GetGeneratedSource(driver, "BasketMapper");
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "BasketMapper");
 
         generated.Should().Contain("global::System.Linq.Enumerable.ToArray(");
         generated.Should().Contain("global::System.Linq.Enumerable.Select(source.Items, item =>");
@@ -137,7 +137,7 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.NestedCollectionMapping);
 
-        string generated = GetGeneratedSource(driver, "InvoiceMapper");
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "InvoiceMapper");
 
         generated.Should().Contain("global::System.Linq.Enumerable.ToList(");
         generated.Should().Contain("new global::Contracts.LineDto");
@@ -149,23 +149,11 @@ public sealed class MappingGeneratorTests
     {
         GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.InheritedProperties);
 
-        string generated = GetGeneratedSource(driver, "EmployeeMapper");
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "EmployeeMapper");
 
         generated.Should().Contain("Id = source.Id,");
         generated.Should().Contain("Name = source.Name,");
         generated.Should().Contain("Department = source.Department,");
-    }
-
-    #endregion
-
-    #region Private Method Declarations
-
-    private static string GetGeneratedSource(GeneratorDriver driver, string hintNameFragment)
-    {
-        SyntaxTree tree = driver.GetRunResult().GeneratedTrees
-            .Single(generatedTree => generatedTree.FilePath.Contains(hintNameFragment));
-
-        return tree.ToString();
     }
 
     #endregion

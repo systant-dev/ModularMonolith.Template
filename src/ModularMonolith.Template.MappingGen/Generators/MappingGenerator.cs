@@ -5,6 +5,7 @@ using ModularMonolith.Template.MappingGen.Analysis;
 using ModularMonolith.Template.MappingGen.Diagnostics;
 using ModularMonolith.Template.MappingGen.Emit;
 using ModularMonolith.Template.MappingGen.Models;
+using ModularMonolith.Template.SourceGenerators.Shared.Analysis;
 using ModularMonolith.Template.SourceGenerators.Shared.Models;
 using System.Collections.Immutable;
 
@@ -76,38 +77,9 @@ public sealed class MappingGenerator : IIncrementalGenerator
 
                 foreach (MapTargetInfo target in matchingTargets)
                 {
-                    if (target.UnmappedRequiredMembers.Length > 0)
+                    foreach (Diagnostic diagnostic in MappingDiagnostics.GetDiagnostics(method, target))
                     {
-                        Diagnostic missingRequiredMember = Diagnostic.Create(
-                            MappingDiagnostics.MissingRequiredMember,
-                            target.Location?.ToLocation(),
-                            method.SourceTypeName,
-                            target.TargetTypeName,
-                            string.Join(", ", target.UnmappedRequiredMembers));
-                        sourceContext.ReportDiagnostic(missingRequiredMember);
-                    }
-
-                    foreach (MapMemberTypeMismatch mismatch in target.IncompatibleMembers)
-                    {
-                        Diagnostic incompatibleMemberType = Diagnostic.Create(
-                            MappingDiagnostics.IncompatibleMemberType,
-                            target.Location?.ToLocation(),
-                            mismatch.PropertyName,
-                            method.SourceTypeName,
-                            target.TargetTypeName,
-                            mismatch.SourceTypeName,
-                            mismatch.TargetTypeName);
-                        sourceContext.ReportDiagnostic(incompatibleMemberType);
-                    }
-
-                    foreach (MapCycleMember cycle in target.CycleMembers)
-                    {
-                        Diagnostic recursiveMappingCycle = Diagnostic.Create(
-                            MappingDiagnostics.RecursiveMappingCycle,
-                            target.Location?.ToLocation(),
-                            cycle.PropertyName,
-                            cycle.TypeName);
-                        sourceContext.ReportDiagnostic(recursiveMappingCycle);
+                        sourceContext.ReportDiagnostic(diagnostic);
                     }
                 }
 

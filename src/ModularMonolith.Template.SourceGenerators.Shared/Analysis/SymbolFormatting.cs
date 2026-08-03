@@ -1,8 +1,9 @@
 using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 
-namespace ModularMonolith.Template.MappingGen.Analysis;
+namespace ModularMonolith.Template.SourceGenerators.Shared.Analysis;
 
-internal static class SymbolFormatting
+public static class SymbolFormatting
 {
     #region Field Declarations
 
@@ -10,7 +11,7 @@ internal static class SymbolFormatting
 
     #endregion
 
-    #region Internal Method Declarations
+    #region Public Method Declarations
 
     public static string CreateKey(INamedTypeSymbol containingType, string methodName)
     {

@@ -129,5 +129,101 @@ internal static class TestSources
         }
         """;
 
+    /// <summary>Two profiles declared in the same compilation, each producing its own redactor.</summary>
+    public const string MultipleProfiles = """
+        namespace Contracts
+        {
+            public sealed class Customer
+            {
+                public string Name { get; set; } = string.Empty;
+            }
+
+            public sealed class Supplier
+            {
+                public string ContactEmail { get; set; } = string.Empty;
+            }
+
+            public sealed partial class CustomerClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Customer>
+            {
+                public CustomerClassification()
+                {
+                    Classify(x => x.Name, ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Personal);
+                }
+            }
+
+            public sealed partial class SupplierClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Supplier>
+            {
+                public SupplierClassification()
+                {
+                    Classify(x => x.ContactEmail, ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Sensitive);
+                }
+            }
+        }
+        """;
+
+    /// <summary>A profile declared in the global namespace, exercising the namespace-less key path.</summary>
+    public const string GlobalNamespaceProfile = """
+        public sealed class Account
+        {
+            public string Owner { get; set; } = string.Empty;
+        }
+
+        public sealed partial class AccountClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Account>
+        {
+            public AccountClassification()
+            {
+                Classify(x => x.Owner, ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Personal);
+            }
+        }
+        """;
+
+    /// <summary>A profile classifying a member three levels deep, exercising nested null guards.</summary>
+    public const string DeeplyNestedProfile = """
+        namespace Contracts
+        {
+            public sealed class Country
+            {
+                public string IsoCode { get; set; } = string.Empty;
+            }
+
+            public sealed class Address
+            {
+                public Country Country { get; set; } = new();
+            }
+
+            public sealed class Customer
+            {
+                public Address HomeAddress { get; set; } = new();
+            }
+
+            public sealed partial class CustomerClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Customer>
+            {
+                public CustomerClassification()
+                {
+                    Classify(x => x.HomeAddress.Country.IsoCode, ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Personal);
+                }
+            }
+        }
+        """;
+
+    /// <summary>An internal, non-sealed profile, exercising accessibility and type-keyword emission.</summary>
+    public const string InternalProfile = """
+        namespace Contracts
+        {
+            public sealed class Ticket
+            {
+                public string Subject { get; set; } = string.Empty;
+            }
+
+            internal partial class TicketClassification : ModularMonolith.Template.SharedKernel.Compliance.ClassificationProfile<Ticket>
+            {
+                public TicketClassification()
+                {
+                    Classify(x => x.Subject, ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Internal);
+                }
+            }
+        }
+        """;
+
     #endregion
 }

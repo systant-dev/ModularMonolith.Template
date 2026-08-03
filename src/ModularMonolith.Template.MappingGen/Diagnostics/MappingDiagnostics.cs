@@ -1,4 +1,6 @@
 using Microsoft.CodeAnalysis;
+using ModularMonolith.Template.MappingGen.Models;
+using System.Collections.Generic;
 
 namespace ModularMonolith.Template.MappingGen.Diagnostics;
 
@@ -32,6 +34,46 @@ internal static class MappingDiagnostics
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Nested mapping stops when a target type is already being expanded on the current mapping path to avoid infinite recursion; the offending property is left unmapped.");
+
+    #endregion
+
+    #region Public Method Declarations
+
+    public static IEnumerable<Diagnostic> GetDiagnostics(MapMethodInfo method, MapTargetInfo target)
+    {
+        Location? location = target.Location?.ToLocation();
+
+        if (target.UnmappedRequiredMembers.Length > 0)
+        {
+            yield return Diagnostic.Create(
+                MissingRequiredMember,
+                location,
+                method.SourceTypeName,
+                target.TargetTypeName,
+                string.Join(", ", target.UnmappedRequiredMembers));
+        }
+
+        foreach (MapMemberTypeMismatch mismatch in target.IncompatibleMembers)
+        {
+            yield return Diagnostic.Create(
+                IncompatibleMemberType,
+                location,
+                mismatch.PropertyName,
+                method.SourceTypeName,
+                target.TargetTypeName,
+                mismatch.SourceTypeName,
+                mismatch.TargetTypeName);
+        }
+
+        foreach (MapCycleMember cycle in target.CycleMembers)
+        {
+            yield return Diagnostic.Create(
+                RecursiveMappingCycle,
+                location,
+                cycle.PropertyName,
+                cycle.TypeName);
+        }
+    }
 
     #endregion
 }
