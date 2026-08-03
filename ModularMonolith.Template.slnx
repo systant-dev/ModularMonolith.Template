@@ -15,13 +15,9 @@
     <Project Path="src/ModularMonolith.Template.SharedKernel/ModularMonolith.Template.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/src/Example Modules/" />
-  <Folder Name="/src/Example Modules/ExampleModuleA/">
-    <Project Path="src/ExampleModuleA.Contracts/ExampleModuleA.Contracts.csproj" />
-    <Project Path="src/ExampleModuleA/ExampleModuleA.csproj" />
-  </Folder>
-  <Folder Name="/src/Example Modules/ExampleModuleB/">
-    <Project Path="src/ExampleModuleB.Contracts/ExampleModuleB.Contracts.csproj" />
-    <Project Path="src/ExampleModuleB/ExampleModuleB.csproj" />
+  <Folder Name="/src/Example Modules/UserModule/">
+    <Project Path="src/UserModule.Contracts/UserModule.Contracts.csproj" />
+    <Project Path="src/UserModule/UserModule.csproj" />
   </Folder>
   <Folder Name="/src/Roslyn/">
     <Project Path="src/ModularMonolith.Template.Analysers/ModularMonolith.Template.Analysers.csproj" Id="722463ce-3b7c-47e3-bf27-9770142fbf64" />

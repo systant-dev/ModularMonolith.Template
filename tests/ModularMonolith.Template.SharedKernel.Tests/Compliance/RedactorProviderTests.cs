@@ -1,5 +1,6 @@
 using FluentAssertions;
 using ModularMonolith.Template.SharedKernel.Compliance;
+using ModularMonolith.Template.SharedKernel.Compliance.Redaction;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Compliance;
 

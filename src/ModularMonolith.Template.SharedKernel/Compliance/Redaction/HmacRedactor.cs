@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ModularMonolith.Template.SharedKernel.Compliance;
+namespace ModularMonolith.Template.SharedKernel.Compliance.Redaction;
 
 public sealed class HmacRedactor : IStringRedactor, IDisposable
 {

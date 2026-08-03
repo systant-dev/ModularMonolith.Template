@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using ModularMonolith.Template.SharedKernel.Compliance.Redaction;
 using System.Reflection;
 
 namespace ModularMonolith.Template.SharedKernel.Compliance;
@@ -15,9 +16,7 @@ public static class ComplianceServiceCollectionExtensions
             serviceCollection.AddSingleton(options);
             serviceCollection.AddSingleton<IRedactorProvider, RedactorProvider>();
 
-            Assembly[] scanTargets = assemblies is { Length: > 0 }
-                ? assemblies
-                : [Assembly.GetCallingAssembly()];
+            Assembly[] scanTargets = assemblies is { Length: > 0 } ? assemblies : [Assembly.GetCallingAssembly()];
 
             foreach (Assembly assembly in scanTargets)
             {

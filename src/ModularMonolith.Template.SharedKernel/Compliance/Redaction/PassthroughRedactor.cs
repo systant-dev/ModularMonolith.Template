@@ -1,4 +1,4 @@
-namespace ModularMonolith.Template.SharedKernel.Compliance;
+namespace ModularMonolith.Template.SharedKernel.Compliance.Redaction;
 
 public sealed class PassthroughRedactor : IStringRedactor
 {

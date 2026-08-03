@@ -1,3 +1,5 @@
+using ModularMonolith.Template.SharedKernel.Compliance.Redaction;
+
 namespace ModularMonolith.Template.SharedKernel.Compliance;
 
 public sealed class ComplianceOptions

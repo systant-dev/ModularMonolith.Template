@@ -32,7 +32,7 @@ internal static class RedactorEmitter
         builder.Append(profile.ProfileTypeKeyword);
         builder.Append(' ');
         builder.Append(profile.ProfileTypeName);
-        builder.Append(" : global::ModularMonolith.Template.SharedKernel.Compliance.IModelRedactor<");
+        builder.Append(" : global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IModelRedactor<");
         builder.Append(profile.ModelTypeName);
         builder.AppendLine(">");
         builder.Append(indent);
@@ -43,7 +43,7 @@ internal static class RedactorEmitter
         builder.Append(profile.ModelTypeName);
         builder.Append(" Redact(");
         builder.Append(profile.ModelTypeName);
-        builder.AppendLine(" model, global::ModularMonolith.Template.SharedKernel.Compliance.IRedactorProvider redactorProvider)");
+        builder.AppendLine(" model, global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IRedactorProvider redactorProvider)");
         builder.Append(indent);
         builder.AppendLine("    {");
 

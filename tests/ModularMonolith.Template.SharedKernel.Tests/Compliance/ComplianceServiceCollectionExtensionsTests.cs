@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Compliance;
+using ModularMonolith.Template.SharedKernel.Compliance.Redaction;
 using System.Reflection;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Compliance;
