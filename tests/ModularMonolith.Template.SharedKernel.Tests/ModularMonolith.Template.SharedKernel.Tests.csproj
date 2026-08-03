@@ -18,10 +18,12 @@
 
 	<ItemGroup>
 		<Using Include="Xunit" />
+		<Using Include="ModularMonolith.Template.SourceGenerators.TestKit.Traits" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
+		<ProjectReference Include="..\ModularMonolith.Template.SourceGenerators.TestKit\ModularMonolith.Template.SourceGenerators.TestKit.csproj" />
 	</ItemGroup>
 
 </Project>

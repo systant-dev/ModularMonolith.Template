@@ -30,6 +30,7 @@
     <Project Path="src/ModularMonolith.Template.SourceGenerators.Shared/ModularMonolith.Template.SourceGenerators.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ModularMonolith.Template.Analysers.Tests/ModularMonolith.Template.Analysers.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.MappingGen.Tests/ModularMonolith.Template.MappingGen.Tests.csproj" Id="9f3d2c41-8b17-4e6a-9d2f-1c5b7a4e0d88" />
     <Project Path="tests/ModularMonolith.Template.ModularGen.Tests/ModularMonolith.Template.ModularGen.Tests.csproj" Id="d804d66f-270a-4a8d-924e-a233f160d83f" />
     <Project Path="tests/ModularMonolith.Template.SharedKernel.Tests/ModularMonolith.Template.SharedKernel.Tests.csproj" />

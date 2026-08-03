@@ -1,15 +1,18 @@
 using ModularMonolith.Template.Api.Exceptions;
+using ModularMonolith.Template.Api.Logging;
 using ModularMonolith.Template.Api.Modular;
 using ModularMonolith.Template.Api.RequestPipeline;
 using Scalar.AspNetCore;
+using Serilog;
 
-WebApplicationBuilder webApplicationBuilder = WebApplication.CreateBuilder(args);
-webApplicationBuilder.Services.AddModules(webApplicationBuilder.Configuration);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+builder.Services.AddModules(builder.Configuration);
 
-webApplicationBuilder.Services.AddOpenApi();
-webApplicationBuilder.Services.AddCustomProblemDetails();
+builder.Services.AddOpenApi();
+builder.Services.AddCustomProblemDetails();
+builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration.ReadFrom.Configuration(builder.Configuration).ReadFrom.Services(services));
 
-WebApplication webApplication = webApplicationBuilder.Build();
+WebApplication webApplication = builder.Build();
 
 if (webApplication.Environment.IsDevelopment())
 {
@@ -23,6 +26,7 @@ if (webApplication.Environment.IsDevelopment())
 webApplication.MapModuleEndpoints(webApplication.Configuration);
 
 webApplication.UseCustomExceptionHandler();
+webApplication.UseEnrichedSerilogRequestLogging();
 webApplication.UseHttpsRedirection();
 webApplication.UseMiddleware<CorrelationIdMiddleware>();
 webApplication.UseStatusCodePages();

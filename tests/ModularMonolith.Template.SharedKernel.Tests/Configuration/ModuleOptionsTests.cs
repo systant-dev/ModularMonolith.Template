@@ -3,6 +3,8 @@ using ModularMonolith.Template.SharedKernel.Configuration;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Configuration;
 
+[Component(TestComponent.SharedKernel)]
+[Category(TestCategory.Configuration)]
 public sealed class ModuleOptionsTests
 {
     #region Test Method Declarations

@@ -4,6 +4,8 @@ using System.Text.Json;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Serialisation;
 
+[Component(TestComponent.SharedKernel)]
+[Category(TestCategory.Serialisation)]
 public sealed class JsonDefaultsTests
 {
     #region Test Method Declarations

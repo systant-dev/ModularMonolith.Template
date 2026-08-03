@@ -3,6 +3,8 @@ using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
 namespace ModularMonolith.Template.ModularGen.Tests.Generators;
 
+[Component(TestComponent.ModularGen)]
+[Category(TestCategory.Generators)]
 public sealed class ModuleRegistrationGeneratorTests
 {
     #region Test Method Declarations

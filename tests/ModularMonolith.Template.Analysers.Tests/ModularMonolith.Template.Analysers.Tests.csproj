@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<Import Project="..\Tests.Common.props" />
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\ModularMonolith.Template.Analysers\ModularMonolith.Template.Analysers.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="ModularMonolith.Template.Analysers" />
+	</ItemGroup>
+
+</Project>

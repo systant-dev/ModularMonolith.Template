@@ -7,6 +7,8 @@ using Moq;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Configuration;
 
+[Component(TestComponent.SharedKernel)]
+[Category(TestCategory.Configuration)]
 public sealed class FluentValidateModuleOptionsTests
 {
     #region Test Method Declarations

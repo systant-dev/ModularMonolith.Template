@@ -7,6 +7,8 @@ using System.Net;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Http;
 
+[Component(TestComponent.SharedKernel)]
+[Category(TestCategory.Http)]
 public sealed class HttpClientBuilderExtensionsTests
 {
     #region Test Method Declarations

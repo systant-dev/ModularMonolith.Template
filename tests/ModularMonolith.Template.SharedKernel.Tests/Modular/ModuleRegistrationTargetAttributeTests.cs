@@ -3,6 +3,8 @@ using ModularMonolith.Template.SharedKernel.Modular;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Modular;
 
+[Component(TestComponent.SharedKernel)]
+[Category(TestCategory.Modular)]
 public sealed class ModuleRegistrationTargetAttributeTests
 {
     #region Test Method Declarations

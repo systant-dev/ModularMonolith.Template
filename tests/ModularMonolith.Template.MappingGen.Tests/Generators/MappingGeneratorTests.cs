@@ -4,6 +4,8 @@ using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
 namespace ModularMonolith.Template.MappingGen.Tests.Generators;
 
+[Component(TestComponent.MappingGen)]
+[Category(TestCategory.Generators)]
 public sealed class MappingGeneratorTests
 {
     #region Test Method Declarations

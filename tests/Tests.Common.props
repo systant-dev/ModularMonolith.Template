@@ -25,6 +25,7 @@
 		<Using Include="VerifyXunit" />
 		<Using Include="Microsoft.CodeAnalysis" />
 		<Using Include="ModularMonolith.Template.SourceGenerators.TestKit" />
+		<Using Include="ModularMonolith.Template.SourceGenerators.TestKit.Traits" />
 	</ItemGroup>
 
 </Project>

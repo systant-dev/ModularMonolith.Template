@@ -4,6 +4,8 @@ using ModularMonolith.Template.SharedKernel.Azure;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Azure;
 
+[Component(TestComponent.SharedKernel)]
+[Category(TestCategory.Azure)]
 public sealed class KeyVaultExtensionsTests
 {
     #region Test Method Declarations

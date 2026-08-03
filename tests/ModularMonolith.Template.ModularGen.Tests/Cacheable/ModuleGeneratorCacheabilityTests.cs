@@ -4,6 +4,8 @@ using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
 namespace ModularMonolith.Template.ModularGen.Tests.Cacheable;
 
+[Component(TestComponent.ModularGen)]
+[Category(TestCategory.Cacheability)]
 public sealed class ModuleGeneratorCacheabilityTests
 {
     #region Field Declarations
