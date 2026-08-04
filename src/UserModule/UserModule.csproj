@@ -6,13 +6,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="FluentValidation" />
+		<PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\ModularMonolith.Template.Analysers\ModularMonolith.Template.Analysers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\ModularMonolith.Template.MappingGen\ModularMonolith.Template.MappingGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-		<ProjectReference Include="..\ModularMonolith.Template.ComplianceGen\ModularMonolith.Template.ComplianceGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
 		<ProjectReference Include="..\UserModule.Contracts\UserModule.Contracts.csproj" />
 	</ItemGroup>

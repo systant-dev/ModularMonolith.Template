@@ -1,7 +1,10 @@
+using Microsoft.Extensions.Compliance.Classification;
+using Microsoft.Extensions.Compliance.Redaction;
 using ModularMonolith.Template.Api.Exceptions;
 using ModularMonolith.Template.Api.Logging;
 using ModularMonolith.Template.Api.Modular;
 using ModularMonolith.Template.Api.RequestPipeline;
+using ModularMonolith.Template.SharedKernel.Compliance;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -11,6 +14,13 @@ builder.Services.AddModules(builder.Configuration);
 builder.Services.AddOpenApi();
 builder.Services.AddCustomProblemDetails();
 builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration.ReadFrom.Configuration(builder.Configuration).ReadFrom.Services(services));
+
+builder.Logging.EnableRedaction();
+builder.Services.AddRedaction(redaction =>
+{
+    redaction.SetRedactor<MaskingRedactor>(new DataClassificationSet(DataTaxonomy.PersonalData));
+    redaction.SetRedactor<ErasingRedactor>(new DataClassificationSet(DataTaxonomy.SensitiveData));
+});
 
 WebApplication webApplication = builder.Build();
 
