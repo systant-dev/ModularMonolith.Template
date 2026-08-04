@@ -4,9 +4,9 @@
 
 namespace Contracts
 {
-    public partial class CustomerClassification : global::ModularMonolith.Template.SharedKernel.Compliance.IModelRedactor<global::Contracts.Customer>
+    public partial class CustomerClassification : global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IModelRedactor<global::Contracts.Customer>
     {
-        public global::Contracts.Customer Redact(global::Contracts.Customer model, global::ModularMonolith.Template.SharedKernel.Compliance.IRedactorProvider redactorProvider)
+        public global::Contracts.Customer Redact(global::Contracts.Customer model, global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IRedactorProvider redactorProvider)
         {
             model.Name = redactorProvider.GetRedactor(global::ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Personal).Redact(model.Name);
             model.Email = redactorProvider.GetRedactor(global::ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Sensitive).Redact(model.Email);

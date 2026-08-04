@@ -4,9 +4,9 @@
 
 namespace Contracts
 {
-    public partial class OrderClassification : global::ModularMonolith.Template.SharedKernel.Compliance.IModelRedactor<global::Contracts.Order>
+    public partial class OrderClassification : global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IModelRedactor<global::Contracts.Order>
     {
-        public global::Contracts.Order Redact(global::Contracts.Order model, global::ModularMonolith.Template.SharedKernel.Compliance.IRedactorProvider redactorProvider)
+        public global::Contracts.Order Redact(global::Contracts.Order model, global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IRedactorProvider redactorProvider)
         {
             model.Reference = redactorProvider.GetRedactor(global::ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Internal).Redact(model.Reference);
             if (model.ShipTo is not null)

@@ -24,7 +24,7 @@ public sealed class ComplianceGeneratorTests
 
         string generated = GeneratorTestHelper.GetGeneratedSource(driver, "CustomerClassification");
 
-        generated.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.IModelRedactor<global::Contracts.Customer>");
+        generated.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IModelRedactor<global::Contracts.Customer>");
         generated.Should().Contain("model.Name = redactorProvider.GetRedactor(global::ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Personal).Redact(model.Name);");
         generated.Should().Contain("model.Email = redactorProvider.GetRedactor(global::ModularMonolith.Template.SharedKernel.Compliance.DataClassification.Sensitive).Redact(model.Email);");
         generated.Should().NotContain("Age");
@@ -93,9 +93,9 @@ public sealed class ComplianceGeneratorTests
         string customer = GeneratorTestHelper.GetGeneratedSource(driver, "CustomerClassification");
         string supplier = GeneratorTestHelper.GetGeneratedSource(driver, "SupplierClassification");
 
-        customer.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.IModelRedactor<global::Contracts.Customer>");
+        customer.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IModelRedactor<global::Contracts.Customer>");
         customer.Should().Contain("model.Name = redactorProvider.GetRedactor(");
-        supplier.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.IModelRedactor<global::Contracts.Supplier>");
+        supplier.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IModelRedactor<global::Contracts.Supplier>");
         supplier.Should().Contain("model.ContactEmail = redactorProvider.GetRedactor(");
     }
 
@@ -106,7 +106,7 @@ public sealed class ComplianceGeneratorTests
 
         string generated = GeneratorTestHelper.GetGeneratedSource(driver, "AccountClassification");
 
-        generated.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.IModelRedactor<global::Account>");
+        generated.Should().Contain("global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IModelRedactor<global::Account>");
         generated.Should().Contain("model.Owner = redactorProvider.GetRedactor(");
         generated.Should().NotContain("namespace");
     }

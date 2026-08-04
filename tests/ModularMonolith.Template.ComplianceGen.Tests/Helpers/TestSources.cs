@@ -9,12 +9,6 @@ internal static class TestSources
         {
             public enum DataClassification { None = 0, Public = 1, Internal = 2, Personal = 3, Sensitive = 4 }
 
-            public interface IStringRedactor { string Redact(string? value); }
-
-            public interface IRedactorProvider { IStringRedactor GetRedactor(DataClassification classification); }
-
-            public interface IModelRedactor<T> { T Redact(T model, IRedactorProvider redactorProvider); }
-
             [global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
             public sealed class ClassificationProfileAttribute : global::System.Attribute
             {
@@ -28,6 +22,15 @@ internal static class TestSources
                 {
                 }
             }
+        }
+
+        namespace ModularMonolith.Template.SharedKernel.Compliance.Redaction
+        {
+            public interface IStringRedactor { string Redact(string? value); }
+
+            public interface IRedactorProvider { global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IStringRedactor GetRedactor(global::ModularMonolith.Template.SharedKernel.Compliance.DataClassification classification); }
+
+            public interface IModelRedactor<T> { T Redact(T model, global::ModularMonolith.Template.SharedKernel.Compliance.Redaction.IRedactorProvider redactorProvider); }
         }
         """;
 
