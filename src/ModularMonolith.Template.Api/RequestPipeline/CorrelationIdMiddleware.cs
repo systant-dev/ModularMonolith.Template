@@ -1,4 +1,6 @@
-﻿namespace ModularMonolith.Template.Api.RequestPipeline;
+﻿using Serilog.Context;
+
+namespace ModularMonolith.Template.Api.RequestPipeline;
 
 public sealed class CorrelationIdMiddleware(RequestDelegate next)
 {
@@ -7,6 +9,8 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
     public const string CorrelationIdHeaderName = "X-Correlation-ID";
 
     public const string CorrelationIdItemKey = "correlationId";
+
+    public const string CorrelationIdLogPropertyName = "CorrelationId";
 
     #endregion
 
@@ -17,7 +21,11 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
         string correlationId = context.Request.Headers[CorrelationIdHeaderName].FirstOrDefault() ?? Guid.NewGuid().ToString("n");
         context.Response.Headers[CorrelationIdHeaderName] = correlationId;
         context.Items[CorrelationIdItemKey] = correlationId;
-        await next(context);
+
+        using (LogContext.PushProperty(CorrelationIdLogPropertyName, correlationId))
+        {
+            await next(context);
+        }
     }
 
     #endregion

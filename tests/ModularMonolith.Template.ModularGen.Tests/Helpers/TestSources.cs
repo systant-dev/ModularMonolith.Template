@@ -8,6 +8,13 @@ internal static class TestSources
         namespace Microsoft.Extensions.DependencyInjection
         {
             public interface IServiceCollection { }
+
+            public interface IHealthChecksBuilder { }
+
+            public static class HealthCheckServiceCollectionExtensions
+            {
+                public static IHealthChecksBuilder AddHealthChecks(this IServiceCollection services) => default!;
+            }
         }
 
         namespace Microsoft.Extensions.Configuration
@@ -58,6 +65,7 @@ internal static class TestSources
             {
                 void RegisterServices(IServiceCollection serviceCollection);
                 void MapEndpoints(IEndpointRouteBuilder endpoints);
+                void RegisterHealthChecks(IHealthChecksBuilder healthChecks) { }
             }
 
             [System.AttributeUsage(System.AttributeTargets.Assembly, AllowMultiple = true)]

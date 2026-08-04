@@ -55,5 +55,85 @@ internal static class TestSources
         }
         """;
 
+    public const string CrossModuleTypes = """
+        namespace UserModule
+        {
+            public sealed class UserStore
+            {
+                public int Count() => 0;
+            }
+        }
+
+        namespace UserModule.Contracts
+        {
+            public sealed class UserResponse
+            {
+                public int Id { get; set; }
+            }
+        }
+        """;
+
+    public const string ModuleReferencingOtherModuleInternal = """
+        namespace OrderModule
+        {
+            using UserModule;
+
+            public sealed class OrderService
+            {
+                public int Count()
+                {
+                    UserStore store = new();
+                    return store.Count();
+                }
+            }
+        }
+        """;
+
+    public const string ModuleReferencingOtherModuleContracts = """
+        namespace OrderModule
+        {
+            using UserModule.Contracts;
+
+            public sealed class OrderService
+            {
+                public int UserId()
+                {
+                    UserResponse response = new();
+                    return response.Id;
+                }
+            }
+        }
+        """;
+
+    public const string ModuleReferencingOwnModuleInternal = """
+        namespace UserModule
+        {
+            public sealed class UserService
+            {
+                public int Count()
+                {
+                    UserStore store = new();
+                    return store.Count();
+                }
+            }
+        }
+        """;
+
+    public const string NonModuleReferencingModuleInternal = """
+        namespace Api
+        {
+            using UserModule;
+
+            public sealed class Startup
+            {
+                public int Count()
+                {
+                    UserStore store = new();
+                    return store.Count();
+                }
+            }
+        }
+        """;
+
     #endregion
 }

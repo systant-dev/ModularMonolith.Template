@@ -6,5 +6,6 @@ public enum TestComponent
     MappingGen,
     ModularGen,
     SharedKernel,
+    UserModule,
     SourceGeneratorsShared
 }

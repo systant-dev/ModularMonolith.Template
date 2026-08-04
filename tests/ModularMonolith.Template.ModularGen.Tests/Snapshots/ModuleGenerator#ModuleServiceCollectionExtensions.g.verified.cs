@@ -18,6 +18,7 @@ public static partial class ModuleServiceCollectionExtensions
         {
             global::ExampleModuleA.Module module0 = new();
             module0.RegisterServices(serviceCollection);
+            ((global::ModularMonolith.Template.SharedKernel.Modular.IModule)module0).RegisterHealthChecks(serviceCollection.AddHealthChecks());
         }
 
     }

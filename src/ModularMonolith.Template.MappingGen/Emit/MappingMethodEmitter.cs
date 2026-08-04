@@ -34,6 +34,33 @@ internal static class MappingMethodEmitter
         builder.Append(indent);
         builder.AppendLine("{");
 
+        if (info.IsGeneric)
+        {
+            EmitGenericMethod(builder, info, targets, indent);
+        }
+        else
+        {
+            EmitConcreteMethod(builder, info, targets, indent);
+        }
+
+        builder.Append(indent);
+        builder.AppendLine("}");
+
+        if (hasNamespace)
+        {
+            builder.AppendLine("}");
+        }
+
+        string source = builder.ToString();
+        return source;
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private static void EmitGenericMethod(StringBuilder builder, MapMethodInfo info, ImmutableArray<MapTargetInfo> targets, string indent)
+    {
         builder.Append(indent);
         builder.Append("    ");
         builder.Append(info.Accessibility);
@@ -71,29 +98,7 @@ internal static class MappingMethodEmitter
             builder.Append(")(object)new ");
             builder.Append(target.TargetTypeName);
 
-            if (target.Assignments.Length > 0)
-            {
-                builder.AppendLine();
-                builder.Append(indent);
-                builder.AppendLine("            {");
-
-                foreach (MapPropertyAssignment assignment in target.Assignments)
-                {
-                    builder.Append(indent);
-                    builder.Append("                ");
-                    builder.Append(assignment.TargetProperty);
-                    builder.Append(" = ");
-                    builder.Append(assignment.ValueExpression);
-                    builder.AppendLine(",");
-                }
-
-                builder.Append(indent);
-                builder.AppendLine("            };");
-            }
-            else
-            {
-                builder.AppendLine("();");
-            }
+            EmitInitializer(builder, target, indent, "            ");
 
             builder.Append(indent);
             builder.AppendLine("        }");
@@ -108,16 +113,71 @@ internal static class MappingMethodEmitter
 
         builder.Append(indent);
         builder.AppendLine("    }");
-        builder.Append(indent);
-        builder.AppendLine("}");
+    }
 
-        if (hasNamespace)
+    private static void EmitConcreteMethod(StringBuilder builder, MapMethodInfo info, ImmutableArray<MapTargetInfo> targets, string indent)
+    {
+        builder.Append(indent);
+        builder.Append("    ");
+        builder.Append(info.Accessibility);
+        builder.Append(" static partial ");
+        builder.Append(info.ReturnTypeName);
+        builder.Append(' ');
+        builder.Append(info.MethodName);
+        builder.Append("(this ");
+        builder.Append(info.SourceTypeName);
+        builder.Append(' ');
+        builder.Append(info.SourceParameterName);
+        builder.AppendLine(")");
+
+        builder.Append(indent);
+        builder.AppendLine("    {");
+
+        builder.Append(indent);
+        builder.Append("        return new ");
+        builder.Append(info.ReturnTypeName);
+
+        if (targets.Length > 0)
         {
-            builder.AppendLine("}");
+            EmitInitializer(builder, targets[0], indent, "        ");
+        }
+        else
+        {
+            builder.AppendLine("();");
         }
 
-        string source = builder.ToString();
-        return source;
+        builder.Append(indent);
+        builder.AppendLine("    }");
+    }
+
+    private static void EmitInitializer(StringBuilder builder, MapTargetInfo target, string indent, string bodyIndent)
+    {
+        if (target.Assignments.Length > 0)
+        {
+            builder.AppendLine();
+            builder.Append(indent);
+            builder.Append(bodyIndent);
+            builder.AppendLine("{");
+
+            foreach (MapPropertyAssignment assignment in target.Assignments)
+            {
+                builder.Append(indent);
+                builder.Append(bodyIndent);
+                builder.Append("    ");
+                builder.Append(assignment.TargetProperty);
+                builder.Append(" = ");
+                builder.Append(assignment.ValueExpression);
+                builder.AppendLine(",");
+            }
+
+            builder.Append(indent);
+            builder.Append(bodyIndent);
+            builder.AppendLine("};");
+        }
+        else
+        {
+            builder.AppendLine("();");
+        }
     }
 
     #endregion

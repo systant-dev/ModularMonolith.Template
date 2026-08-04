@@ -67,6 +67,21 @@ public sealed class MappingGeneratorTests
     }
 
     [Fact]
+    public void EmitsDirectBodyForConcreteReturnType()
+    {
+        GeneratorDriver driver = GeneratorTestHelper.RunGenerator<MappingGenerator>(TestSources.ConcreteReturnType);
+
+        string generated = GeneratorTestHelper.GetGeneratedSource(driver, "ProductMapper");
+
+        generated.Should().Contain("static partial global::Contracts.ProductDto ToDto(this global::Contracts.Product source)");
+        generated.Should().Contain("return new global::Contracts.ProductDto");
+        generated.Should().Contain("Id = source.Id,");
+        generated.Should().Contain("Name = source.Name,");
+        generated.Should().NotContain("typeof(");
+        generated.Should().NotContain("NotSupportedException");
+    }
+
+    [Fact]
     public void ReportsDiagnosticForUnmappableRequiredMember()
     {
         System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics =

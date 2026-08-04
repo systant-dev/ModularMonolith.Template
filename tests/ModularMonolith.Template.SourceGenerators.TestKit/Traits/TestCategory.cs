@@ -10,5 +10,6 @@ public enum TestCategory
     Configuration,
     Http,
     Modular,
+    Messaging,
     Serialisation
 }

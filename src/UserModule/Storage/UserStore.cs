@@ -28,14 +28,17 @@ internal sealed class UserStore
 
     public User? Update(int id, User user)
     {
-        if (!_users.ContainsKey(id))
+        User updated = user with { Id = id };
+
+        while (_users.TryGetValue(id, out User? existing))
         {
-            return null;
+            if (_users.TryUpdate(id, updated, existing))
+            {
+                return updated;
+            }
         }
 
-        User updated = user with { Id = id };
-        _users[id] = updated;
-        return updated;
+        return null;
     }
 
     public bool Remove(int id) => _users.TryRemove(id, out _);

@@ -62,6 +62,7 @@ internal static class ModuleExtensionsEmitter
                         {
                             global::{{moduleInfo.ModuleNamespace}}.{{moduleInfo.ModuleName}} module{{count}} = new();
                             module{{count}}.RegisterServices(serviceCollection);
+                            ((global::ModularMonolith.Template.SharedKernel.Modular.IModule)module{{count}}).RegisterHealthChecks(serviceCollection.AddHealthChecks());
                         }
 
                 """);

@@ -114,6 +114,29 @@ internal static class TestSources
         }
         """;
 
+    public const string ConcreteReturnType = """
+        namespace Contracts
+        {
+            public sealed class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+
+            public sealed class ProductDto
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = string.Empty;
+            }
+
+            public static partial class ProductMapper
+            {
+                [ModularMonolith.Template.MappingGen.Map]
+                public static partial ProductDto ToDto(this Product source);
+            }
+        }
+        """;
+
     public const string UnmappableRequiredMember = """
         namespace Contracts
         {

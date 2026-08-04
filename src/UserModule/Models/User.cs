@@ -3,11 +3,11 @@ using ModularMonolith.Template.SharedKernel.Compliance;
 
 namespace UserModule.Models;
 
-internal sealed partial record User
+internal sealed record User
 {
     #region Property Declarations
 
-    public required int Id { get; init; }
+    public int Id { get; init; }
 
     [PersonalData]
     public required string FullName { get; set; }

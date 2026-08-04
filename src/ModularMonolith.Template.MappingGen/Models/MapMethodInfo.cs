@@ -6,7 +6,10 @@ internal readonly record struct MapMethodInfo(string Key,
                                               string ContainingTypeKeyword,
                                               string Accessibility,
                                               string MethodName,
+                                              bool IsGeneric,
                                               string TypeParameterName,
                                               string ConstraintClause,
                                               string SourceParameterName,
-                                              string SourceTypeName);
+                                              string SourceTypeName,
+                                              string ReturnTypeName,
+                                              MapTargetInfo? ConcreteTarget);

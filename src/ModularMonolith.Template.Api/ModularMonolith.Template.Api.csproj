@@ -1,14 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<ItemGroup>
-	  <Compile Remove="Http Endpoints\**" />
-	  <Content Remove="Http Endpoints\**" />
-	  <EmbeddedResource Remove="Http Endpoints\**" />
-	  <None Remove="Http Endpoints\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Asp.Versioning.Http" />
+		<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
 		<PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
 		<PackageReference Include="Microsoft.Extensions.Telemetry" />
 		<PackageReference Include="Microsoft.OpenApi" />
@@ -20,6 +15,10 @@
 	  <ProjectReference Include="..\UserModule\UserModule.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Logs\" />
 	</ItemGroup>
 
 </Project>

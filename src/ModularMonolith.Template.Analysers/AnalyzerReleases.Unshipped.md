@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 MM0001 | Usage | Error | ModuleAttributeAnalyzer
+MM0002 | Design | Warning | ModuleIsolationAnalyser

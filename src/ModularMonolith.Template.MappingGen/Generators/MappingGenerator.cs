@@ -68,14 +68,25 @@ public sealed class MappingGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(methodProvider.Combine(targetProvider), static (sourceContext, pair) =>
         {
             ImmutableArray<MapMethodInfo> methods = pair.Left;
-            ImmutableArray<MapTargetInfo> targets = pair.Right;
+            ImmutableArray<MapTargetInfo> invocationTargets = pair.Right;
 
             foreach (MapMethodInfo method in methods)
             {
-                ImmutableArray<MapTargetInfo> matchingTargets = [.. targets.Where(target => target.Key == method.Key)];
-                ImmutableArray<MapTargetInfo> methodTargets = [.. matchingTargets.GroupBy(target => target.TargetTypeName).Select(group => group.First())];
+                ImmutableArray<MapTargetInfo> diagnosticTargets;
+                ImmutableArray<MapTargetInfo> methodTargets;
 
-                foreach (MapTargetInfo target in matchingTargets)
+                if (method.IsGeneric)
+                {
+                    diagnosticTargets = [.. invocationTargets.Where(target => target.Key == method.Key)];
+                    methodTargets = [.. diagnosticTargets.GroupBy(target => target.TargetTypeName).Select(group => group.First())];
+                }
+                else
+                {
+                    methodTargets = method.ConcreteTarget is { } concrete ? [concrete] : [];
+                    diagnosticTargets = methodTargets;
+                }
+
+                foreach (MapTargetInfo target in diagnosticTargets)
                 {
                     foreach (Diagnostic diagnostic in MappingDiagnostics.GetDiagnostics(method, target))
                     {
@@ -83,7 +94,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
                     }
                 }
 
-                string source = MappingMethodEmitter.Emit(method, targets);
+                string source = MappingMethodEmitter.Emit(method, methodTargets);
                 string hintName = $"{method.Key}.g.cs";
                 sourceContext.AddSource(hintName, source);
             }
@@ -99,8 +110,6 @@ public sealed class MappingGenerator : IIncrementalGenerator
         return node is MethodDeclarationSyntax method
             && method.Modifiers.Any(SyntaxKind.PartialKeyword)
             && method.Modifiers.Any(SyntaxKind.StaticKeyword)
-            && method.TypeParameterList is not null
-            && method.TypeParameterList.Parameters.Count == 1
             && method.ParameterList.Parameters.Count >= 1
             && method.Parent is TypeDeclarationSyntax;
     }
@@ -114,14 +123,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
 
         if (!methodSymbol.IsStatic
             || !methodSymbol.IsPartialDefinition
-            || methodSymbol.TypeParameters.Length != 1
             || methodSymbol.Parameters.Length < 1)
-        {
-            return null;
-        }
-
-        ITypeParameterSymbol typeParameter = methodSymbol.TypeParameters[0];
-        if (!SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, typeParameter))
         {
             return null;
         }
@@ -132,9 +134,51 @@ public sealed class MappingGenerator : IIncrementalGenerator
         }
 
         INamedTypeSymbol containingType = methodSymbol.ContainingType;
+        string key = SymbolFormatting.CreateKey(containingType, methodSymbol.Name);
+        string sourceParameterName = methodSymbol.Parameters[0].Name;
+
+        bool isGeneric;
+        string typeParameterName;
+        string constraintClause;
+        string returnTypeName;
+        MapTargetInfo? concreteTarget;
+
+        if (methodSymbol.TypeParameters.Length == 1
+            && SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, methodSymbol.TypeParameters[0]))
+        {
+            ITypeParameterSymbol typeParameter = methodSymbol.TypeParameters[0];
+            isGeneric = true;
+            typeParameterName = typeParameter.Name;
+            constraintClause = SymbolFormatting.GetConstraintClause(typeParameter);
+            returnTypeName = typeParameter.Name;
+            concreteTarget = null;
+        }
+        else if (methodSymbol.TypeParameters.Length == 0
+            && methodSymbol.ReturnType is INamedTypeSymbol targetType
+            && targetType.SpecialType != SpecialType.System_Void)
+        {
+            isGeneric = false;
+            typeParameterName = string.Empty;
+            constraintClause = string.Empty;
+            returnTypeName = targetType.ToDisplayString(FullyQualifiedFormat);
+
+            MappingResolution resolution = MappingResolver.Resolve(sourceType, targetType, sourceParameterName, context.SemanticModel.Compilation);
+            concreteTarget = new MapTargetInfo(
+                Key: key,
+                TargetTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
+                Assignments: resolution.Assignments,
+                UnmappedRequiredMembers: resolution.UnmappedRequiredMembers,
+                IncompatibleMembers: resolution.IncompatibleMembers,
+                CycleMembers: resolution.CycleMembers,
+                Location: LocationInfo.CreateFrom(context.TargetNode));
+        }
+        else
+        {
+            return null;
+        }
 
         MapMethodInfo mapMethodInfo = new(
-            Key: SymbolFormatting.CreateKey(containingType, methodSymbol.Name),
+            Key: key,
             Namespace: containingType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : containingType.ContainingNamespace.ToDisplayString(),
@@ -142,10 +186,13 @@ public sealed class MappingGenerator : IIncrementalGenerator
             ContainingTypeKeyword: SymbolFormatting.GetTypeKeyword(containingType),
             Accessibility: SymbolFormatting.GetAccessibilityKeyword(methodSymbol.DeclaredAccessibility),
             MethodName: methodSymbol.Name,
-            TypeParameterName: typeParameter.Name,
-            ConstraintClause: SymbolFormatting.GetConstraintClause(typeParameter),
-            SourceParameterName: methodSymbol.Parameters[0].Name,
-            SourceTypeName: sourceType.ToDisplayString(FullyQualifiedFormat));
+            IsGeneric: isGeneric,
+            TypeParameterName: typeParameterName,
+            ConstraintClause: constraintClause,
+            SourceParameterName: sourceParameterName,
+            SourceTypeName: sourceType.ToDisplayString(FullyQualifiedFormat),
+            ReturnTypeName: returnTypeName,
+            ConcreteTarget: concreteTarget);
         return mapMethodInfo;
     }
 

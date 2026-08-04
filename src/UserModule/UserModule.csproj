@@ -5,6 +5,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="ModularMonolith.Template.UserModule.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="FluentValidation" />
 		<PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" />
 	</ItemGroup>
