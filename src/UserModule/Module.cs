@@ -2,6 +2,8 @@ using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
@@ -31,7 +33,15 @@ public sealed class Module : IModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/users");
+        ApiVersionSet apiVersionSet = endpoints.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/users")
+            .WithApiVersionSet(apiVersionSet)
+            .HasApiVersion(new ApiVersion(1, 0));
+
         group.RequireRateLimiting("default");
         group.WithRequestTimeout("default");
 

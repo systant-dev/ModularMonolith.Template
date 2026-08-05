@@ -11,5 +11,6 @@ public enum TestCategory
     Http,
     Modular,
     Messaging,
-    Serialisation
+    Serialisation,
+    Validation
 }

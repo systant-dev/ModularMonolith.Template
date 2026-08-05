@@ -1,10 +1,35 @@
-﻿using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.Compliance.Classification;
+using Microsoft.Extensions.Compliance.Redaction;
+using Microsoft.Extensions.Primitives;
+using ModularMonolith.Template.SharedKernel.Compliance;
 using Serilog;
+using Serilog.Extensions.Hosting;
 
 namespace ModularMonolith.Template.Api.Logging;
 
 public static class SerilogExtensions
 {
+    extension(WebApplicationBuilder builder)
+    {
+        public void AddSerilogWithRedaction()
+        {
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .CreateLogger();
+
+            builder.Logging.AddSerilog(dispose: true);
+            builder.Services.AddSingleton(_ => new DiagnosticContext(Log.Logger));
+            builder.Services.AddSingleton<IDiagnosticContext>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticContext>());
+
+            builder.Logging.EnableRedaction();
+            builder.Services.AddRedaction(redaction =>
+            {
+                redaction.SetRedactor<MaskingRedactor>(new DataClassificationSet(DataTaxonomy.PersonalData));
+                redaction.SetRedactor<ErasingRedactor>(new DataClassificationSet(DataTaxonomy.SensitiveData));
+            });
+        }
+    }
+
     extension(WebApplication webApplication)
     {
         public void UseEnrichedSerilogRequestLogging()
