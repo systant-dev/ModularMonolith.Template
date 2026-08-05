@@ -1,14 +1,14 @@
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
+using ModularMonolith.Template.Api.Tests.Infrastructure;
 using System.Net;
 
 namespace ModularMonolith.Template.Api.Tests.Versioning;
 
-public sealed class ApiVersioningTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ApiVersioningTests(TestWebApplicationFactory factory) : IClassFixture<TestWebApplicationFactory>
 {
     #region Field Declarations
 
-    private readonly WebApplicationFactory<Program> factory = factory;
+    private readonly TestWebApplicationFactory factory = factory;
 
     #endregion
 

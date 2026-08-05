@@ -7,6 +7,7 @@ using Asp.Versioning.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
+using ModularMonolith.Template.SharedKernel.Security;
 using ModularMonolith.Template.SharedKernel.Validation;
 using UserModule.Configuration;
 using UserModule.Contracts.Requests;
@@ -45,11 +46,11 @@ public sealed class Module : IModule
         group.RequireRateLimiting("default");
         group.WithRequestTimeout("default");
 
-        group.MapGet("/", UserEndpoints.GetAll);
-        group.MapGet("/{id:int}", UserEndpoints.Get);
-        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>();
-        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>();
-        group.MapDelete("/{id:int}", UserEndpoints.Delete);
+        group.MapGet("/", UserEndpoints.GetAll).RequireAuthorization(AuthorizationPolicies.ReadAccess);
+        group.MapGet("/{id:int}", UserEndpoints.Get).RequireAuthorization(AuthorizationPolicies.ReadAccess);
+        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
+        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
+        group.MapDelete("/{id:int}", UserEndpoints.Delete).RequireAuthorization(AuthorizationPolicies.WriteAccess);
     }
 
     #endregion

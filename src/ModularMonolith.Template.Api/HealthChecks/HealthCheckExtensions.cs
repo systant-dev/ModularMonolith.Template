@@ -19,12 +19,12 @@ public static class HealthCheckExtensions
             endpoints.MapHealthChecks("/health/live", new HealthCheckOptions
             {
                 Predicate = registration => registration.Tags.Contains(LiveTag) || registration.Tags.Count == 0,
-            });
+            }).AllowAnonymous();
 
             endpoints.MapHealthChecks("/health/ready", new HealthCheckOptions
             {
                 Predicate = registration => registration.Tags.Contains(ReadyTag),
-            });
+            }).AllowAnonymous();
 
             return endpoints;
         }
