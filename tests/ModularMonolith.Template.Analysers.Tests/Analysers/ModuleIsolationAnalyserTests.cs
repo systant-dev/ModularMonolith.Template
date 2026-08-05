@@ -1,8 +1,7 @@
-using System.Collections.Immutable;
 using FluentAssertions;
-using Microsoft.CodeAnalysis;
 using ModularMonolith.Template.Analysers.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
+using System.Collections.Immutable;
 
 namespace ModularMonolith.Template.Analysers.Tests.Analysers;
 

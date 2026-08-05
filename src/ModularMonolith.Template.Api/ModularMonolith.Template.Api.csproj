@@ -17,8 +17,4 @@
 	  <ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Logs\" />
-	</ItemGroup>
-
 </Project>

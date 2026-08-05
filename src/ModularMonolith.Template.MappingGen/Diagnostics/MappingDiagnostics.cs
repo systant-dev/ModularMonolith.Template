@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis;
 using ModularMonolith.Template.MappingGen.Models;
-using System.Collections.Generic;
 
 namespace ModularMonolith.Template.MappingGen.Diagnostics;
 

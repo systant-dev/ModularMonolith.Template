@@ -1,7 +1,5 @@
 using FluentAssertions;
-using Microsoft.CodeAnalysis;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
-using ModularMonolith.Template.SourceGenerators.TestKit.Traits;
 
 namespace ModularMonolith.Template.SourceGenerators.Shared.Tests.Analysis;
 

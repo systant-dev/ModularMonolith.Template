@@ -1,13 +1,10 @@
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net;
 
-namespace ModularMonolith.Template.Api.Tests;
+namespace ModularMonolith.Template.Api.Tests.Integrations;
 
-public sealed class UserEndpointsTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class UserEndpointsTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
     #region Field Declarations
 
@@ -15,7 +12,7 @@ public sealed class UserEndpointsTests(WebApplicationFactory<Program> factory)
 
     #endregion
 
-    #region Test Methods
+    #region Test Method Declarations
 
     [Fact]
     public async Task GetAllUsers_ReturnsSuccess()

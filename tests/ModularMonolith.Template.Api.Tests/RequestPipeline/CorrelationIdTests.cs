@@ -1,13 +1,9 @@
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace ModularMonolith.Template.Api.Tests;
+namespace ModularMonolith.Template.Api.Tests.RequestPipeline;
 
-public sealed class CorrelationIdTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class CorrelationIdTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
     #region Field Declarations
 
@@ -17,7 +13,7 @@ public sealed class CorrelationIdTests(WebApplicationFactory<Program> factory)
 
     #endregion
 
-    #region Test Methods
+    #region Test Method Declarations
 
     [Fact]
     public async Task Response_EchoesClientProvidedCorrelationId()

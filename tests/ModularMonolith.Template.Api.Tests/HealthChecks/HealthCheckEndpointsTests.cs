@@ -1,10 +1,8 @@
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net;
 
-namespace ModularMonolith.Template.Api.Tests;
+namespace ModularMonolith.Template.Api.Tests.HealthChecks;
 
 public sealed class HealthCheckEndpointsTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
@@ -15,7 +13,7 @@ public sealed class HealthCheckEndpointsTests(WebApplicationFactory<Program> fac
 
     #endregion
 
-    #region Test Methods
+    #region Test Method Declarations
 
     [Fact]
     public async Task LivenessEndpoint_ReturnsHealthy()

@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using System.Collections.Concurrent;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Messaging;
 
