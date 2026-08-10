@@ -1,6 +1,7 @@
 using ModularMonolith.Template.Api.Exceptions;
 using ModularMonolith.Template.Api.HealthChecks;
 using ModularMonolith.Template.Api.Logging;
+using ModularMonolith.Template.Api.Messaging;
 using ModularMonolith.Template.Api.Modular;
 using ModularMonolith.Template.Api.Observability;
 using ModularMonolith.Template.Api.RequestPipeline;
@@ -13,6 +14,7 @@ using Scalar.AspNetCore;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInProcessMessaging();
+builder.Services.AddGeneratedMessageDispatch();
 builder.Services.AddCustomProblemDetails();
 builder.Services.AddHealthChecks();
 builder.Services.AddModuleApiVersioning();

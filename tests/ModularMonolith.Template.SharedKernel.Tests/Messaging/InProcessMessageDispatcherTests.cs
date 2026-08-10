@@ -104,6 +104,7 @@ public sealed class InProcessMessageDispatcherTests
     {
         ServiceCollection services = new();
         services.AddInProcessMessaging();
+        services.AddSingleton<IMessageDispatchMap, TestDispatchMap>();
         configure(services);
         return services.BuildServiceProvider();
     }
@@ -113,6 +114,20 @@ public sealed class InProcessMessageDispatcherTests
     #region Nested Types
 
     private sealed record TestMessage : IMessage;
+
+    private sealed class TestDispatchMap : IMessageDispatchMap
+    {
+        public Task DispatchAsync(IServiceProvider serviceProvider, IMessage message, DispatchMode mode, CancellationToken cancellationToken)
+        {
+            return message switch
+            {
+                TestMessage typedMessage => MessageHandlerInvoker.InvokeAsync(serviceProvider, typedMessage, mode, cancellationToken),
+                _ => throw new InvalidOperationException($"No dispatch entry for '{message.GetType().FullName}'."),
+            };
+        }
+
+        public bool CanDispatch(Type messageType) => messageType == typeof(TestMessage);
+    }
 
     private sealed class RecordingHandler(string name, List<string> log) : IMessageHandler<TestMessage>
     {

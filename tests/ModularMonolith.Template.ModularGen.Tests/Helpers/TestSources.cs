@@ -96,5 +96,66 @@ internal static class TestSources
         }
         """;
 
+    public const string MessagingMarkerTypes = """
+        namespace Microsoft.Extensions.DependencyInjection
+        {
+            public interface IServiceCollection { }
+        }
+
+        namespace Microsoft.Extensions.DependencyInjection.Extensions
+        {
+            using Microsoft.Extensions.DependencyInjection;
+
+            public static class ServiceCollectionDescriptorExtensions
+            {
+                public static IServiceCollection TryAddSingleton<TService, TImplementation>(this IServiceCollection services)
+                    where TImplementation : class, TService => services;
+            }
+        }
+
+        namespace ModularMonolith.Template.SharedKernel.Messaging
+        {
+            public interface IMessage { }
+
+            public interface IMessageHandler<in TMessage>
+                where TMessage : IMessage
+            {
+                System.Threading.Tasks.Task HandleAsync(TMessage message, System.Threading.CancellationToken cancellationToken = default);
+            }
+
+            public enum DispatchMode { Sequential, Concurrent }
+
+            public interface IMessageDispatchMap
+            {
+                System.Threading.Tasks.Task DispatchAsync(System.IServiceProvider serviceProvider, IMessage message, DispatchMode mode, System.Threading.CancellationToken cancellationToken);
+                bool CanDispatch(System.Type messageType);
+            }
+
+            public static class MessageHandlerInvoker
+            {
+                public static System.Threading.Tasks.Task InvokeAsync<TMessage>(System.IServiceProvider serviceProvider, TMessage message, DispatchMode mode, System.Threading.CancellationToken cancellationToken)
+                    where TMessage : IMessage => System.Threading.Tasks.Task.CompletedTask;
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = false)]
+            public sealed class MessageDispatchMapTargetAttribute : System.Attribute { }
+        }
+        """;
+
+    public const string ExampleMessageAndHandler = """
+        namespace ExampleModuleA.Messages
+        {
+            using ModularMonolith.Template.SharedKernel.Messaging;
+
+            public sealed record UserCreated : IMessage;
+
+            public sealed class UserCreatedHandler : IMessageHandler<UserCreated>
+            {
+                public System.Threading.Tasks.Task HandleAsync(UserCreated message, System.Threading.CancellationToken cancellationToken = default)
+                    => System.Threading.Tasks.Task.CompletedTask;
+            }
+        }
+        """;
+
     #endregion
 }
