@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+		<ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
+	</ItemGroup>
+
+</Project>

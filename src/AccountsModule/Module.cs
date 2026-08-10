@@ -1,0 +1,78 @@
+using FluentValidation;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using ModularMonolith.Template.SharedKernel.Configuration;
+using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Modular;
+using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.SharedKernel.Security;
+using ModularMonolith.Template.SharedKernel.Validation;
+using AccountsModule.Configuration;
+using AccountsModule.Contracts.Requests;
+using AccountsModule.Endpoints;
+using AccountsModule.Messaging;
+using AccountsModule.Services;
+using AccountsModule.Storage;
+using UserModule.Contracts.Events;
+
+namespace AccountsModule;
+
+[Module]
+public sealed class Module : IModule
+{
+    #region Public Method Declarations
+
+    public void RegisterServices(IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddValidatedOptions<AccountsModuleOptions, AccountsModuleOptionsValidator>(nameof(AccountsModule));
+
+        // This template uses Dapper over SQL Server (LocalDB in the example) so the persisted SQL
+        // matches the production dialect. Automated tests substitute an in-memory IAccountStore, so no
+        // database server is required to run them.
+        serviceCollection.AddSingleton(provider =>
+        {
+            AccountsModuleOptions options = provider
+                .GetRequiredService<IOptions<AccountsModuleOptions>>().Value;
+            return new SqlServerConnectionFactory(options.ConnectionString);
+        });
+
+        serviceCollection.AddScoped<IModuleDatabaseInitialiser, AccountsModuleDatabaseInitialiser>();
+        serviceCollection.AddOutboxStore<SqlServerAccountStore>();
+        serviceCollection.AddScoped<IAccountStore>(provider => provider.GetRequiredService<SqlServerAccountStore>());
+
+        serviceCollection.AddScoped<IAccountService, AccountService>();
+        serviceCollection.AddScoped<IValidator<CreateAccountRequest>, Validation.CreateAccountRequestValidator>();
+        serviceCollection.AddScoped<IValidator<UpdateAccountRequest>, Validation.UpdateAccountRequestValidator>();
+
+        // React to users being created in the User module by opening a savings account for them.
+        serviceCollection.AddMessageHandler<UserCreatedIntegrationEvent, UserCreatedHandler>();
+    }
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        ApiVersionSet apiVersionSet = endpoints.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1, 0))
+            .ReportApiVersions()
+            .Build();
+
+        RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/accounts")
+            .WithApiVersionSet(apiVersionSet)
+            .HasApiVersion(new ApiVersion(1, 0));
+
+        group.RequireRateLimiting("default");
+        group.WithRequestTimeout("default");
+
+        group.MapGet("/", AccountEndpoints.GetAll).RequireAuthorization(AuthorizationPolicies.ReadAccess);
+        group.MapGet("/{id:int}", AccountEndpoints.Get).RequireAuthorization(AuthorizationPolicies.ReadAccess);
+        group.MapPost("/", AccountEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateAccountRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
+        group.MapPut("/{id:int}", AccountEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateAccountRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
+        group.MapDelete("/{id:int}", AccountEndpoints.Delete).RequireAuthorization(AuthorizationPolicies.WriteAccess);
+    }
+
+    #endregion
+}

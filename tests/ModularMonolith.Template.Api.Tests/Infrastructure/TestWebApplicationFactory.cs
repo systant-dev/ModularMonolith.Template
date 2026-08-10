@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.AccountsModule.Tests.Storage;
 using ModularMonolith.Template.UserModule.Tests.Storage;
+using AccountsModule.Storage;
 using UserModule.Storage;
 
 namespace ModularMonolith.Template.Api.Tests.Infrastructure;
@@ -30,6 +32,7 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
 
             UseInMemoryUserStore(services);
+            UseInMemoryAccountStore(services);
             RemoveDatabaseInitialisers(services);
             RemoveOutboxProcessor(services);
         });
@@ -47,6 +50,16 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
         // Singleton so data persists across the scoped requests of a single test host.
         InMemoryUserStore store = new();
         services.AddSingleton<IUserStore>(store);
+    }
+
+    private static void UseInMemoryAccountStore(IServiceCollection services)
+    {
+        RemoveAll(services, typeof(IAccountStore));
+        RemoveAll(services, typeof(SqlServerAccountStore));
+
+        // Singleton so data persists across the scoped requests of a single test host.
+        InMemoryAccountStore store = new();
+        services.AddSingleton<IAccountStore>(store);
     }
 
     private static void RemoveDatabaseInitialisers(IServiceCollection services) =>

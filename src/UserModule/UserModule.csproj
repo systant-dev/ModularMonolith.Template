@@ -22,6 +22,7 @@
 		<ProjectReference Include="..\ModularMonolith.Template.MappingGen\ModularMonolith.Template.MappingGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
+		<ProjectReference Include="..\AccountsModule.Contracts\AccountsModule.Contracts.csproj" />
 		<ProjectReference Include="..\UserModule.Contracts\UserModule.Contracts.csproj" />
 	</ItemGroup>
 

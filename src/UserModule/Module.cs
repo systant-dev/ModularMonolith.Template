@@ -7,13 +7,16 @@ using Asp.Versioning.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Configuration;
+using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Modular;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Security;
 using ModularMonolith.Template.SharedKernel.Validation;
+using AccountsModule.Contracts.Events;
 using UserModule.Configuration;
 using UserModule.Contracts.Requests;
 using UserModule.Endpoints;
+using UserModule.Messaging;
 using UserModule.Services;
 using UserModule.Storage;
 
@@ -45,6 +48,9 @@ public sealed class Module : IModule
         serviceCollection.AddScoped<IUserService, UserService>();
         serviceCollection.AddScoped<IValidator<CreateUserRequest>, Validation.CreateUserRequestValidator>();
         serviceCollection.AddScoped<IValidator<UpdateUserRequest>, Validation.UpdateUserRequestValidator>();
+
+        // React to savings accounts being opened for our users by the Accounts module.
+        serviceCollection.AddMessageHandler<AccountOpenedIntegrationEvent, AccountOpenedHandler>();
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)

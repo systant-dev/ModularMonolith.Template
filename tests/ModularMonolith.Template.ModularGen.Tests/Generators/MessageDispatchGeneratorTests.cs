@@ -36,7 +36,7 @@ public sealed class MessageDispatchGeneratorTests
         // errors and snapshot the generated source instead.
         CSharpCompilation compilation = GeneratorTestHelper.CreateCompilation(source);
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new MessageDispatchGenerator());
-        driver = driver.RunGenerators(compilation);
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
 
         return Verify(driver).UseFileName("MessageDispatchGenerator");
     }

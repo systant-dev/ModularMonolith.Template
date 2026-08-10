@@ -14,6 +14,10 @@
     <Project Path="src/ModularMonolith.Template.SharedKernel/ModularMonolith.Template.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/src/Example Modules/" />
+  <Folder Name="/src/Example Modules/AccountsModule/">
+    <Project Path="src/AccountsModule.Contracts/AccountsModule.Contracts.csproj" />
+    <Project Path="src/AccountsModule/AccountsModule.csproj" />
+  </Folder>
   <Folder Name="/src/Example Modules/UserModule/">
     <Project Path="src/UserModule.Contracts/UserModule.Contracts.csproj" />
     <Project Path="src/UserModule/UserModule.csproj" />
@@ -32,6 +36,7 @@
     <Project Path="tests/ModularMonolith.Template.SharedKernel.Tests/ModularMonolith.Template.SharedKernel.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.SourceGenerators.Shared.Tests/ModularMonolith.Template.SourceGenerators.Shared.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.SourceGenerators.TestKit/ModularMonolith.Template.SourceGenerators.TestKit.csproj" />
+    <Project Path="tests/ModularMonolith.Template.AccountsModule.Tests/ModularMonolith.Template.AccountsModule.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.UserModule.Tests/ModularMonolith.Template.UserModule.Tests.csproj" />
   </Folder>
 </Solution>

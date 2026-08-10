@@ -19,6 +19,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\UserModule\UserModule.csproj" />
+	  <ProjectReference Include="..\AccountsModule\AccountsModule.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
