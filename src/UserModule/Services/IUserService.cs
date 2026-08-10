@@ -7,15 +7,15 @@ internal interface IUserService
 {
     #region Method Declarations
 
-    IReadOnlyCollection<UserResponse> GetAll();
+    Task<IReadOnlyCollection<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
-    UserResponse? Find(int id);
+    Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default);
 
-    UserResponse Create(CreateUserRequest request);
+    Task<UserResponse> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default);
 
-    UserResponse? Update(int id, UpdateUserRequest request);
+    Task<UserResponse?> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default);
 
-    bool Delete(int id);
+    Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 
     #endregion
 }

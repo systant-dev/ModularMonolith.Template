@@ -14,20 +14,20 @@ public static class ProblemDetailsExtensions
             {
                 options.CustomizeProblemDetails = context =>
                 {
-                    context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
-                    context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+                    HttpContext httpContext = context.HttpContext;
+                    context.ProblemDetails.Instance = $"{httpContext.Request.Method} {httpContext.Request.Path}";
+                    context.ProblemDetails.Extensions.TryAdd("requestId", httpContext.TraceIdentifier);
 
-                    Activity? activity = context.HttpContext.Features.Get<IHttpActivityFeature>()?.Activity;
+                    Activity? activity = httpContext.Features.Get<IHttpActivityFeature>()?.Activity;
                     context.ProblemDetails.Extensions.TryAdd("traceId", activity?.Id);
 
-                    string? correlationId = context.HttpContext.Items[CorrelationIdMiddleware.CorrelationIdItemKey] as string ??
-                                            context.HttpContext.Request.Headers[CorrelationIdMiddleware.CorrelationIdHeaderName].FirstOrDefault();
+                    string? correlationId = httpContext.Items[CorrelationIdMiddleware.CorrelationIdItemKey] as string ??
+                                            httpContext.Request.Headers[CorrelationIdMiddleware.CorrelationIdHeaderName].FirstOrDefault();
 
                     if (!string.IsNullOrWhiteSpace(correlationId))
                     {
                         context.ProblemDetails.Extensions.TryAdd(CorrelationIdMiddleware.CorrelationIdItemKey, correlationId);
                     }
-
                 };
             });
             return serviceCollection;

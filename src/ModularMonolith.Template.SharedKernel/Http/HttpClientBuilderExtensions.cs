@@ -5,6 +5,34 @@ namespace ModularMonolith.Template.SharedKernel.Http;
 
 public static class HttpClientBuilderExtensions
 {
+    extension(IServiceCollection serviceCollection)
+    {
+        public IHttpClientBuilder AddResilientHttpClient(string name, Action<HttpClient>? configureClient = null, TimeSpan? totalRequestTimeout = null, int maxRetryAttempts = 3)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+            IHttpClientBuilder builder = configureClient is null
+                ? serviceCollection.AddHttpClient(name)
+                : serviceCollection.AddHttpClient(name, configureClient);
+
+            return builder
+                .ConfigureSharedPrimaryHandler()
+                .AddSharedResilienceHandler(totalRequestTimeout, maxRetryAttempts);
+        }
+
+        public IHttpClientBuilder AddResilientHttpClient<TClient>(Action<HttpClient>? configureClient = null, TimeSpan? totalRequestTimeout = null, int maxRetryAttempts = 3)
+            where TClient : class
+        {
+            IHttpClientBuilder builder = configureClient is null
+                ? serviceCollection.AddHttpClient<TClient>()
+                : serviceCollection.AddHttpClient<TClient>(configureClient);
+
+            return builder
+                .ConfigureSharedPrimaryHandler()
+                .AddSharedResilienceHandler(totalRequestTimeout, maxRetryAttempts);
+        }
+    }
+
     extension(IHttpClientBuilder builder)
     {
         public IHttpClientBuilder ConfigureSharedPrimaryHandler()

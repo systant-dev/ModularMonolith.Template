@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
@@ -14,32 +15,32 @@ public sealed class UserServiceTests
     #region Test Method Declarations
 
     [Fact]
-    public void GetAll_WhenEmpty_ReturnsEmptyCollection()
+    public async Task GetAll_WhenEmpty_ReturnsEmptyCollection()
     {
         UserService service = CreateService();
 
-        service.GetAll().Should().BeEmpty();
+        (await service.GetAllAsync(TestContext.Current.CancellationToken)).Should().BeEmpty();
     }
 
     [Fact]
-    public void GetAll_ReturnsCreatedUsers()
+    public async Task GetAll_ReturnsCreatedUsers()
     {
         UserService service = CreateService();
-        service.Create(NewRequest("Ada Lovelace", "ada@example.com"));
-        service.Create(NewRequest("Alan Turing", "alan@example.com"));
+        await service.CreateAsync(NewRequest("Ada Lovelace", "ada@example.com"), TestContext.Current.CancellationToken);
+        await service.CreateAsync(NewRequest("Alan Turing", "alan@example.com"), TestContext.Current.CancellationToken);
 
-        IReadOnlyCollection<UserResponse> all = service.GetAll();
+        IReadOnlyCollection<UserResponse> all = await service.GetAllAsync(TestContext.Current.CancellationToken);
 
         all.Should().HaveCount(2);
         all.Select(user => user.FullName).Should().Contain(["Ada Lovelace", "Alan Turing"]);
     }
 
     [Fact]
-    public void Create_AssignsIdAndMapsFields()
+    public async Task Create_AssignsIdAndMapsFields()
     {
         UserService service = CreateService();
 
-        UserResponse created = service.Create(NewRequest("Grace Hopper", "grace@example.com", "555-0100"));
+        UserResponse created = await service.CreateAsync(NewRequest("Grace Hopper", "grace@example.com", "555-0100"), TestContext.Current.CancellationToken);
 
         created.Id.Should().BePositive();
         created.FullName.Should().Be("Grace Hopper");
@@ -48,37 +49,48 @@ public sealed class UserServiceTests
     }
 
     [Fact]
-    public void Find_WhenExists_ReturnsUser()
+    public async Task Create_EnqueuesOutboxMessage()
+    {
+        UserDbContext context = CreateContext();
+        UserService service = new(context, NullLogger<UserService>.Instance);
+
+        await service.CreateAsync(NewRequest("Margaret Hamilton", "margaret@example.com"), TestContext.Current.CancellationToken);
+
+        context.OutboxMessages.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Find_WhenExists_ReturnsUser()
     {
         UserService service = CreateService();
-        UserResponse created = service.Create(NewRequest("Katherine Johnson", "katherine@example.com"));
+        UserResponse created = await service.CreateAsync(NewRequest("Katherine Johnson", "katherine@example.com"), TestContext.Current.CancellationToken);
 
-        UserResponse? found = service.Find(created.Id);
+        UserResponse? found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
 
         found.Should().NotBeNull();
         found!.Id.Should().Be(created.Id);
     }
 
     [Fact]
-    public void Find_WhenMissing_ReturnsNull()
+    public async Task Find_WhenMissing_ReturnsNull()
     {
         UserService service = CreateService();
 
-        service.Find(999).Should().BeNull();
+        (await service.FindAsync(999, TestContext.Current.CancellationToken)).Should().BeNull();
     }
 
     [Fact]
-    public void Update_WhenExists_ReturnsUpdatedUser()
+    public async Task Update_WhenExists_ReturnsUpdatedUser()
     {
         UserService service = CreateService();
-        UserResponse created = service.Create(NewRequest("Original Name", "original@example.com"));
+        UserResponse created = await service.CreateAsync(NewRequest("Original Name", "original@example.com"), TestContext.Current.CancellationToken);
 
-        UserResponse? updated = service.Update(created.Id, new UpdateUserRequest
+        UserResponse? updated = await service.UpdateAsync(created.Id, new UpdateUserRequest
         {
             FullName = "Updated Name",
             Email = "updated@example.com",
             PhoneNumber = "555-0199"
-        });
+        }, TestContext.Current.CancellationToken);
 
         updated.Should().NotBeNull();
         updated!.Id.Should().Be(created.Id);
@@ -88,35 +100,35 @@ public sealed class UserServiceTests
     }
 
     [Fact]
-    public void Update_WhenMissing_ReturnsNull()
+    public async Task Update_WhenMissing_ReturnsNull()
     {
         UserService service = CreateService();
 
-        UserResponse? updated = service.Update(999, new UpdateUserRequest
+        UserResponse? updated = await service.UpdateAsync(999, new UpdateUserRequest
         {
             FullName = "Nobody",
             Email = "nobody@example.com"
-        });
+        }, TestContext.Current.CancellationToken);
 
         updated.Should().BeNull();
     }
 
     [Fact]
-    public void Delete_WhenExists_ReturnsTrueAndRemoves()
+    public async Task Delete_WhenExists_ReturnsTrueAndRemoves()
     {
         UserService service = CreateService();
-        UserResponse created = service.Create(NewRequest("Temp User", "temp@example.com"));
+        UserResponse created = await service.CreateAsync(NewRequest("Temp User", "temp@example.com"), TestContext.Current.CancellationToken);
 
-        service.Delete(created.Id).Should().BeTrue();
-        service.Find(created.Id).Should().BeNull();
+        (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeTrue();
+        (await service.FindAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeNull();
     }
 
     [Fact]
-    public void Delete_WhenMissing_ReturnsFalse()
+    public async Task Delete_WhenMissing_ReturnsFalse()
     {
         UserService service = CreateService();
 
-        service.Delete(999).Should().BeFalse();
+        (await service.DeleteAsync(999, TestContext.Current.CancellationToken)).Should().BeFalse();
     }
 
     #endregion
@@ -124,7 +136,16 @@ public sealed class UserServiceTests
     #region Private Method Declarations
 
     private static UserService CreateService() =>
-        new(new UserStore(), NullLogger<UserService>.Instance);
+        new(CreateContext(), NullLogger<UserService>.Instance);
+
+    private static UserDbContext CreateContext()
+    {
+        DbContextOptions<UserDbContext> options = new DbContextOptionsBuilder<UserDbContext>()
+            .UseInMemoryDatabase($"UserModuleTests-{Guid.NewGuid()}")
+            .Options;
+
+        return new UserDbContext(options);
+    }
 
     private static CreateUserRequest NewRequest(string fullName, string email, string? phoneNumber = null) =>
         new()

@@ -7,12 +7,12 @@ using ModularMonolith.Template.Api.RequestPipeline;
 using ModularMonolith.Template.Api.Security;
 using ModularMonolith.Template.Api.Versioning;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Outbox;
 using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInProcessMessaging();
-builder.Services.AddOpenApi("v1");
 builder.Services.AddCustomProblemDetails();
 builder.Services.AddHealthChecks();
 builder.Services.AddModuleApiVersioning();
@@ -22,6 +22,7 @@ builder.Services.AddModuleCors(builder.Configuration);
 builder.Services.AddModuleAuthentication(builder.Configuration);
 builder.Services.AddModuleAuthorization();
 builder.Services.AddModules(builder.Configuration);
+builder.Services.AddOutboxProcessing(builder.Configuration);
 builder.Services.AddApplicationInsightsTelemetry(builder.Configuration);
 builder.AddSerilogWithRedaction();
 
@@ -29,6 +30,8 @@ WebApplication webApplication = builder.Build();
 
 if (webApplication.Environment.IsDevelopment())
 {
+    await webApplication.Services.MigrateModuleDatabasesAsync();
+
     webApplication.MapOpenApi().AllowAnonymous();
     webApplication.MapScalarApiReference().AllowAnonymous();
 }

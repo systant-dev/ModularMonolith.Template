@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<IsPackable>false</IsPackable>
@@ -10,6 +10,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
 		<PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
 		<PackageReference Include="xunit.runner.visualstudio" />
@@ -24,6 +25,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\UserModule\UserModule.csproj" />
 		<ProjectReference Include="..\ModularMonolith.Template.SourceGenerators.TestKit\ModularMonolith.Template.SourceGenerators.TestKit.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Storage\" />
 	</ItemGroup>
 
 </Project>

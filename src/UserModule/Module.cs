@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
+using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Security;
 using ModularMonolith.Template.SharedKernel.Validation;
 using UserModule.Configuration;
@@ -26,7 +28,14 @@ public sealed class Module : IModule
     {
         serviceCollection.AddValidatedOptions<UserModuleOptions, UserModuleOptionsValidator>(nameof(UserModule));
 
-        serviceCollection.AddSingleton<UserStore>();
+        serviceCollection.AddModuleDbContext<UserDbContext>((_, options) =>
+        {
+            // This template uses the EF Core in-memory provider so the example runs without
+            // requiring a real database. Swap this for options.UseSqlServer(...) (or another
+            // relational provider) for production scenarios.
+            options.UseInMemoryDatabase(nameof(UserModule));
+        });
+
         serviceCollection.AddScoped<IUserService, UserService>();
         serviceCollection.AddScoped<IValidator<CreateUserRequest>, Validation.CreateUserRequestValidator>();
         serviceCollection.AddScoped<IValidator<UpdateUserRequest>, Validation.UpdateUserRequestValidator>();

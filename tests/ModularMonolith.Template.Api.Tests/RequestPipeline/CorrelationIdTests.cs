@@ -1,15 +1,15 @@
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
+using ModularMonolith.Template.Api.Tests.Infrastructure;
 
 namespace ModularMonolith.Template.Api.Tests.RequestPipeline;
 
-public sealed class CorrelationIdTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public sealed class CorrelationIdTests(TestWebApplicationFactory factory) : IClassFixture<TestWebApplicationFactory>
 {
     #region Field Declarations
 
     private const string CorrelationIdHeaderName = "X-Correlation-ID";
 
-    private readonly WebApplicationFactory<Program> factory = factory;
+    private readonly TestWebApplicationFactory factory = factory;
 
     #endregion
 

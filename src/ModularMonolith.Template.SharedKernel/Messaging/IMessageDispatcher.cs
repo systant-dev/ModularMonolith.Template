@@ -8,5 +8,7 @@ public interface IMessageDispatcher
 
     Task PublishConcurrentlyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : IMessage;
 
+    Task PublishAsync(IMessage message, CancellationToken cancellationToken = default);
+
     #endregion
 }
