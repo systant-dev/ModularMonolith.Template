@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using UserModule.Models;
@@ -6,11 +6,6 @@ using UserModule.Storage;
 
 namespace ModularMonolith.Template.UserModule.Tests.Storage;
 
-/// <summary>
-/// Dependency-free <see cref="IUserStore"/> and <see cref="IOutboxStore"/> used by tests. Keeps
-/// users and outbox messages in memory so the suite runs without a SQL Server / LocalDB instance,
-/// while still exercising the transactional create + outbox enqueue behaviour of the service.
-/// </summary>
 internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
 {
     #region Field Declarations
@@ -74,12 +69,15 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default)
     {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
         IReadOnlyList<OutboxMessage> pending =
         [
             .. _outbox.Values
-                .Where(message => message.ProcessedOnUtc is null && message.Attempts < maxAttempts)
+                .Where(message => message.ProcessedOnUtc is null
+                    && message.Attempts < maxAttempts
+                    && (message.NextAttemptOnUtc is null || message.NextAttemptOnUtc <= now))
                 .OrderBy(message => message.OccurredOnUtc)
                 .Take(batchSize)
         ];
@@ -87,9 +85,13 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         return Task.FromResult(pending);
     }
 
-    public Task UpdateAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)
     {
-        _outbox[message.Id] = message;
+        foreach (OutboxMessage message in messages)
+        {
+            _outbox[message.Id] = message;
+        }
+
         return Task.CompletedTask;
     }
 

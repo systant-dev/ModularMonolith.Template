@@ -1,7 +1,8 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using ModularMonolith.Template.SharedKernel.Messaging;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
@@ -9,10 +10,6 @@ public static class OutboxServiceCollectionExtensions
 {
     extension(IServiceCollection serviceCollection)
     {
-        /// <summary>
-        /// Registers a module's <see cref="IOutboxStore"/> implementation so the outbox processor
-        /// polls it. Use this for modules that own their persistence (e.g. Dapper).
-        /// </summary>
         public IServiceCollection AddOutboxStore<TStore>()
             where TStore : class, IOutboxStore
         {
@@ -25,7 +22,17 @@ public static class OutboxServiceCollectionExtensions
 
         public IServiceCollection AddOutboxProcessing(IConfiguration configuration)
         {
-            serviceCollection.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
+            serviceCollection
+                .AddOptions<OutboxOptions>()
+                .Bind(configuration.GetSection(OutboxOptions.SectionName))
+                .ValidateDataAnnotations()
+                .Validate(options => options.PollingInterval > TimeSpan.Zero, "Outbox.PollingInterval must be greater than zero.")
+                .Validate(options => options.ClaimTimeout > TimeSpan.Zero, "Outbox.ClaimTimeout must be greater than zero.")
+                .Validate(options => options.BackoffBaseDelay > TimeSpan.Zero, "Outbox.BackoffBaseDelay must be greater than zero.")
+                .Validate(options => options.MaxBackoffDelay >= options.BackoffBaseDelay, "Outbox.MaxBackoffDelay must be greater than or equal to Outbox.BackoffBaseDelay.")
+                .ValidateOnStart();
+
+            serviceCollection.GetOrAddMessageContractRegistry();
             serviceCollection.GetOrAddOutboxStoreRegistry();
             serviceCollection.AddHostedService<OutboxProcessor>();
 

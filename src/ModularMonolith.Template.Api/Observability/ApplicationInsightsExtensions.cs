@@ -1,4 +1,7 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using ModularMonolith.Template.SharedKernel.Outbox;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace ModularMonolith.Template.Api.Observability;
 
@@ -25,7 +28,10 @@ public static class ApplicationInsightsExtensions
                 return serviceCollection;
             }
 
-            serviceCollection.AddOpenTelemetry().UseAzureMonitor();
+            serviceCollection.AddOpenTelemetry()
+                .WithTracing(tracing => tracing.AddSource(OutboxDiagnostics.Name))
+                .WithMetrics(metrics => metrics.AddMeter(OutboxDiagnostics.Name))
+                .UseAzureMonitor();
 
             return serviceCollection;
         }

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
@@ -6,11 +6,6 @@ using ModularMonolith.Template.Api.Tests.Infrastructure;
 
 namespace ModularMonolith.Template.Api.Tests.Integrations;
 
-/// <summary>
-/// Exercises the custom ProblemDetails customisation (<c>AddCustomProblemDetails</c>) through a
-/// real request. An invalid create request short-circuits with a validation problem, which the
-/// pipeline enriches with the request instance and correlation id.
-/// </summary>
 public sealed class ProblemDetailsTests(TestWebApplicationFactory factory) : IClassFixture<TestWebApplicationFactory>
 {
     #region Field Declarations

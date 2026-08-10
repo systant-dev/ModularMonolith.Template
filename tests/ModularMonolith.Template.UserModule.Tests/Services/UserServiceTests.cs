@@ -56,7 +56,7 @@ public sealed class UserServiceTests
         await service.CreateAsync(NewRequest("Margaret Hamilton", "margaret@example.com"), TestContext.Current.CancellationToken);
 
         IReadOnlyList<ModularMonolith.Template.SharedKernel.Outbox.OutboxMessage> pending =
-            await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, TestContext.Current.CancellationToken);
+            await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, visibilityTimeout: TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
 
         pending.Should().ContainSingle();
     }

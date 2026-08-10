@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -10,12 +10,6 @@ using UserModule.Storage;
 
 namespace ModularMonolith.Template.Api.Tests.Infrastructure;
 
-/// <summary>
-/// Test host that replaces the production Microsoft Entra ID authentication with an
-/// always-authenticated test scheme, and swaps the UserModule's SQL Server persistence for a
-/// dependency-free in-memory store so integration tests run without a database server. The
-/// database initialiser and outbox background processor are removed for the same reason.
-/// </summary>
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     #region Field Declarations

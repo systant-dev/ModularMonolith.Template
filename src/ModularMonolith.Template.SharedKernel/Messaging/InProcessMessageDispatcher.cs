@@ -8,17 +8,33 @@ internal sealed class InProcessMessageDispatcher(IServiceProvider serviceProvide
 {
     #region Field Declarations
 
-    private static readonly ConcurrentDictionary<Type, MethodInfo> PublishMethodCache = new();
+    private static readonly ConcurrentDictionary<(Type MessageType, DispatchMode Mode), MethodInfo> PublishMethodCache = new();
 
     #endregion
 
     #region Public Method Declarations
 
-    public async Task PublishSequentiallyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
-        where TMessage : IMessage
+    public Task PublishAsync(IMessage message, DispatchMode mode = DispatchMode.Sequential, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
 
+        MethodInfo method = PublishMethodCache.GetOrAdd((message.GetType(), mode), static key =>
+            typeof(InProcessMessageDispatcher)
+                .GetMethod(
+                    key.Mode == DispatchMode.Concurrent ? nameof(PublishConcurrentlyAsync) : nameof(PublishSequentiallyAsync),
+                    BindingFlags.NonPublic | BindingFlags.Instance)!
+                .MakeGenericMethod(key.MessageType));
+
+        return (Task)method.Invoke(this, [message, cancellationToken])!;
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private async Task PublishSequentiallyAsync<TMessage>(TMessage message, CancellationToken cancellationToken)
+        where TMessage : IMessage
+    {
         IEnumerable<IMessageHandler<TMessage>> handlers = serviceProvider.GetServices<IMessageHandler<TMessage>>();
 
         foreach (IMessageHandler<TMessage> handler in handlers)
@@ -27,28 +43,14 @@ internal sealed class InProcessMessageDispatcher(IServiceProvider serviceProvide
         }
     }
 
-    public async Task PublishConcurrentlyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+    private async Task PublishConcurrentlyAsync<TMessage>(TMessage message, CancellationToken cancellationToken)
         where TMessage : IMessage
     {
-        ArgumentNullException.ThrowIfNull(message);
-
         IEnumerable<IMessageHandler<TMessage>> handlers = serviceProvider.GetServices<IMessageHandler<TMessage>>();
 
         IEnumerable<Task> handlerTasks = handlers.Select(handler => handler.HandleAsync(message, cancellationToken));
 
         await Task.WhenAll(handlerTasks).ConfigureAwait(false);
-    }
-
-    public Task PublishAsync(IMessage message, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(message);
-
-        MethodInfo method = PublishMethodCache.GetOrAdd(message.GetType(), static messageType =>
-            typeof(InProcessMessageDispatcher)
-                .GetMethod(nameof(PublishSequentiallyAsync))!
-                .MakeGenericMethod(messageType));
-
-        return (Task)method.Invoke(this, [message, cancellationToken])!;
     }
 
     #endregion

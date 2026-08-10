@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ namespace ModularMonolith.Template.SharedKernel.Outbox;
 
 internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
                                               OutboxStoreRegistry registry,
+                                              IMessageContractRegistry contractRegistry,
                                               IOptions<OutboxOptions> options,
                                               ILogger<OutboxProcessor> logger) : BackgroundService
 {
@@ -39,6 +41,10 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
             }
         }
         while (await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false));
+
+        // On shutdown the current in-flight batch is abandoned rather than drained. Because delivery is
+        // at-least-once and message state is only persisted after a dispatch attempt, any un-flushed
+        // messages simply remain pending and are picked up on the next start.
     }
 
     #endregion
@@ -53,20 +59,27 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
 
             if (scope.ServiceProvider.GetRequiredService(storeType) is not IOutboxStore store)
             {
+                StoreTypeNotAnOutboxStore(logger, storeType);
                 continue;
             }
 
             IMessageDispatcher dispatcher = scope.ServiceProvider.GetRequiredService<IMessageDispatcher>();
 
             IReadOnlyList<OutboxMessage> pending = await store
-                .GetPendingAsync(_options.MaxAttempts, _options.BatchSize, cancellationToken)
+                .GetPendingAsync(_options.MaxAttempts, _options.BatchSize, _options.ClaimTimeout, cancellationToken)
                 .ConfigureAwait(false);
+
+            if (pending.Count == 0)
+            {
+                continue;
+            }
 
             foreach (OutboxMessage outboxMessage in pending)
             {
                 await DispatchAsync(dispatcher, outboxMessage, cancellationToken).ConfigureAwait(false);
-                await store.UpdateAsync(outboxMessage, cancellationToken).ConfigureAwait(false);
             }
+
+            await store.UpdateAsync(pending, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -74,25 +87,60 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
     {
         outboxMessage.Attempts++;
 
+        using Activity? activity = OutboxDiagnostics.ActivitySource.StartActivity("outbox.dispatch", ActivityKind.Producer);
+        activity?.SetTag("outbox.message.id", outboxMessage.Id);
+        activity?.SetTag("outbox.message.type", outboxMessage.Type);
+        activity?.SetTag("outbox.message.attempts", outboxMessage.Attempts);
+
         try
         {
-            IMessage? message = outboxMessage.Deserialise();
+            IMessage? message = outboxMessage.Deserialise(contractRegistry);
             if (message is null)
             {
                 outboxMessage.Error = $"Unable to resolve message type '{outboxMessage.Type}'.";
+                activity?.SetStatus(ActivityStatusCode.Error, outboxMessage.Error);
+                HandleFailure(outboxMessage);
                 return;
             }
 
-            await dispatcher.PublishAsync(message, cancellationToken).ConfigureAwait(false);
+            await dispatcher.PublishAsync(message, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             outboxMessage.ProcessedOnUtc = DateTimeOffset.UtcNow;
+            outboxMessage.NextAttemptOnUtc = null;
             outboxMessage.Error = null;
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            OutboxDiagnostics.ProcessedCounter.Add(1);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             outboxMessage.Error = exception.Message;
+            activity?.SetStatus(ActivityStatusCode.Error, exception.Message);
             MessageDispatchFailed(logger, outboxMessage.Id, exception);
+            HandleFailure(outboxMessage);
         }
+    }
+
+    private void HandleFailure(OutboxMessage outboxMessage)
+    {
+        OutboxDiagnostics.FailedCounter.Add(1);
+
+        if (outboxMessage.Attempts >= _options.MaxAttempts)
+        {
+            outboxMessage.NextAttemptOnUtc = null;
+            OutboxDiagnostics.DeadLetteredCounter.Add(1);
+            MessageDeadLettered(logger, outboxMessage.Id, outboxMessage.Attempts);
+            return;
+        }
+
+        outboxMessage.NextAttemptOnUtc = DateTimeOffset.UtcNow + CalculateBackoff(outboxMessage.Attempts);
+        OutboxDiagnostics.RetriedCounter.Add(1);
+    }
+
+    private TimeSpan CalculateBackoff(int attempts)
+    {
+        double exponentialTicks = _options.BackoffBaseDelay.Ticks * Math.Pow(2, attempts - 1);
+        double cappedTicks = Math.Min(exponentialTicks, _options.MaxBackoffDelay.Ticks);
+        return TimeSpan.FromTicks((long)cappedTicks);
     }
 
     #endregion
@@ -104,6 +152,12 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
 
     [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Failed to dispatch outbox message {MessageId}.")]
     private static partial void MessageDispatchFailed(ILogger logger, Guid messageId, Exception exception);
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "Outbox message {MessageId} moved to dead-letter after {Attempts} attempts.")]
+    private static partial void MessageDeadLettered(ILogger logger, Guid messageId, int attempts);
+
+    [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "Registered outbox store type {StoreType} does not implement IOutboxStore and was skipped.")]
+    private static partial void StoreTypeNotAnOutboxStore(ILogger logger, Type storeType);
 
     #endregion
 }

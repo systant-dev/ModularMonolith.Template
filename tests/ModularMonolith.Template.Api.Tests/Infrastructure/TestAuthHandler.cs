@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
@@ -7,10 +7,6 @@ using ModularMonolith.Template.SharedKernel.Security;
 
 namespace ModularMonolith.Template.Api.Tests.Infrastructure;
 
-/// <summary>
-/// Authentication handler used by integration tests to satisfy the API's
-/// secure-by-default authorization policy without a real identity provider.
-/// </summary>
 public sealed class TestAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,

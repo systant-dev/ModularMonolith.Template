@@ -1,11 +1,7 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
-/// <summary>
-/// Tracks the <see cref="IOutboxStore"/> implementation types registered by modules so the
-/// <see cref="OutboxProcessor"/> can resolve one store per scope and poll each module's outbox.
-/// </summary>
 public sealed class OutboxStoreRegistry
 {
     #region Field Declarations

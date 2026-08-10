@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using ModularMonolith.Template.SharedKernel.Messaging;
@@ -7,13 +7,6 @@ using UserModule.Models;
 
 namespace UserModule.Storage;
 
-/// <summary>
-/// Dapper based data access for the UserModule, backed by SQL Server. Implements both
-/// <see cref="IUserStore"/> and <see cref="IOutboxStore"/> so that <see cref="CreateAsync"/> can
-/// insert the user and enqueue the resulting integration event inside a single SQL Server
-/// transaction. The SQL uses SQL Server dialect (<c>OUTPUT INSERTED.Id</c>, <c>OFFSET/FETCH</c>,
-/// <c>UPDLOCK, READPAST</c>) so it runs unchanged against a real SQL Server / LocalDB instance.
-/// </summary>
 internal sealed class SqlServerUserStore(SqlServerConnectionFactory connectionFactory) : IUserStore, IOutboxStore
 {
     #region IUserStore Method Declarations
@@ -112,39 +105,67 @@ internal sealed class SqlServerUserStore(SqlServerConnectionFactory connectionFa
         await InsertOutboxMessageAsync(connection, transaction: null, OutboxMessage.Create(message), cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default)
     {
         await using SqlConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-        // UPDLOCK, READPAST lets multiple competing processors claim disjoint batches without blocking.
+        // Atomically claim a batch: READPAST skips rows another processor already locked, and deferring
+        // NextAttemptOnUtc by the visibility timeout leases the rows so competing processors won't
+        // redeliver them until this attempt completes or the lease expires (crash recovery).
         IEnumerable<OutboxMessage> messages = await connection.QueryAsync<OutboxMessage>(
             new CommandDefinition(
                 """
-                SELECT Id, Type, Payload, OccurredOnUtc, ProcessedOnUtc, Attempts, Error
-                FROM OutboxMessages WITH (UPDLOCK, READPAST)
-                WHERE ProcessedOnUtc IS NULL AND Attempts < @MaxAttempts
-                ORDER BY OccurredOnUtc
-                OFFSET 0 ROWS FETCH NEXT @BatchSize ROWS ONLY;
+                UPDATE TOP (@BatchSize) dbo.OutboxMessages WITH (READPAST, UPDLOCK)
+                SET NextAttemptOnUtc = DATEADD(SECOND, @VisibilitySeconds, SYSUTCDATETIME())
+                OUTPUT INSERTED.Id, INSERTED.Type, INSERTED.Payload, INSERTED.OccurredOnUtc,
+                       INSERTED.ProcessedOnUtc, INSERTED.Attempts, INSERTED.Error, INSERTED.NextAttemptOnUtc
+                WHERE ProcessedOnUtc IS NULL
+                  AND Attempts < @MaxAttempts
+                  AND (NextAttemptOnUtc IS NULL OR NextAttemptOnUtc <= SYSUTCDATETIME());
                 """,
-                new { MaxAttempts = maxAttempts, BatchSize = batchSize },
+                new
+                {
+                    MaxAttempts = maxAttempts,
+                    BatchSize = batchSize,
+                    VisibilitySeconds = (int)Math.Ceiling(visibilityTimeout.TotalSeconds)
+                },
                 cancellationToken: cancellationToken))
             .ConfigureAwait(false);
 
         return [.. messages];
     }
 
-    public async Task UpdateAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(messages);
+
+        if (messages.Count == 0)
+        {
+            return;
+        }
+
         await using SqlConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+
+        object[] parameters =
+        [
+            .. messages.Select(message => new
+            {
+                message.Id,
+                message.ProcessedOnUtc,
+                message.Attempts,
+                message.Error,
+                message.NextAttemptOnUtc
+            })
+        ];
 
         await connection.ExecuteAsync(
             new CommandDefinition(
                 """
                 UPDATE OutboxMessages
-                SET ProcessedOnUtc = @ProcessedOnUtc, Attempts = @Attempts, Error = @Error
+                SET ProcessedOnUtc = @ProcessedOnUtc, Attempts = @Attempts, Error = @Error, NextAttemptOnUtc = @NextAttemptOnUtc
                 WHERE Id = @Id;
                 """,
-                new { message.Id, message.ProcessedOnUtc, message.Attempts, message.Error },
+                parameters,
                 cancellationToken: cancellationToken))
             .ConfigureAwait(false);
     }
@@ -162,8 +183,8 @@ internal sealed class SqlServerUserStore(SqlServerConnectionFactory connectionFa
         await connection.ExecuteAsync(
             new CommandDefinition(
                 """
-                INSERT INTO OutboxMessages (Id, Type, Payload, OccurredOnUtc, ProcessedOnUtc, Attempts, Error)
-                VALUES (@Id, @Type, @Payload, @OccurredOnUtc, @ProcessedOnUtc, @Attempts, @Error);
+                INSERT INTO OutboxMessages (Id, Type, Payload, OccurredOnUtc, ProcessedOnUtc, Attempts, Error, NextAttemptOnUtc)
+                VALUES (@Id, @Type, @Payload, @OccurredOnUtc, @ProcessedOnUtc, @Attempts, @Error, @NextAttemptOnUtc);
                 """,
                 new
                 {
@@ -173,7 +194,8 @@ internal sealed class SqlServerUserStore(SqlServerConnectionFactory connectionFa
                     message.OccurredOnUtc,
                     message.ProcessedOnUtc,
                     message.Attempts,
-                    message.Error
+                    message.Error,
+                    message.NextAttemptOnUtc
                 },
                 transaction,
                 cancellationToken: cancellationToken))

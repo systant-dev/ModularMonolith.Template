@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Serialisation;
@@ -22,6 +23,8 @@ public sealed class OutboxMessage
 
     public string? Error { get; set; }
 
+    public DateTimeOffset? NextAttemptOnUtc { get; set; }
+
     #endregion
 
     #region Public Method Declarations
@@ -36,20 +39,31 @@ public sealed class OutboxMessage
         {
             Id = Guid.NewGuid(),
             OccurredOnUtc = DateTimeOffset.UtcNow,
-            Type = messageType.AssemblyQualifiedName ?? messageType.FullName ?? messageType.Name,
+            Type = ResolveContractName(messageType),
             Payload = JsonSerializer.Serialize(message, messageType, JsonDefaults.Web)
         };
     }
 
-    public IMessage? Deserialise()
+    public IMessage? Deserialise(IMessageContractRegistry registry)
     {
-        Type? messageType = System.Type.GetType(Type);
-        if (messageType is null)
+        ArgumentNullException.ThrowIfNull(registry);
+
+        if (!registry.TryResolve(Type, out Type? messageType))
         {
             return null;
         }
 
         return JsonSerializer.Deserialize(Payload, messageType, JsonDefaults.Web) as IMessage;
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private static string ResolveContractName(Type messageType)
+    {
+        MessageContractAttribute? attribute = messageType.GetCustomAttribute<MessageContractAttribute>(inherit: false);
+        return attribute?.Name ?? messageType.FullName ?? messageType.Name;
     }
 
     #endregion

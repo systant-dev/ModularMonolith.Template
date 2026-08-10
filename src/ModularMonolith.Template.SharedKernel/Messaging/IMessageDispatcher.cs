@@ -4,11 +4,7 @@ public interface IMessageDispatcher
 {
     #region Method Declarations
 
-    Task PublishSequentiallyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : IMessage;
-
-    Task PublishConcurrentlyAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default) where TMessage : IMessage;
-
-    Task PublishAsync(IMessage message, CancellationToken cancellationToken = default);
+    Task PublishAsync(IMessage message, DispatchMode mode = DispatchMode.Sequential, CancellationToken cancellationToken = default);
 
     #endregion
 }

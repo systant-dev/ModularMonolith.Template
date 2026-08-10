@@ -23,7 +23,7 @@ public sealed class InProcessMessageDispatcherTests
 
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        await dispatcher.PublishSequentiallyAsync(new TestMessage(), TestContext.Current.CancellationToken);
+        await dispatcher.PublishAsync(new TestMessage(), DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         log.Should().Equal("first", "second");
     }
@@ -34,7 +34,7 @@ public sealed class InProcessMessageDispatcherTests
         ServiceProvider provider = BuildProvider(_ => { });
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        Func<Task> act = () => dispatcher.PublishSequentiallyAsync(new TestMessage(), TestContext.Current.CancellationToken);
+        Func<Task> act = () => dispatcher.PublishAsync(new TestMessage(), DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         await act.Should().NotThrowAsync();
     }
@@ -45,7 +45,7 @@ public sealed class InProcessMessageDispatcherTests
         ServiceProvider provider = BuildProvider(_ => { });
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        Func<Task> act = () => dispatcher.PublishSequentiallyAsync<TestMessage>(null!, TestContext.Current.CancellationToken);
+        Func<Task> act = () => dispatcher.PublishAsync(null!, DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
@@ -62,7 +62,7 @@ public sealed class InProcessMessageDispatcherTests
 
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        await dispatcher.PublishConcurrentlyAsync(new TestMessage(), TestContext.Current.CancellationToken);
+        await dispatcher.PublishAsync(new TestMessage(), DispatchMode.Concurrent, TestContext.Current.CancellationToken);
 
         log.Should().BeEquivalentTo("a", "b");
     }
@@ -79,7 +79,7 @@ public sealed class InProcessMessageDispatcherTests
 
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        Func<Task> act = () => dispatcher.PublishConcurrentlyAsync(new TestMessage(), TestContext.Current.CancellationToken);
+        Func<Task> act = () => dispatcher.PublishAsync(new TestMessage(), DispatchMode.Concurrent, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
         log.Should().BeEquivalentTo("ok", "boom");
@@ -91,7 +91,7 @@ public sealed class InProcessMessageDispatcherTests
         ServiceProvider provider = BuildProvider(_ => { });
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        Func<Task> act = () => dispatcher.PublishConcurrentlyAsync<TestMessage>(null!, TestContext.Current.CancellationToken);
+        Func<Task> act = () => dispatcher.PublishAsync(null!, DispatchMode.Concurrent, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }

@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 
@@ -85,6 +86,54 @@ public sealed class OutboxServiceCollectionExtensionsTests
         options.MaxAttempts.Should().Be(7);
     }
 
+    [Fact]
+    public void AddOutboxProcessing_WithInvalidBatchSize_FailsValidation()
+    {
+        ResolveOptions(new Dictionary<string, string?> { ["Outbox:BatchSize"] = "0" })
+            .Should().Throw<OptionsValidationException>();
+    }
+
+    [Fact]
+    public void AddOutboxProcessing_WithZeroPollingInterval_FailsValidation()
+    {
+        ResolveOptions(new Dictionary<string, string?> { ["Outbox:PollingInterval"] = "00:00:00" })
+            .Should().Throw<OptionsValidationException>();
+    }
+
+    [Fact]
+    public void AddOutboxProcessing_WithMaxBackoffBelowBaseDelay_FailsValidation()
+    {
+        ResolveOptions(new Dictionary<string, string?>
+        {
+            ["Outbox:BackoffBaseDelay"] = "00:01:00",
+            ["Outbox:MaxBackoffDelay"] = "00:00:10"
+        }).Should().Throw<OptionsValidationException>();
+    }
+
+    [Fact]
+    public void AddOutboxProcessing_WithValidConfiguration_PassesValidation()
+    {
+        ResolveOptions(new Dictionary<string, string?> { ["Outbox:BatchSize"] = "10" })
+            .Should().NotThrow();
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private static Action ResolveOptions(Dictionary<string, string?> configurationValues)
+    {
+        ServiceCollection services = new();
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurationValues)
+            .Build();
+
+        services.AddOutboxProcessing(configuration);
+
+        ServiceProvider provider = services.BuildServiceProvider();
+        return () => _ = provider.GetRequiredService<IOptions<OutboxOptions>>().Value;
+    }
+
     #endregion
 
     #region Nested Types
@@ -93,20 +142,20 @@ public sealed class OutboxServiceCollectionExtensionsTests
     {
         public Task EnqueueAsync(IMessage message, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default) =>
+        public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<OutboxMessage>>([]);
 
-        public Task UpdateAsync(OutboxMessage message, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     private sealed class OtherStore : IOutboxStore
     {
         public Task EnqueueAsync(IMessage message, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default) =>
+        public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<OutboxMessage>>([]);
 
-        public Task UpdateAsync(OutboxMessage message, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     #endregion

@@ -46,6 +46,42 @@ public sealed class MessagingServiceCollectionExtensionsTests
             descriptor.Lifetime == ServiceLifetime.Scoped);
     }
 
+    [Fact]
+    public void AddInProcessMessaging_RegistersContractRegistry()
+    {
+        ServiceCollection services = new();
+        services.AddInProcessMessaging();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        provider.GetService<IMessageContractRegistry>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddMessageHandler_RegistersMessageContract()
+    {
+        ServiceCollection services = new();
+        services.AddMessageHandler<TestMessage, TestHandler>();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMessageContractRegistry registry = provider.GetRequiredService<IMessageContractRegistry>();
+
+        registry.TryResolve(typeof(TestMessage).FullName!, out Type resolved).Should().BeTrue();
+        resolved.Should().Be<TestMessage>();
+    }
+
+    [Fact]
+    public void AddMessageContract_RegistersMessageContract()
+    {
+        ServiceCollection services = new();
+        services.AddMessageContract<TestMessage>();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMessageContractRegistry registry = provider.GetRequiredService<IMessageContractRegistry>();
+
+        registry.TryResolve(typeof(TestMessage).FullName!, out _).Should().BeTrue();
+    }
+
     #endregion
 
     #region Nested Types
