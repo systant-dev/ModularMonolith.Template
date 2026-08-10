@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Modular;
 using ModularMonolith.Template.SharedKernel.Outbox;
@@ -28,13 +28,19 @@ public sealed class Module : IModule
     {
         serviceCollection.AddValidatedOptions<UserModuleOptions, UserModuleOptionsValidator>(nameof(UserModule));
 
-        serviceCollection.AddModuleDbContext<UserDbContext>((_, options) =>
+        // This template uses Dapper over SQL Server (LocalDB in the example) so the persisted SQL
+        // matches the production dialect. Automated tests substitute an in-memory IUserStore, so no
+        // database server is required to run them.
+        serviceCollection.AddSingleton(provider =>
         {
-            // This template uses the EF Core in-memory provider so the example runs without
-            // requiring a real database. Swap this for options.UseSqlServer(...) (or another
-            // relational provider) for production scenarios.
-            options.UseInMemoryDatabase(nameof(UserModule));
+            UserModuleOptions options = provider
+                .GetRequiredService<IOptions<UserModuleOptions>>().Value;
+            return new SqlServerConnectionFactory(options.ConnectionString);
         });
+
+        serviceCollection.AddScoped<IModuleDatabaseInitialiser, UserModuleDatabaseInitialiser>();
+        serviceCollection.AddOutboxStore<SqlServerUserStore>();
+        serviceCollection.AddScoped<IUserStore>(provider => provider.GetRequiredService<SqlServerUserStore>());
 
         serviceCollection.AddScoped<IUserService, UserService>();
         serviceCollection.AddScoped<IValidator<CreateUserRequest>, Validation.CreateUserRequestValidator>();

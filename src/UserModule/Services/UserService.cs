@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UserModule.Contracts.Events;
 using UserModule.Contracts.Requests;
@@ -9,46 +8,37 @@ using UserModule.Storage;
 
 namespace UserModule.Services;
 
-internal sealed class UserService(UserDbContext context, ILogger<UserService> logger) : IUserService
+internal sealed class UserService(
+    IUserStore store,
+    ILogger<UserService> logger) : IUserService
 {
     #region Public Method Declarations
 
     public async Task<IReadOnlyCollection<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        List<User> users = await context.Users
-            .AsNoTracking()
-            .OrderBy(user => user.Id)
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
-
+        IReadOnlyList<User> users = await store.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return [.. users.Select(user => user.ToResponse())];
     }
 
     public async Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
-        User? user = await context.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(candidate => candidate.Id == id, cancellationToken)
-            .ConfigureAwait(false);
-
+        User? user = await store.FindAsync(id, cancellationToken).ConfigureAwait(false);
         return user?.ToResponse();
     }
 
     public async Task<UserResponse> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
-        User created = request.ToUser();
-        context.Users.Add(created);
+        User toCreate = request.ToUser();
 
-        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        context.EnqueueOutboxMessage(new UserCreatedIntegrationEvent
-        {
-            Id = created.Id,
-            FullName = created.FullName,
-            Email = created.Email
-        });
-
-        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        User created = await store.CreateAsync(
+            toCreate,
+            user => new UserCreatedIntegrationEvent
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email
+            },
+            cancellationToken).ConfigureAwait(false);
 
         UserLog.UserCreated(logger, created);
         return created.ToResponse();
@@ -56,39 +46,29 @@ internal sealed class UserService(UserDbContext context, ILogger<UserService> lo
 
     public async Task<UserResponse?> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default)
     {
-        User? existing = await context.Users
-            .FirstOrDefaultAsync(user => user.Id == id, cancellationToken)
-            .ConfigureAwait(false);
+        User? existing = await store.FindAsync(id, cancellationToken).ConfigureAwait(false);
 
         if (existing is null)
         {
             return null;
         }
 
-        existing.FullName = request.FullName;
-        existing.Email = request.Email;
-        existing.PhoneNumber = request.PhoneNumber;
+        User updated = existing with
+        {
+            FullName = request.FullName,
+            Email = request.Email,
+            PhoneNumber = request.PhoneNumber
+        };
 
-        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await store.UpdateAsync(updated, cancellationToken).ConfigureAwait(false);
 
-        UserLog.UserUpdated(logger, existing);
-        return existing.ToResponse();
+        UserLog.UserUpdated(logger, updated);
+        return updated.ToResponse();
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        User? existing = await context.Users
-            .FirstOrDefaultAsync(user => user.Id == id, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (existing is null)
-        {
-            return false;
-        }
-
-        context.Users.Remove(existing);
-        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return true;
+        return await store.DeleteAsync(id, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion

@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using ModularMonolith.Template.SharedKernel.Persistence;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
@@ -11,13 +9,16 @@ public static class OutboxServiceCollectionExtensions
 {
     extension(IServiceCollection serviceCollection)
     {
-        public IServiceCollection AddModuleDbContext<TContext>(Action<IServiceProvider, DbContextOptionsBuilder> configureOptions)
-            where TContext : ModuleDbContext
+        /// <summary>
+        /// Registers a module's <see cref="IOutboxStore"/> implementation so the outbox processor
+        /// polls it. Use this for modules that own their persistence (e.g. Dapper).
+        /// </summary>
+        public IServiceCollection AddOutboxStore<TStore>()
+            where TStore : class, IOutboxStore
         {
-            ArgumentNullException.ThrowIfNull(configureOptions);
-
-            serviceCollection.AddDbContext<TContext>(configureOptions);
-            serviceCollection.GetOrAddOutboxRegistry().Register(typeof(TContext));
+            serviceCollection.AddScoped<TStore>();
+            serviceCollection.AddScoped<IOutboxStore>(provider => provider.GetRequiredService<TStore>());
+            serviceCollection.GetOrAddOutboxStoreRegistry().Register(typeof(TStore));
 
             return serviceCollection;
         }
@@ -25,7 +26,7 @@ public static class OutboxServiceCollectionExtensions
         public IServiceCollection AddOutboxProcessing(IConfiguration configuration)
         {
             serviceCollection.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
-            serviceCollection.GetOrAddOutboxRegistry();
+            serviceCollection.GetOrAddOutboxStoreRegistry();
             serviceCollection.AddHostedService<OutboxProcessor>();
 
             return serviceCollection;
@@ -34,18 +35,18 @@ public static class OutboxServiceCollectionExtensions
 
     #region Private Method Declarations
 
-    private static OutboxContextRegistry GetOrAddOutboxRegistry(this IServiceCollection serviceCollection)
+    private static OutboxStoreRegistry GetOrAddOutboxStoreRegistry(this IServiceCollection serviceCollection)
     {
-        OutboxContextRegistry? existing = serviceCollection
-            .FirstOrDefault(descriptor => descriptor.ServiceType == typeof(OutboxContextRegistry))?
-            .ImplementationInstance as OutboxContextRegistry;
+        OutboxStoreRegistry? existing = serviceCollection
+            .FirstOrDefault(descriptor => descriptor.ServiceType == typeof(OutboxStoreRegistry))?
+            .ImplementationInstance as OutboxStoreRegistry;
 
         if (existing is not null)
         {
             return existing;
         }
 
-        OutboxContextRegistry registry = new();
+        OutboxStoreRegistry registry = new();
         serviceCollection.TryAddSingleton(registry);
         return registry;
     }

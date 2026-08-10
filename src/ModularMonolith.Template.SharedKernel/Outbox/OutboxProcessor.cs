@@ -1,18 +1,15 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Messaging;
-using ModularMonolith.Template.SharedKernel.Persistence;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
-internal sealed partial class OutboxProcessor(
-    IServiceScopeFactory scopeFactory,
-    OutboxContextRegistry registry,
-    IOptions<OutboxOptions> options,
-    ILogger<OutboxProcessor> logger) : BackgroundService
+internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
+                                              OutboxStoreRegistry registry,
+                                              IOptions<OutboxOptions> options,
+                                              ILogger<OutboxProcessor> logger) : BackgroundService
 {
     #region Field Declarations
 
@@ -50,35 +47,26 @@ internal sealed partial class OutboxProcessor(
 
     private async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        foreach (Type contextType in registry.ContextTypes)
+        foreach (Type storeType in registry.StoreTypes)
         {
             await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
 
-            if (scope.ServiceProvider.GetRequiredService(contextType) is not ModuleDbContext context)
+            if (scope.ServiceProvider.GetRequiredService(storeType) is not IOutboxStore store)
             {
                 continue;
             }
 
             IMessageDispatcher dispatcher = scope.ServiceProvider.GetRequiredService<IMessageDispatcher>();
 
-            List<OutboxMessage> pending = await context.OutboxMessages
-                .Where(message => message.ProcessedOnUtc == null && message.Attempts < _options.MaxAttempts)
-                .OrderBy(message => message.OccurredOnUtc)
-                .Take(_options.BatchSize)
-                .ToListAsync(cancellationToken)
+            IReadOnlyList<OutboxMessage> pending = await store
+                .GetPendingAsync(_options.MaxAttempts, _options.BatchSize, cancellationToken)
                 .ConfigureAwait(false);
-
-            if (pending.Count == 0)
-            {
-                continue;
-            }
 
             foreach (OutboxMessage outboxMessage in pending)
             {
                 await DispatchAsync(dispatcher, outboxMessage, cancellationToken).ConfigureAwait(false);
+                await store.UpdateAsync(outboxMessage, cancellationToken).ConfigureAwait(false);
             }
-
-            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 

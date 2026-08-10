@@ -4,6 +4,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
 		<PackageReference Include="Asp.Versioning.Http" />
 		<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+		<PackageReference Include="Asp.Versioning.OpenApi" />
 		<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
 		<PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
 		<PackageReference Include="Microsoft.Identity.Web" />

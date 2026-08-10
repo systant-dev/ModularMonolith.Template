@@ -28,11 +28,13 @@ builder.AddSerilogWithRedaction();
 
 WebApplication webApplication = builder.Build();
 
+// Initialise each module's database (EF migrations or Dapper DDL) on startup. This runs in every
+// environment so the in-memory example databases are created before requests are served.
+await webApplication.Services.MigrateModuleDatabasesAsync();
+
 if (webApplication.Environment.IsDevelopment())
 {
-    await webApplication.Services.MigrateModuleDatabasesAsync();
-
-    webApplication.MapOpenApi().AllowAnonymous();
+    webApplication.MapOpenApi().WithDocumentPerVersion().AllowAnonymous();
     webApplication.MapScalarApiReference().AllowAnonymous();
 }
 

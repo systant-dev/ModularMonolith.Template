@@ -1,10 +1,9 @@
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using ModularMonolith.Template.UserModule.Tests.Storage;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
 using UserModule.Services;
-using UserModule.Storage;
 
 namespace ModularMonolith.Template.UserModule.Tests.Services;
 
@@ -17,7 +16,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task GetAll_WhenEmpty_ReturnsEmptyCollection()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
 
         (await service.GetAllAsync(TestContext.Current.CancellationToken)).Should().BeEmpty();
     }
@@ -25,7 +24,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task GetAll_ReturnsCreatedUsers()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
         await service.CreateAsync(NewRequest("Ada Lovelace", "ada@example.com"), TestContext.Current.CancellationToken);
         await service.CreateAsync(NewRequest("Alan Turing", "alan@example.com"), TestContext.Current.CancellationToken);
 
@@ -38,7 +37,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task Create_AssignsIdAndMapsFields()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
 
         UserResponse created = await service.CreateAsync(NewRequest("Grace Hopper", "grace@example.com", "555-0100"), TestContext.Current.CancellationToken);
 
@@ -51,18 +50,21 @@ public sealed class UserServiceTests
     [Fact]
     public async Task Create_EnqueuesOutboxMessage()
     {
-        UserDbContext context = CreateContext();
-        UserService service = new(context, NullLogger<UserService>.Instance);
+        InMemoryUserStore store = new();
+        UserService service = new(store, NullLogger<UserService>.Instance);
 
         await service.CreateAsync(NewRequest("Margaret Hamilton", "margaret@example.com"), TestContext.Current.CancellationToken);
 
-        context.OutboxMessages.Should().ContainSingle();
+        IReadOnlyList<ModularMonolith.Template.SharedKernel.Outbox.OutboxMessage> pending =
+            await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, TestContext.Current.CancellationToken);
+
+        pending.Should().ContainSingle();
     }
 
     [Fact]
     public async Task Find_WhenExists_ReturnsUser()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
         UserResponse created = await service.CreateAsync(NewRequest("Katherine Johnson", "katherine@example.com"), TestContext.Current.CancellationToken);
 
         UserResponse? found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
@@ -74,7 +76,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task Find_WhenMissing_ReturnsNull()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
 
         (await service.FindAsync(999, TestContext.Current.CancellationToken)).Should().BeNull();
     }
@@ -82,7 +84,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task Update_WhenExists_ReturnsUpdatedUser()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
         UserResponse created = await service.CreateAsync(NewRequest("Original Name", "original@example.com"), TestContext.Current.CancellationToken);
 
         UserResponse? updated = await service.UpdateAsync(created.Id, new UpdateUserRequest
@@ -102,7 +104,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task Update_WhenMissing_ReturnsNull()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
 
         UserResponse? updated = await service.UpdateAsync(999, new UpdateUserRequest
         {
@@ -116,7 +118,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task Delete_WhenExists_ReturnsTrueAndRemoves()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
         UserResponse created = await service.CreateAsync(NewRequest("Temp User", "temp@example.com"), TestContext.Current.CancellationToken);
 
         (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeTrue();
@@ -126,7 +128,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task Delete_WhenMissing_ReturnsFalse()
     {
-        UserService service = CreateService();
+        UserService service = await CreateService();
 
         (await service.DeleteAsync(999, TestContext.Current.CancellationToken)).Should().BeFalse();
     }
@@ -135,16 +137,10 @@ public sealed class UserServiceTests
 
     #region Private Method Declarations
 
-    private static UserService CreateService() =>
-        new(CreateContext(), NullLogger<UserService>.Instance);
-
-    private static UserDbContext CreateContext()
+    private static Task<UserService> CreateService()
     {
-        DbContextOptions<UserDbContext> options = new DbContextOptionsBuilder<UserDbContext>()
-            .UseInMemoryDatabase($"UserModuleTests-{Guid.NewGuid()}")
-            .Options;
-
-        return new UserDbContext(options);
+        UserService service = new(new InMemoryUserStore(), NullLogger<UserService>.Instance);
+        return Task.FromResult(service);
     }
 
     private static CreateUserRequest NewRequest(string fullName, string email, string? phoneNumber = null) =>

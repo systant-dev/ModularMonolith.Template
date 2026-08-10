@@ -6,7 +6,9 @@ internal sealed record UserModuleOptions : ModuleOptions
 {
     #region Property Declarations
 
-    public int MaxUsers { get; init; } = 1000;
+    public required int MaxUsers { get; init; }
+
+    public required string ConnectionString { get; init; }
 
     #endregion
 }
