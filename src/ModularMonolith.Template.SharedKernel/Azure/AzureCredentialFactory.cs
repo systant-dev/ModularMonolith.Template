@@ -1,6 +1,5 @@
-﻿extern alias AzureCore;
+﻿using Azure.Core;
 using Azure.Identity;
-using TokenCredential = AzureCore::Azure.Core.TokenCredential;
 
 namespace ModularMonolith.Template.SharedKernel.Azure;
 

@@ -1,8 +1,8 @@
-﻿using System.Net;
+﻿using FluentAssertions;
+using ModularMonolith.Template.Api.Tests.Infrastructure;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using FluentAssertions;
-using ModularMonolith.Template.Api.Tests.Infrastructure;
 
 namespace ModularMonolith.Template.Api.Tests.Integrations;
 

@@ -31,14 +31,14 @@ public static class AuthenticationExtensions
                 .SetFallbackPolicy(new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build())
-                .AddPolicy(AuthorizationPolicies.RequireUser, policy => policy
+                .AddPolicy(AuthorisationPolicies.RequireUser, policy => policy
                     .RequireAuthenticatedUser())
-                .AddPolicy(AuthorizationPolicies.ReadAccess, policy => policy
+                .AddPolicy(AuthorisationPolicies.ReadAccess, policy => policy
                     .RequireAuthenticatedUser()
-                    .RequireClaim(AuthorizationScopes.ScopeClaimType, AuthorizationScopes.Read, AuthorizationScopes.Write))
-                .AddPolicy(AuthorizationPolicies.WriteAccess, policy => policy
+                    .RequireClaim(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Read, AuthorisationScopes.Write))
+                .AddPolicy(AuthorisationPolicies.WriteAccess, policy => policy
                     .RequireAuthenticatedUser()
-                    .RequireClaim(AuthorizationScopes.ScopeClaimType, AuthorizationScopes.Write));
+                    .RequireClaim(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Write));
 
             return serviceCollection;
         }

@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
-using ModularMonolith.Template.SharedKernel.Messaging;
-using ModularMonolith.Template.SharedKernel.Outbox;
 using AccountsModule.Models;
 using AccountsModule.Storage;
+using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Outbox;
+using System.Collections.Concurrent;
 
 namespace ModularMonolith.Template.AccountsModule.Tests.Storage;
 

@@ -15,23 +15,15 @@ public sealed class MessageContractRegistry : IMessageContractRegistry
 
     #region Public Method Declarations
 
-    public void Register(Type messageType)
+    public void Register<TMessage>() where TMessage : IMessage
     {
-        ArgumentNullException.ThrowIfNull(messageType);
-
-        if (!typeof(IMessage).IsAssignableFrom(messageType))
-        {
-            return;
-        }
-
-        string name = ResolveContractName(messageType);
-        _typesByName[name] = messageType;
-        _namesByType[messageType] = name;
+        Type messageType = typeof(TMessage);
+        Register(messageType);
     }
 
-    public string GetContractName(Type messageType)
+    public string GetContractName<TMessage>() where TMessage : IMessage
     {
-        ArgumentNullException.ThrowIfNull(messageType);
+        Type messageType = typeof(TMessage);
         return _namesByType.GetOrAdd(messageType, ResolveContractName);
     }
 
@@ -68,6 +60,20 @@ public sealed class MessageContractRegistry : IMessageContractRegistry
     #endregion
 
     #region Private Method Declarations
+
+    private void Register(Type messageType)
+    {
+        ArgumentNullException.ThrowIfNull(messageType);
+
+        if (!typeof(IMessage).IsAssignableFrom(messageType))
+        {
+            return;
+        }
+
+        string name = ResolveContractName(messageType);
+        _typesByName[name] = messageType;
+        _namesByType[messageType] = name;
+    }
 
     private static string ResolveContractName(Type messageType)
     {

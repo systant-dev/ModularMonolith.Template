@@ -84,10 +84,10 @@ public sealed class MappingGeneratorTests
     [Fact]
     public void ReportsDiagnosticForUnmappableRequiredMember()
     {
-        System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics =
+        System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics =
             GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.UnmappableRequiredMember);
 
-        Microsoft.CodeAnalysis.Diagnostic diagnostic = diagnostics.Should().ContainSingle(d => d.Id == "MAP001").Subject;
+        Diagnostic diagnostic = diagnostics.Should().ContainSingle(diagnostic => diagnostic.Id == "MAP001").Subject;
         diagnostic.GetMessage().Should().Contain("Name");
     }
 
@@ -130,20 +130,18 @@ public sealed class MappingGeneratorTests
     [Fact]
     public void ReportsDiagnosticForRecursiveMappingCycle()
     {
-        System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics =
-            GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.RecursiveCycle);
+        System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.RecursiveCycle);
 
-        Microsoft.CodeAnalysis.Diagnostic diagnostic = diagnostics.Should().ContainSingle(d => d.Id == "MAP003").Subject;
+        Diagnostic diagnostic = diagnostics.Should().ContainSingle(diagnostic => diagnostic.Id == "MAP003").Subject;
         diagnostic.GetMessage().Should().Contain("Next");
     }
 
     [Fact]
     public void ReportsDiagnosticForIncompatibleOptionalMember()
     {
-        System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics =
-            GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.IncompatibleOptionalMember);
+        System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.IncompatibleOptionalMember);
 
-        Microsoft.CodeAnalysis.Diagnostic diagnostic = diagnostics.Should().ContainSingle(d => d.Id == "MAP002").Subject;
+        Diagnostic diagnostic = diagnostics.Should().ContainSingle(diagnostic => diagnostic.Id == "MAP002").Subject;
         diagnostic.GetMessage().Should().Contain("Amount");
     }
 

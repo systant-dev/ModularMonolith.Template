@@ -36,8 +36,7 @@ internal sealed class AccountsModuleDatabaseInitialiser(SqlServerConnectionFacto
                 NextAttemptOnUtc DATETIMEOFFSET     NULL
             );
 
-            CREATE INDEX IX_OutboxMessages_Pending
-                ON dbo.OutboxMessages (ProcessedOnUtc, Attempts, NextAttemptOnUtc);
+            CREATE INDEX IX_OutboxMessages_Pending ON dbo.OutboxMessages (ProcessedOnUtc, Attempts, NextAttemptOnUtc);
         END;
 
         IF COL_LENGTH(N'dbo.OutboxMessages', N'NextAttemptOnUtc') IS NULL
@@ -53,8 +52,7 @@ internal sealed class AccountsModuleDatabaseInitialiser(SqlServerConnectionFacto
     public async Task InitialiseAsync(CancellationToken cancellationToken = default)
     {
         await using SqlConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
-        await connection.ExecuteAsync(new CommandDefinition(CreateSchemaSql, cancellationToken: cancellationToken))
-            .ConfigureAwait(false);
+        await connection.ExecuteAsync(new CommandDefinition(CreateSchemaSql, cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
     #endregion

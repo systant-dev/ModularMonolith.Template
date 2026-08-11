@@ -1,5 +1,3 @@
 namespace ModularMonolith.Template.SharedKernel.Messaging;
 
-public interface IMessage
-{
-}
+public interface IMessage;

@@ -1,11 +1,10 @@
-using System.Collections.Concurrent;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using System.Collections.Concurrent;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Outbox;
 
@@ -53,7 +52,7 @@ public sealed class OutboxProcessorTests
         FakeStore store = new();
         store.Add(new OutboxMessage
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Type = "Some.Unknown.Type, Nonexistent.Assembly",
             Payload = "{}"
         });
@@ -160,10 +159,10 @@ public sealed class OutboxProcessorTests
         using ServiceProvider provider = services.BuildServiceProvider();
 
         OutboxStoreRegistry registry = new();
-        registry.Register(typeof(FakeStore));
+        registry.Register<FakeStore>();
 
         MessageContractRegistry contractRegistry = new();
-        contractRegistry.Register(typeof(TestMessage));
+        contractRegistry.Register<TestMessage>();
 
         options ??= new OutboxOptions { PollingInterval = TimeSpan.FromMilliseconds(20), MaxAttempts = 1 };
         stopWhen ??= () => store.Messages.All(message => message.Attempts > 0);

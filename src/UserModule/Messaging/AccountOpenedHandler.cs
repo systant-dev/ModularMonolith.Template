@@ -1,6 +1,6 @@
+using AccountsModule.Contracts.Events;
 using Microsoft.Extensions.Logging;
 using ModularMonolith.Template.SharedKernel.Messaging;
-using AccountsModule.Contracts.Events;
 
 namespace UserModule.Messaging;
 

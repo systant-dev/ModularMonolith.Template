@@ -1,9 +1,10 @@
-using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
-using ModularMonolith.Template.AccountsModule.Tests.Storage;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Contracts.Responses;
 using AccountsModule.Services;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using ModularMonolith.Template.AccountsModule.Tests.Storage;
+using ModularMonolith.Template.SharedKernel.Outbox;
 
 namespace ModularMonolith.Template.AccountsModule.Tests.Services;
 
@@ -56,8 +57,7 @@ public sealed class AccountServiceTests
 
         await service.CreateAsync(NewRequest(3, "Margaret Hamilton"), TestContext.Current.CancellationToken);
 
-        IReadOnlyList<ModularMonolith.Template.SharedKernel.Outbox.OutboxMessage> pending =
-            await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, visibilityTimeout: TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
+        IReadOnlyList<OutboxMessage> pending = await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, visibilityTimeout: TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
 
         pending.Should().ContainSingle();
     }
@@ -67,7 +67,6 @@ public sealed class AccountServiceTests
     {
         AccountService service = CreateService();
         AccountResponse created = await service.CreateAsync(NewRequest(4, "Katherine Johnson"), TestContext.Current.CancellationToken);
-
         AccountResponse? found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
 
         found.Should().NotBeNull();
@@ -133,8 +132,7 @@ public sealed class AccountServiceTests
 
     #region Private Method Declarations
 
-    private static AccountService CreateService() =>
-        new(new InMemoryAccountStore(), NullLogger<AccountService>.Instance);
+    private static AccountService CreateService() => new(new InMemoryAccountStore(), NullLogger<AccountService>.Instance);
 
     private static CreateAccountRequest NewRequest(int userId, string accountHolderName, decimal initialDeposit = 0m) =>
         new()

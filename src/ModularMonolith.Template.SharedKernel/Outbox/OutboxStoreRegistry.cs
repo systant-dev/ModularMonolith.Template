@@ -18,9 +18,9 @@ public sealed class OutboxStoreRegistry
 
     #region Public Method Declarations
 
-    public void Register(Type storeType)
+    public void Register<TStore>() where TStore : class, IOutboxStore
     {
-        ArgumentNullException.ThrowIfNull(storeType);
+        Type storeType = typeof(TStore);
         _storeTypes.TryAdd(storeType, 0);
     }
 

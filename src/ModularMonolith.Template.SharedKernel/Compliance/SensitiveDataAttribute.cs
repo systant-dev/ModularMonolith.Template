@@ -6,8 +6,7 @@ public sealed class SensitiveDataAttribute : DataClassificationAttribute
 {
     #region Constructor Declarations
 
-    public SensitiveDataAttribute()
-        : base(DataTaxonomy.SensitiveData)
+    public SensitiveDataAttribute() : base(DataTaxonomy.SensitiveData)
     {
     }
 

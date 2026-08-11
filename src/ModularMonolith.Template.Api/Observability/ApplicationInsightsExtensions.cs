@@ -1,7 +1,5 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using ModularMonolith.Template.SharedKernel.Outbox;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 
 namespace ModularMonolith.Template.Api.Observability;
 

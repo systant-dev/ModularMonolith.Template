@@ -1,4 +1,5 @@
 using FluentAssertions;
+using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Outbox;
@@ -14,7 +15,7 @@ public sealed class OutboxStoreRegistryTests
     {
         OutboxStoreRegistry registry = new();
 
-        registry.Register(typeof(FirstStore));
+        registry.Register<FirstStore>();
 
         registry.StoreTypes.Should().ContainSingle().Which.Should().Be<FirstStore>();
     }
@@ -24,8 +25,8 @@ public sealed class OutboxStoreRegistryTests
     {
         OutboxStoreRegistry registry = new();
 
-        registry.Register(typeof(FirstStore));
-        registry.Register(typeof(FirstStore));
+        registry.Register<FirstStore>();
+        registry.Register<FirstStore>();
 
         registry.StoreTypes.Should().ContainSingle();
     }
@@ -35,29 +36,29 @@ public sealed class OutboxStoreRegistryTests
     {
         OutboxStoreRegistry registry = new();
 
-        registry.Register(typeof(FirstStore));
-        registry.Register(typeof(SecondStore));
+        registry.Register<FirstStore>();
+        registry.Register<SecondStore>();
 
         registry.StoreTypes.Should().BeEquivalentTo([typeof(FirstStore), typeof(SecondStore)]);
-    }
-
-    [Fact]
-    public void Register_WithNullType_Throws()
-    {
-        OutboxStoreRegistry registry = new();
-
-        Action act = () => registry.Register(null!);
-
-        act.Should().Throw<ArgumentNullException>();
     }
 
     #endregion
 
     #region Nested Types
 
-    private sealed class FirstStore;
+    private sealed class FirstStore : IOutboxStore
+    {
+        public Task EnqueueAsync(IMessage message, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    }
 
-    private sealed class SecondStore;
+    private sealed class SecondStore : IOutboxStore
+    {
+        public Task EnqueueAsync(IMessage message, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    }
 
     #endregion
 }

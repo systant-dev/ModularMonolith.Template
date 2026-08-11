@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Logging;
 using AccountsModule.Models;
+using Microsoft.Extensions.Logging;
 
 namespace AccountsModule;
 

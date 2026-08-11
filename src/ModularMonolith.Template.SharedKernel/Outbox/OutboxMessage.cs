@@ -1,7 +1,7 @@
-using System.Reflection;
-using System.Text.Json;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Serialisation;
+using System.Reflection;
+using System.Text.Json;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
@@ -37,7 +37,7 @@ public sealed class OutboxMessage
 
         return new OutboxMessage
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             OccurredOnUtc = DateTimeOffset.UtcNow,
             Type = ResolveContractName(messageType),
             Payload = JsonSerializer.Serialize(message, messageType, JsonDefaults.Web)

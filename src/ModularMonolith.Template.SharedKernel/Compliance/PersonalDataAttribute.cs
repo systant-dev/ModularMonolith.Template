@@ -6,8 +6,7 @@ public sealed class PersonalDataAttribute : DataClassificationAttribute
 {
     #region Constructor Declarations
 
-    public PersonalDataAttribute()
-        : base(DataTaxonomy.PersonalData)
+    public PersonalDataAttribute() : base(DataTaxonomy.PersonalData)
     {
     }
 

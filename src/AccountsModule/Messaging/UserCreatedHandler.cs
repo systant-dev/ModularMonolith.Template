@@ -1,15 +1,12 @@
-using Microsoft.Extensions.Logging;
-using ModularMonolith.Template.SharedKernel.Messaging;
-using AccountsModule.Contracts.Events;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Services;
+using Microsoft.Extensions.Logging;
+using ModularMonolith.Template.SharedKernel.Messaging;
 using UserModule.Contracts.Events;
 
 namespace AccountsModule.Messaging;
 
-internal sealed class UserCreatedHandler(
-    IAccountService accountService,
-    ILogger<UserCreatedHandler> logger) : IMessageHandler<UserCreatedIntegrationEvent>
+internal sealed class UserCreatedHandler(IAccountService accountService, ILogger<UserCreatedHandler> logger) : IMessageHandler<UserCreatedIntegrationEvent>
 {
     #region Public Method Declarations
 
@@ -17,7 +14,6 @@ internal sealed class UserCreatedHandler(
     {
         ArgumentNullException.ThrowIfNull(message);
 
-        // A new user was created in the User module, so automatically open a savings account for them.
         await accountService.CreateAsync(
             new CreateAccountRequest
             {

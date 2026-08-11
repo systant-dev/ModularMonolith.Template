@@ -1,6 +1,6 @@
-using FluentValidation.TestHelper;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Validation;
+using FluentValidation.TestHelper;
 
 namespace ModularMonolith.Template.AccountsModule.Tests.Validation;
 

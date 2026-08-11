@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Contracts.Responses;
 using AccountsModule.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AccountsModule.Endpoints;
 

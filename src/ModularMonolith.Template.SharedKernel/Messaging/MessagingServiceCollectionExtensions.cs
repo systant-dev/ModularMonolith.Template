@@ -14,19 +14,16 @@ public static class MessagingServiceCollectionExtensions
             return serviceCollection;
         }
 
-        public IServiceCollection AddMessageHandler<TMessage, THandler>()
-            where TMessage : IMessage
-            where THandler : class, IMessageHandler<TMessage>
+        public IServiceCollection AddMessageHandler<TMessage, THandler>() where TMessage : IMessage where THandler : class, IMessageHandler<TMessage>
         {
             serviceCollection.AddScoped<IMessageHandler<TMessage>, THandler>();
-            serviceCollection.GetOrAddMessageContractRegistry().Register(typeof(TMessage));
+            serviceCollection.GetOrAddMessageContractRegistry().Register<TMessage>();
             return serviceCollection;
         }
 
-        public IServiceCollection AddMessageContract<TMessage>()
-            where TMessage : IMessage
+        public IServiceCollection AddMessageContract<TMessage>() where TMessage : IMessage
         {
-            serviceCollection.GetOrAddMessageContractRegistry().Register(typeof(TMessage));
+            serviceCollection.GetOrAddMessageContractRegistry().Register<TMessage>();
             return serviceCollection;
         }
     }
@@ -35,9 +32,7 @@ public static class MessagingServiceCollectionExtensions
 
     internal static MessageContractRegistry GetOrAddMessageContractRegistry(this IServiceCollection serviceCollection)
     {
-        MessageContractRegistry? existing = serviceCollection
-            .FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IMessageContractRegistry))?
-            .ImplementationInstance as MessageContractRegistry;
+        MessageContractRegistry? existing = serviceCollection.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IMessageContractRegistry))?.ImplementationInstance as MessageContractRegistry;
 
         if (existing is not null)
         {

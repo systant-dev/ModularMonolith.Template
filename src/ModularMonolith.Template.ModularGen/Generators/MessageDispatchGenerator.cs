@@ -5,7 +5,6 @@ using ModularMonolith.Template.ModularGen.Emit;
 using ModularMonolith.Template.ModularGen.Models;
 using ModularMonolith.Template.SourceGenerators.Shared.Collections;
 using ModularMonolith.Template.SourceGenerators.Shared.Models;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace ModularMonolith.Template.ModularGen.Generators;

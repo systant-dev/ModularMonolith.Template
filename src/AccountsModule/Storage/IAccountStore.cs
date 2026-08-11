@@ -1,5 +1,5 @@
-using ModularMonolith.Template.SharedKernel.Messaging;
 using AccountsModule.Models;
+using ModularMonolith.Template.SharedKernel.Messaging;
 
 namespace AccountsModule.Storage;
 

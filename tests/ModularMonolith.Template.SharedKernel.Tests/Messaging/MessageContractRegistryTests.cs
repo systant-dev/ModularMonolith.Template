@@ -14,7 +14,7 @@ public sealed class MessageContractRegistryTests
     {
         MessageContractRegistry registry = new();
 
-        registry.GetContractName(typeof(PlainMessage)).Should().Be(typeof(PlainMessage).FullName);
+        registry.GetContractName<PlainMessage>().Should().Be(typeof(PlainMessage).FullName);
     }
 
     [Fact]
@@ -22,14 +22,14 @@ public sealed class MessageContractRegistryTests
     {
         MessageContractRegistry registry = new();
 
-        registry.GetContractName(typeof(NamedMessage)).Should().Be("test.named.v1");
+        registry.GetContractName<NamedMessage>().Should().Be("test.named.v1");
     }
 
     [Fact]
     public void TryResolve_WhenRegisteredByAttributeName_ReturnsType()
     {
         MessageContractRegistry registry = new();
-        registry.Register(typeof(NamedMessage));
+        registry.Register<NamedMessage>();
 
         registry.TryResolve("test.named.v1", out Type resolved).Should().BeTrue();
         resolved.Should().Be<NamedMessage>();
@@ -60,15 +60,6 @@ public sealed class MessageContractRegistryTests
 
         registry.TryResolve("nope.not.a.message", out Type resolved).Should().BeFalse();
         resolved.Should().BeNull();
-    }
-
-    [Fact]
-    public void Register_WithNonMessageType_IsIgnored()
-    {
-        MessageContractRegistry registry = new();
-        registry.Register(typeof(string));
-
-        registry.TryResolve(typeof(string).FullName!, out _).Should().BeFalse();
     }
 
     #endregion

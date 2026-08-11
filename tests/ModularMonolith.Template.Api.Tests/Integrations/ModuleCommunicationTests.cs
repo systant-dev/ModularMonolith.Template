@@ -1,10 +1,9 @@
+using AccountsModule.Contracts.Events;
+using AccountsModule.Contracts.Responses;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.Api.Tests.Infrastructure;
 using ModularMonolith.Template.SharedKernel.Messaging;
-using AccountsModule.Contracts.Events;
-using AccountsModule.Contracts.Responses;
-using System.Net;
 using System.Net.Http.Json;
 using UserModule.Contracts.Events;
 

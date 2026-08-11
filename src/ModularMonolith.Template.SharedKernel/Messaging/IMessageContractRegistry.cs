@@ -4,9 +4,9 @@ public interface IMessageContractRegistry
 {
     #region Method Declarations
 
-    void Register(Type messageType);
+    void Register<TMessage>() where TMessage : IMessage;
 
-    string GetContractName(Type messageType);
+    string GetContractName<TMessage>() where TMessage : IMessage;
 
     bool TryResolve(string contractName, out Type messageType);
 

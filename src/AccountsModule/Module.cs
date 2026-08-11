@@ -1,9 +1,15 @@
+using AccountsModule.Configuration;
+using AccountsModule.Contracts.Requests;
+using AccountsModule.Endpoints;
+using AccountsModule.Messaging;
+using AccountsModule.Services;
+using AccountsModule.Storage;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Asp.Versioning;
-using Asp.Versioning.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Configuration;
@@ -12,12 +18,6 @@ using ModularMonolith.Template.SharedKernel.Modular;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Security;
 using ModularMonolith.Template.SharedKernel.Validation;
-using AccountsModule.Configuration;
-using AccountsModule.Contracts.Requests;
-using AccountsModule.Endpoints;
-using AccountsModule.Messaging;
-using AccountsModule.Services;
-using AccountsModule.Storage;
 using UserModule.Contracts.Events;
 
 namespace AccountsModule;
@@ -36,8 +36,7 @@ public sealed class Module : IModule
         // database server is required to run them.
         serviceCollection.AddSingleton(provider =>
         {
-            AccountsModuleOptions options = provider
-                .GetRequiredService<IOptions<AccountsModuleOptions>>().Value;
+            AccountsModuleOptions options = provider.GetRequiredService<IOptions<AccountsModuleOptions>>().Value;
             return new SqlServerConnectionFactory(options.ConnectionString);
         });
 
@@ -67,11 +66,11 @@ public sealed class Module : IModule
         group.RequireRateLimiting("default");
         group.WithRequestTimeout("default");
 
-        group.MapGet("/", AccountEndpoints.GetAll).RequireAuthorization(AuthorizationPolicies.ReadAccess);
-        group.MapGet("/{id:int}", AccountEndpoints.Get).RequireAuthorization(AuthorizationPolicies.ReadAccess);
-        group.MapPost("/", AccountEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateAccountRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
-        group.MapPut("/{id:int}", AccountEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateAccountRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
-        group.MapDelete("/{id:int}", AccountEndpoints.Delete).RequireAuthorization(AuthorizationPolicies.WriteAccess);
+        group.MapGet("/", AccountEndpoints.GetAll).RequireAuthorization(AuthorisationPolicies.ReadAccess);
+        group.MapGet("/{id:int}", AccountEndpoints.Get).RequireAuthorization(AuthorisationPolicies.ReadAccess);
+        group.MapPost("/", AccountEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateAccountRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapPut("/{id:int}", AccountEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateAccountRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapDelete("/{id:int}", AccountEndpoints.Delete).RequireAuthorization(AuthorisationPolicies.WriteAccess);
     }
 
     #endregion

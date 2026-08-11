@@ -1,5 +1,5 @@
-using FluentValidation.TestHelper;
 using AccountsModule.Configuration;
+using FluentValidation.TestHelper;
 
 namespace ModularMonolith.Template.AccountsModule.Tests.Configuration;
 

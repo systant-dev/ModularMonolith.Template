@@ -1,5 +1,5 @@
-using FluentValidation;
 using AccountsModule.Contracts.Requests;
+using FluentValidation;
 
 namespace AccountsModule.Validation;
 

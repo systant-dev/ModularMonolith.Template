@@ -1,9 +1,9 @@
-﻿using System.Security.Claims;
-using System.Text.Encodings.Web;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Security;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 namespace ModularMonolith.Template.Api.Tests.Infrastructure;
 
@@ -27,8 +27,8 @@ public sealed class TestAuthHandler(
         [
             new(ClaimTypes.NameIdentifier, "test-user"),
             new(ClaimTypes.Name, "Test User"),
-            new(AuthorizationScopes.ScopeClaimType, AuthorizationScopes.Read),
-            new(AuthorizationScopes.ScopeClaimType, AuthorizationScopes.Write),
+            new(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Read),
+            new(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Write),
         ];
 
         ClaimsIdentity identity = new(claims, SchemeName);

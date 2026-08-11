@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 
 namespace ModularMonolith.Template.MappingGen.Tests.Helpers;
 
-internal static class ModuleInitializer
+internal static class ModuleInitialiser
 {
     #region Public Method Declarations
 

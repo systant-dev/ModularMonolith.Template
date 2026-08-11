@@ -1,6 +1,6 @@
-﻿using System.Collections.Concurrent;
-using ModularMonolith.Template.SharedKernel.Messaging;
+﻿using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using System.Collections.Concurrent;
 using UserModule.Models;
 using UserModule.Storage;
 

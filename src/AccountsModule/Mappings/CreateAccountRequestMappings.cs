@@ -1,6 +1,6 @@
-using ModularMonolith.Template.MappingGen;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Models;
+using ModularMonolith.Template.MappingGen;
 
 namespace AccountsModule.Mappings;
 

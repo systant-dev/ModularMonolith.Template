@@ -1,6 +1,6 @@
 ﻿namespace ModularMonolith.Template.SharedKernel.Security;
 
-public static class AuthorizationPolicies
+public static class AuthorisationPolicies
 {
     #region Field Declarations
 

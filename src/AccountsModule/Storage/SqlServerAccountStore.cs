@@ -1,9 +1,9 @@
-using System.Data;
+using AccountsModule.Models;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
-using AccountsModule.Models;
+using System.Data;
 
 namespace AccountsModule.Storage;
 

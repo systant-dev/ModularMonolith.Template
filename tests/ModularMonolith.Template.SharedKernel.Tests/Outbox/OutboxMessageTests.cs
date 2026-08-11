@@ -51,7 +51,7 @@ public sealed class OutboxMessageTests
         OutboxMessage outboxMessage = OutboxMessage.Create(original);
 
         MessageContractRegistry registry = new();
-        registry.Register(typeof(TestMessage));
+        registry.Register<TestMessage>();
 
         IMessage? deserialised = outboxMessage.Deserialise(registry);
 
@@ -64,7 +64,7 @@ public sealed class OutboxMessageTests
     {
         OutboxMessage outboxMessage = new()
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             Type = "Some.Unknown.Type, Nonexistent.Assembly",
             Payload = "{}"
         };

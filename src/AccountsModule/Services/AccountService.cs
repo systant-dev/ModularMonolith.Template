@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Logging;
 using AccountsModule.Contracts.Events;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Contracts.Responses;
 using AccountsModule.Mappings;
 using AccountsModule.Models;
 using AccountsModule.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace AccountsModule.Services;
 

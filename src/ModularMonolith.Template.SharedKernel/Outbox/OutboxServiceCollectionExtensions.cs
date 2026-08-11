@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using ModularMonolith.Template.SharedKernel.Messaging;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
@@ -10,12 +9,11 @@ public static class OutboxServiceCollectionExtensions
 {
     extension(IServiceCollection serviceCollection)
     {
-        public IServiceCollection AddOutboxStore<TStore>()
-            where TStore : class, IOutboxStore
+        public IServiceCollection AddOutboxStore<TStore>() where TStore : class, IOutboxStore
         {
             serviceCollection.AddScoped<TStore>();
             serviceCollection.AddScoped<IOutboxStore>(provider => provider.GetRequiredService<TStore>());
-            serviceCollection.GetOrAddOutboxStoreRegistry().Register(typeof(TStore));
+            serviceCollection.GetOrAddOutboxStoreRegistry().Register<TStore>();
 
             return serviceCollection;
         }

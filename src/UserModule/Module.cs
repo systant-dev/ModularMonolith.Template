@@ -1,9 +1,10 @@
+using AccountsModule.Contracts.Events;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Asp.Versioning;
-using Asp.Versioning.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Configuration;
@@ -12,7 +13,6 @@ using ModularMonolith.Template.SharedKernel.Modular;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Security;
 using ModularMonolith.Template.SharedKernel.Validation;
-using AccountsModule.Contracts.Events;
 using UserModule.Configuration;
 using UserModule.Contracts.Requests;
 using UserModule.Endpoints;
@@ -67,11 +67,11 @@ public sealed class Module : IModule
         group.RequireRateLimiting("default");
         group.WithRequestTimeout("default");
 
-        group.MapGet("/", UserEndpoints.GetAll).RequireAuthorization(AuthorizationPolicies.ReadAccess);
-        group.MapGet("/{id:int}", UserEndpoints.Get).RequireAuthorization(AuthorizationPolicies.ReadAccess);
-        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
-        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>().RequireAuthorization(AuthorizationPolicies.WriteAccess);
-        group.MapDelete("/{id:int}", UserEndpoints.Delete).RequireAuthorization(AuthorizationPolicies.WriteAccess);
+        group.MapGet("/", UserEndpoints.GetAll).RequireAuthorization(AuthorisationPolicies.ReadAccess);
+        group.MapGet("/{id:int}", UserEndpoints.Get).RequireAuthorization(AuthorisationPolicies.ReadAccess);
+        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapDelete("/{id:int}", UserEndpoints.Delete).RequireAuthorization(AuthorisationPolicies.WriteAccess);
     }
 
     #endregion
