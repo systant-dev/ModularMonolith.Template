@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace ModularMonolith.Template.SharedKernel.Messaging;
 
@@ -14,13 +14,13 @@ public static class MessageHandlerInvoker
         if (mode == DispatchMode.Concurrent)
         {
             IEnumerable<Task> handlerTasks = handlers.Select(handler => handler.HandleAsync(message, cancellationToken));
-            await Task.WhenAll(handlerTasks).ConfigureAwait(false);
+            await Task.WhenAll(handlerTasks);
             return;
         }
 
         foreach (IMessageHandler<TMessage> handler in handlers)
         {
-            await handler.HandleAsync(message, cancellationToken).ConfigureAwait(false);
+            await handler.HandleAsync(message, cancellationToken);
         }
     }
 

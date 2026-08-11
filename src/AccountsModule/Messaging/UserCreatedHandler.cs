@@ -1,4 +1,4 @@
-using AccountsModule.Contracts.Requests;
+﻿using AccountsModule.Contracts.Requests;
 using AccountsModule.Services;
 using Microsoft.Extensions.Logging;
 using ModularMonolith.Template.SharedKernel.Messaging;
@@ -21,7 +21,7 @@ internal sealed class UserCreatedHandler(IAccountService accountService, ILogger
                 AccountHolderName = message.FullName,
                 InitialDeposit = 0
             },
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         AccountMessagingLog.SavingsAccountOpenedForUser(logger, message.Id);
     }

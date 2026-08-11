@@ -37,7 +37,8 @@ public sealed class FluentValidateModuleOptionsTests
     {
         Mock<IValidator<TestModuleOptions>> validator = new();
         TestModuleOptions options = new() { Enabled = true, Name = "Module" };
-        validator.Setup(v => v.Validate(options)).Returns(new ValidationResult());
+        ValidationResult validationResult = new();
+        validator.Setup(v => v.Validate(options)).Returns(validationResult);
 
         FluentValidateModuleOptions<TestModuleOptions> sut = new(validator.Object);
 

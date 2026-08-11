@@ -20,8 +20,10 @@ public sealed class OutboxProcessorTests
     {
         RecordingDispatcher dispatcher = new();
         FakeStore store = new();
-        store.Add(OutboxMessage.Create(new TestMessage("first")));
-        store.Add(OutboxMessage.Create(new TestMessage("second")));
+        TestMessage firstMessage = new("first");
+        TestMessage secondMessage = new("second");
+        store.Add(OutboxMessage.Create(firstMessage));
+        store.Add(OutboxMessage.Create(secondMessage));
 
         await RunProcessorAsync(store, dispatcher);
 
@@ -36,7 +38,8 @@ public sealed class OutboxProcessorTests
     {
         IMessageDispatcher dispatcher = CreateThrowingDispatcher();
         FakeStore store = new();
-        store.Add(OutboxMessage.Create(new TestMessage("boom")));
+        TestMessage boomMessage = new("boom");
+        store.Add(OutboxMessage.Create(boomMessage));
 
         await RunProcessorAsync(store, dispatcher);
 
@@ -51,12 +54,13 @@ public sealed class OutboxProcessorTests
     {
         RecordingDispatcher dispatcher = new();
         FakeStore store = new();
-        store.Add(new OutboxMessage
+        OutboxMessage unresolvableMessage = new()
         {
             Id = Guid.CreateVersion7(),
             Type = "Some.Unknown.Type, Nonexistent.Assembly",
             Payload = "{}"
-        });
+        };
+        store.Add(unresolvableMessage);
 
         await RunProcessorAsync(store, dispatcher);
 
@@ -72,7 +76,8 @@ public sealed class OutboxProcessorTests
     {
         IMessageDispatcher dispatcher = CreateThrowingDispatcher();
         FakeStore store = new();
-        store.Add(OutboxMessage.Create(new TestMessage("retry-me")));
+        TestMessage retryMessage = new("retry-me");
+        store.Add(OutboxMessage.Create(retryMessage));
 
         OutboxOptions options = new()
         {
@@ -96,7 +101,8 @@ public sealed class OutboxProcessorTests
     {
         IMessageDispatcher dispatcher = CreateThrowingDispatcher();
         FakeStore store = new();
-        store.Add(OutboxMessage.Create(new TestMessage("dead")));
+        TestMessage deadMessage = new("dead");
+        store.Add(OutboxMessage.Create(deadMessage));
 
         OutboxOptions options = new() { PollingInterval = TimeSpan.FromMilliseconds(20), MaxAttempts = 1 };
 
@@ -113,7 +119,8 @@ public sealed class OutboxProcessorTests
     {
         FailThenSucceedDispatcher dispatcher = new(failuresBeforeSuccess: 1);
         FakeStore store = new();
-        store.Add(OutboxMessage.Create(new TestMessage("eventual")));
+        TestMessage eventualMessage = new("eventual");
+        store.Add(OutboxMessage.Create(eventualMessage));
 
         OutboxOptions options = new()
         {
@@ -136,8 +143,10 @@ public sealed class OutboxProcessorTests
     {
         RecordingDispatcher dispatcher = new();
         FakeStore store = new();
-        store.Add(OutboxMessage.Create(new TestMessage("first")));
-        store.Add(OutboxMessage.Create(new TestMessage("second")));
+        TestMessage firstMessage = new("first");
+        TestMessage secondMessage = new("second");
+        store.Add(OutboxMessage.Create(firstMessage));
+        store.Add(OutboxMessage.Create(secondMessage));
 
         await RunProcessorAsync(store, dispatcher);
 
@@ -197,9 +206,10 @@ public sealed class OutboxProcessorTests
     private static IMessageDispatcher CreateThrowingDispatcher()
     {
         Mock<IMessageDispatcher> dispatcher = new();
+        InvalidOperationException dispatchException = new("dispatch failed");
         dispatcher
             .Setup(instance => instance.PublishAsync(It.IsAny<IMessage>(), It.IsAny<DispatchMode>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("dispatch failed"));
+            .ThrowsAsync(dispatchException);
         return dispatcher.Object;
     }
 

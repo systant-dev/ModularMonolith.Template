@@ -1,10 +1,11 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.SharedKernel.Storage;
+using System.Data.Common;
 
 namespace UserModule.Storage;
 
-internal sealed class UserModuleDatabaseInitialiser(SqlServerConnectionFactory connectionFactory) : IModuleDatabaseInitialiser
+internal sealed class UserModuleDatabaseInitialiser(IDbConnectionFactory connectionFactory) : IModuleDatabaseInitialiser
 {
     #region Constant Declarations
 
@@ -19,29 +20,8 @@ internal sealed class UserModuleDatabaseInitialiser(SqlServerConnectionFactory c
                 PhoneNumber NVARCHAR(64)    NULL
             );
         END;
-
-        IF OBJECT_ID(N'dbo.OutboxMessages', N'U') IS NULL
-        BEGIN
-            CREATE TABLE dbo.OutboxMessages (
-                Id               UNIQUEIDENTIFIER   NOT NULL PRIMARY KEY,
-                Type             NVARCHAR(1024)     NOT NULL,
-                Payload          NVARCHAR(MAX)      NOT NULL,
-                OccurredOnUtc    DATETIMEOFFSET     NOT NULL,
-                ProcessedOnUtc   DATETIMEOFFSET     NULL,
-                Attempts         INT                NOT NULL CONSTRAINT DF_OutboxMessages_Attempts DEFAULT 0,
-                Error            NVARCHAR(MAX)      NULL,
-                NextAttemptOnUtc DATETIMEOFFSET     NULL
-            );
-
-            CREATE INDEX IX_OutboxMessages_Pending
-                ON dbo.OutboxMessages (ProcessedOnUtc, Attempts, NextAttemptOnUtc);
-        END;
-
-        IF COL_LENGTH(N'dbo.OutboxMessages', N'NextAttemptOnUtc') IS NULL
-        BEGIN
-            ALTER TABLE dbo.OutboxMessages ADD NextAttemptOnUtc DATETIMEOFFSET NULL;
-        END;
-        """;
+        """
+        + "\n\n" + OutboxSchema.CreateTableSql;
 
     #endregion
 
@@ -49,9 +29,9 @@ internal sealed class UserModuleDatabaseInitialiser(SqlServerConnectionFactory c
 
     public async Task InitialiseAsync(CancellationToken cancellationToken = default)
     {
-        await using SqlConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken).ConfigureAwait(false);
-        await connection.ExecuteAsync(new CommandDefinition(CreateSchemaSql, cancellationToken: cancellationToken))
-            .ConfigureAwait(false);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        CommandDefinition commandDefinition = new(CreateSchemaSql, cancellationToken: cancellationToken);
+        await connection.ExecuteAsync(commandDefinition);
     }
 
     #endregion

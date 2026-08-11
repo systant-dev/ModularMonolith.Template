@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using UserModule.Contracts.Events;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
@@ -16,13 +16,13 @@ internal sealed class UserService(
 
     public async Task<IReadOnlyCollection<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<User> users = await store.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<User> users = await store.GetAllAsync(cancellationToken);
         return [.. users.Select(user => user.ToResponse())];
     }
 
     public async Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
-        User? user = await store.FindAsync(id, cancellationToken).ConfigureAwait(false);
+        User? user = await store.FindAsync(id, cancellationToken);
         return user?.ToResponse();
     }
 
@@ -38,7 +38,7 @@ internal sealed class UserService(
                 FullName = user.FullName,
                 Email = user.Email
             },
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         UserLog.UserCreated(logger, created);
         return created.ToResponse();
@@ -46,7 +46,7 @@ internal sealed class UserService(
 
     public async Task<UserResponse?> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default)
     {
-        User? existing = await store.FindAsync(id, cancellationToken).ConfigureAwait(false);
+        User? existing = await store.FindAsync(id, cancellationToken);
 
         if (existing is null)
         {
@@ -60,7 +60,7 @@ internal sealed class UserService(
             PhoneNumber = request.PhoneNumber
         };
 
-        await store.UpdateAsync(updated, cancellationToken).ConfigureAwait(false);
+        await store.UpdateAsync(updated, cancellationToken);
 
         UserLog.UserUpdated(logger, updated);
         return updated.ToResponse();
@@ -68,7 +68,7 @@ internal sealed class UserService(
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await store.DeleteAsync(id, cancellationToken).ConfigureAwait(false);
+        return await store.DeleteAsync(id, cancellationToken);
     }
 
     #endregion

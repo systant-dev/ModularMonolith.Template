@@ -153,7 +153,8 @@ public sealed class MessageDispatchGenerator : IIncrementalGenerator
             string fullyQualifiedName = messageType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             if (seen.Add(fullyQualifiedName))
             {
-                messages.Add(new MessageInfo(fullyQualifiedName));
+                MessageInfo message = new(fullyQualifiedName);
+                messages.Add(message);
             }
         }
     }

@@ -139,7 +139,8 @@ public sealed class UserServiceTests
 
     private static Task<UserService> CreateService()
     {
-        UserService service = new(new InMemoryUserStore(), NullLogger<UserService>.Instance);
+        InMemoryUserStore store = new();
+        UserService service = new(store, NullLogger<UserService>.Instance);
         return Task.FromResult(service);
     }
 

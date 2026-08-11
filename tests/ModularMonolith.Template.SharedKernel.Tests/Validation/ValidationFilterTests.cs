@@ -25,7 +25,8 @@ public sealed class ValidationFilterTests
         };
 
         ValidationFilter<TestRequest> filter = CreateFilter(NotEmptyNameValidator());
-        EndpointFilterInvocationContext context = CreateContext(new TestRequest { Name = "valid" });
+        TestRequest request = new() { Name = "valid" };
+        EndpointFilterInvocationContext context = CreateContext(request);
 
         object? result = await filter.InvokeAsync(context, next);
 
@@ -43,7 +44,8 @@ public sealed class ValidationFilterTests
         };
 
         ValidationFilter<TestRequest> filter = CreateFilter(NotEmptyNameValidator());
-        EndpointFilterInvocationContext context = CreateContext(new TestRequest { Name = string.Empty });
+        TestRequest request = new() { Name = string.Empty };
+        EndpointFilterInvocationContext context = CreateContext(request);
 
         object? result = await filter.InvokeAsync(context, next);
 
@@ -76,13 +78,16 @@ public sealed class ValidationFilterTests
 
     private static InlineValidator<TestRequest> NotEmptyNameValidator()
     {
-        InlineValidator<TestRequest> validator = new();
+        InlineValidator<TestRequest> validator = [];
         validator.RuleFor(request => request.Name).NotEmpty();
         return validator;
     }
 
-    private static EndpointFilterInvocationContext CreateContext(object argument) =>
-        EndpointFilterInvocationContext.Create(new DefaultHttpContext(), argument);
+    private static EndpointFilterInvocationContext CreateContext(object argument)
+    {
+        DefaultHttpContext httpContext = new();
+        return EndpointFilterInvocationContext.Create(httpContext, argument);
+    }
 
     #endregion
 

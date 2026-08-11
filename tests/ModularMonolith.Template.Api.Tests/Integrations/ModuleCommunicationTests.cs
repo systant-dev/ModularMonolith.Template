@@ -24,7 +24,7 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
     {
         IMessageDispatchMap dispatchMap = factory.Services.GetRequiredService<IMessageDispatchMap>();
 
-        dispatchMap.CanDispatch(typeof(UserCreatedIntegrationEvent)).Should().BeTrue();
+        dispatchMap.CanDispatch<UserCreatedIntegrationEvent>().Should().BeTrue();
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
     {
         IMessageDispatchMap dispatchMap = factory.Services.GetRequiredService<IMessageDispatchMap>();
 
-        dispatchMap.CanDispatch(typeof(AccountOpenedIntegrationEvent)).Should().BeTrue();
+        dispatchMap.CanDispatch<AccountOpenedIntegrationEvent>().Should().BeTrue();
     }
 
     [Fact]

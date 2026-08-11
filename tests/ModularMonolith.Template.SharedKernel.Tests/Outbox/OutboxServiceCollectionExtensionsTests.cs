@@ -61,12 +61,13 @@ public sealed class OutboxServiceCollectionExtensionsTests
     public void AddOutboxProcessing_RegistersHostedServiceAndOptions()
     {
         ServiceCollection services = new();
+        Dictionary<string, string?> configurationValues = new()
+        {
+            ["Outbox:BatchSize"] = "42",
+            ["Outbox:MaxAttempts"] = "7"
+        };
         IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Outbox:BatchSize"] = "42",
-                ["Outbox:MaxAttempts"] = "7"
-            })
+            .AddInMemoryCollection(configurationValues)
             .Build();
 
         services.AddOutboxProcessing(configuration);
@@ -89,31 +90,35 @@ public sealed class OutboxServiceCollectionExtensionsTests
     [Fact]
     public void AddOutboxProcessing_WithInvalidBatchSize_FailsValidation()
     {
-        ResolveOptions(new Dictionary<string, string?> { ["Outbox:BatchSize"] = "0" })
+        Dictionary<string, string?> configurationValues = new() { ["Outbox:BatchSize"] = "0" };
+        ResolveOptions(configurationValues)
             .Should().Throw<OptionsValidationException>();
     }
 
     [Fact]
     public void AddOutboxProcessing_WithZeroPollingInterval_FailsValidation()
     {
-        ResolveOptions(new Dictionary<string, string?> { ["Outbox:PollingInterval"] = "00:00:00" })
+        Dictionary<string, string?> configurationValues = new() { ["Outbox:PollingInterval"] = "00:00:00" };
+        ResolveOptions(configurationValues)
             .Should().Throw<OptionsValidationException>();
     }
 
     [Fact]
     public void AddOutboxProcessing_WithMaxBackoffBelowBaseDelay_FailsValidation()
     {
-        ResolveOptions(new Dictionary<string, string?>
+        Dictionary<string, string?> configurationValues = new()
         {
             ["Outbox:BackoffBaseDelay"] = "00:01:00",
             ["Outbox:MaxBackoffDelay"] = "00:00:10"
-        }).Should().Throw<OptionsValidationException>();
+        };
+        ResolveOptions(configurationValues).Should().Throw<OptionsValidationException>();
     }
 
     [Fact]
     public void AddOutboxProcessing_WithValidConfiguration_PassesValidation()
     {
-        ResolveOptions(new Dictionary<string, string?> { ["Outbox:BatchSize"] = "10" })
+        Dictionary<string, string?> configurationValues = new() { ["Outbox:BatchSize"] = "10" };
+        ResolveOptions(configurationValues)
             .Should().NotThrow();
     }
 

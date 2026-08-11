@@ -54,8 +54,10 @@ public sealed class ComplianceRedactionIntegrationTests
 
         services.AddRedaction(redaction =>
         {
-            redaction.SetRedactor<MaskingRedactor>(new DataClassificationSet(DataTaxonomy.PersonalData));
-            redaction.SetRedactor<ErasingRedactor>(new DataClassificationSet(DataTaxonomy.SensitiveData));
+            DataClassificationSet personalDataClassificationSet = new(DataTaxonomy.PersonalData);
+            DataClassificationSet sensitiveDataClassificationSet = new(DataTaxonomy.SensitiveData);
+            redaction.SetRedactor<MaskingRedactor>(personalDataClassificationSet);
+            redaction.SetRedactor<ErasingRedactor>(sensitiveDataClassificationSet);
         });
 
         return services.BuildServiceProvider();

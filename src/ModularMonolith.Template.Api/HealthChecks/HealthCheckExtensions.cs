@@ -16,15 +16,19 @@ public static class HealthCheckExtensions
     {
         public IEndpointRouteBuilder MapModuleHealthChecks()
         {
-            endpoints.MapHealthChecks("/health/live", new HealthCheckOptions
+            HealthCheckOptions liveOptions = new()
             {
                 Predicate = registration => registration.Tags.Contains(LiveTag) || registration.Tags.Count == 0,
-            }).AllowAnonymous();
+            };
 
-            endpoints.MapHealthChecks("/health/ready", new HealthCheckOptions
+            endpoints.MapHealthChecks("/health/live", liveOptions).AllowAnonymous();
+
+            HealthCheckOptions readyOptions = new()
             {
                 Predicate = registration => registration.Tags.Contains(ReadyTag),
-            }).AllowAnonymous();
+            };
+
+            endpoints.MapHealthChecks("/health/ready", readyOptions).AllowAnonymous();
 
             return endpoints;
         }

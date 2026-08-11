@@ -37,7 +37,8 @@ public sealed class JsonDefaultsTests
     [Fact]
     public void Web_ShouldSerialiseUsingCamelCase()
     {
-        string json = JsonSerializer.Serialize(new { SampleValue = 1 }, JsonDefaults.Web);
+        var value = new { SampleValue = 1 };
+        string json = JsonSerializer.Serialize(value, JsonDefaults.Web);
 
         json.Should().Contain("sampleValue");
     }

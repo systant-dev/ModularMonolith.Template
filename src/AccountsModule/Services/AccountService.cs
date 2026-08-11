@@ -1,4 +1,4 @@
-using AccountsModule.Contracts.Events;
+﻿using AccountsModule.Contracts.Events;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Contracts.Responses;
 using AccountsModule.Mappings;
@@ -16,13 +16,13 @@ internal sealed class AccountService(
 
     public async Task<IReadOnlyCollection<AccountResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<Account> accounts = await store.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<Account> accounts = await store.GetAllAsync(cancellationToken);
         return [.. accounts.Select(account => account.ToResponse())];
     }
 
     public async Task<AccountResponse?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
-        Account? account = await store.FindAsync(id, cancellationToken).ConfigureAwait(false);
+        Account? account = await store.FindAsync(id, cancellationToken);
         return account?.ToResponse();
     }
 
@@ -40,7 +40,7 @@ internal sealed class AccountService(
                 UserId = account.UserId,
                 AccountNumber = account.AccountNumber
             },
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         AccountLog.AccountOpened(logger, created);
         return created.ToResponse();
@@ -48,7 +48,7 @@ internal sealed class AccountService(
 
     public async Task<AccountResponse?> UpdateAsync(int id, UpdateAccountRequest request, CancellationToken cancellationToken = default)
     {
-        Account? existing = await store.FindAsync(id, cancellationToken).ConfigureAwait(false);
+        Account? existing = await store.FindAsync(id, cancellationToken);
 
         if (existing is null)
         {
@@ -60,7 +60,7 @@ internal sealed class AccountService(
             AccountHolderName = request.AccountHolderName
         };
 
-        await store.UpdateAsync(updated, cancellationToken).ConfigureAwait(false);
+        await store.UpdateAsync(updated, cancellationToken);
 
         AccountLog.AccountUpdated(logger, updated);
         return updated.ToResponse();
@@ -68,7 +68,7 @@ internal sealed class AccountService(
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await store.DeleteAsync(id, cancellationToken).ConfigureAwait(false);
+        return await store.DeleteAsync(id, cancellationToken);
     }
 
     #endregion

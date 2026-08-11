@@ -15,15 +15,18 @@ public sealed class InProcessMessageDispatcherTests
     public async Task PublishSequentiallyAsync_InvokesHandlersInRegistrationOrder()
     {
         List<string> log = [];
+        RecordingHandler firstHandler = new("first", log);
+        RecordingHandler secondHandler = new("second", log);
         ServiceProvider provider = BuildProvider(services =>
         {
-            services.AddSingleton<IMessageHandler<TestMessage>>(new RecordingHandler("first", log));
-            services.AddSingleton<IMessageHandler<TestMessage>>(new RecordingHandler("second", log));
+            services.AddSingleton<IMessageHandler<TestMessage>>(firstHandler);
+            services.AddSingleton<IMessageHandler<TestMessage>>(secondHandler);
         });
 
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        await dispatcher.PublishAsync(new TestMessage(), DispatchMode.Sequential, TestContext.Current.CancellationToken);
+        TestMessage message = new();
+        await dispatcher.PublishAsync(message, DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         log.Should().Equal("first", "second");
     }
@@ -34,7 +37,8 @@ public sealed class InProcessMessageDispatcherTests
         ServiceProvider provider = BuildProvider(_ => { });
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        Func<Task> act = () => dispatcher.PublishAsync(new TestMessage(), DispatchMode.Sequential, TestContext.Current.CancellationToken);
+        TestMessage message = new();
+        Func<Task> act = () => dispatcher.PublishAsync(message, DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         await act.Should().NotThrowAsync();
     }
@@ -54,15 +58,18 @@ public sealed class InProcessMessageDispatcherTests
     public async Task PublishConcurrentlyAsync_InvokesAllHandlers()
     {
         ConcurrentBag<string> log = [];
+        ConcurrentRecordingHandler handlerA = new("a", log);
+        ConcurrentRecordingHandler handlerB = new("b", log);
         ServiceProvider provider = BuildProvider(services =>
         {
-            services.AddSingleton<IMessageHandler<TestMessage>>(new ConcurrentRecordingHandler("a", log));
-            services.AddSingleton<IMessageHandler<TestMessage>>(new ConcurrentRecordingHandler("b", log));
+            services.AddSingleton<IMessageHandler<TestMessage>>(handlerA);
+            services.AddSingleton<IMessageHandler<TestMessage>>(handlerB);
         });
 
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        await dispatcher.PublishAsync(new TestMessage(), DispatchMode.Concurrent, TestContext.Current.CancellationToken);
+        TestMessage message = new();
+        await dispatcher.PublishAsync(message, DispatchMode.Concurrent, TestContext.Current.CancellationToken);
 
         log.Should().BeEquivalentTo("a", "b");
     }
@@ -71,15 +78,18 @@ public sealed class InProcessMessageDispatcherTests
     public async Task PublishConcurrentlyAsync_RunsEveryHandlerEvenWhenOneFails()
     {
         ConcurrentBag<string> log = [];
+        ConcurrentRecordingHandler okHandler = new("ok", log);
+        ThrowingHandler throwingHandler = new("boom", log);
         ServiceProvider provider = BuildProvider(services =>
         {
-            services.AddSingleton<IMessageHandler<TestMessage>>(new ConcurrentRecordingHandler("ok", log));
-            services.AddSingleton<IMessageHandler<TestMessage>>(new ThrowingHandler("boom", log));
+            services.AddSingleton<IMessageHandler<TestMessage>>(okHandler);
+            services.AddSingleton<IMessageHandler<TestMessage>>(throwingHandler);
         });
 
         IMessageDispatcher dispatcher = provider.GetRequiredService<IMessageDispatcher>();
 
-        Func<Task> act = () => dispatcher.PublishAsync(new TestMessage(), DispatchMode.Concurrent, TestContext.Current.CancellationToken);
+        TestMessage message = new();
+        Func<Task> act = () => dispatcher.PublishAsync(message, DispatchMode.Concurrent, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
         log.Should().BeEquivalentTo("ok", "boom");

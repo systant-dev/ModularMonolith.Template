@@ -8,5 +8,7 @@ public interface IMessageDispatchMap
 
     bool CanDispatch(Type messageType);
 
+    bool CanDispatch<TMessage>() where TMessage : IMessage => CanDispatch(typeof(TMessage));
+
     #endregion
 }

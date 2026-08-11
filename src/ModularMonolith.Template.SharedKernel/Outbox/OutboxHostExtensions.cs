@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
@@ -15,7 +15,7 @@ public static class OutboxHostExtensions
 
             foreach (IModuleDatabaseInitialiser initialiser in initialisers)
             {
-                await initialiser.InitialiseAsync(cancellationToken).ConfigureAwait(false);
+                await initialiser.InitialiseAsync(cancellationToken);
             }
         }
     }

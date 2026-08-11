@@ -4,8 +4,7 @@ using System.Net;
 
 namespace ModularMonolith.Template.Api.Tests.HealthChecks;
 
-public sealed class HealthCheckEndpointsTests(TestWebApplicationFactory factory)
-    : IClassFixture<TestWebApplicationFactory>
+public sealed class HealthCheckEndpointsTests(TestWebApplicationFactory factory) : IClassFixture<TestWebApplicationFactory>
 {
     #region Field Declarations
 

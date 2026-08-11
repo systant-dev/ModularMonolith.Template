@@ -15,11 +15,12 @@ public sealed class MessageHandlerInvokerTests
     public async Task InvokeAsync_InvokesAllRegisteredHandlers()
     {
         ConcurrentBag<string> log = [];
-        ServiceProvider provider = BuildProvider(
-            new RecordingHandler("first", log),
-            new RecordingHandler("second", log));
+        RecordingHandler firstHandler = new("first", log);
+        RecordingHandler secondHandler = new("second", log);
+        ServiceProvider provider = BuildProvider(firstHandler, secondHandler);
 
-        await MessageHandlerInvoker.InvokeAsync(provider, new TestMessage(), DispatchMode.Sequential, TestContext.Current.CancellationToken);
+        TestMessage message = new();
+        await MessageHandlerInvoker.InvokeAsync(provider, message, DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         log.Should().BeEquivalentTo(["first", "second"]);
     }
@@ -29,8 +30,9 @@ public sealed class MessageHandlerInvokerTests
     {
         ServiceProvider provider = BuildProvider();
 
+        TestMessage message = new();
         Func<Task> act = async () => await MessageHandlerInvoker.InvokeAsync(
-            provider, new TestMessage(), DispatchMode.Sequential, TestContext.Current.CancellationToken);
+            provider, message, DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         await act.Should().NotThrowAsync();
     }
@@ -39,12 +41,16 @@ public sealed class MessageHandlerInvokerTests
     public async Task InvokeAsync_Concurrent_InvokesAllHandlers()
     {
         ConcurrentBag<string> log = [];
+        RecordingHandler handlerA = new("a", log);
+        RecordingHandler handlerB = new("b", log);
+        RecordingHandler handlerC = new("c", log);
         ServiceProvider provider = BuildProvider(
-            new RecordingHandler("a", log),
-            new RecordingHandler("b", log),
-            new RecordingHandler("c", log));
+            handlerA,
+            handlerB,
+            handlerC);
 
-        await MessageHandlerInvoker.InvokeAsync(provider, new TestMessage(), DispatchMode.Concurrent, TestContext.Current.CancellationToken);
+        TestMessage message = new();
+        await MessageHandlerInvoker.InvokeAsync(provider, message, DispatchMode.Concurrent, TestContext.Current.CancellationToken);
 
         log.Should().BeEquivalentTo(["a", "b", "c"]);
     }
@@ -52,10 +58,12 @@ public sealed class MessageHandlerInvokerTests
     [Fact]
     public async Task InvokeAsync_WhenHandlerThrows_PropagatesException()
     {
-        ServiceProvider provider = BuildProvider(new ThrowingHandler());
+        ThrowingHandler throwingHandler = new();
+        ServiceProvider provider = BuildProvider(throwingHandler);
 
+        TestMessage message = new();
         Func<Task> act = async () => await MessageHandlerInvoker.InvokeAsync(
-            provider, new TestMessage(), DispatchMode.Sequential, TestContext.Current.CancellationToken);
+            provider, message, DispatchMode.Sequential, TestContext.Current.CancellationToken);
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("boom");
     }

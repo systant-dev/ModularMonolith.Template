@@ -36,12 +36,12 @@ public sealed class MessageContractRegistryTests
     }
 
     [Fact]
-    public void TryResolve_WhenNotRegistered_ResolvesViaAssemblyScan()
+    public void TryResolve_WhenNotRegisteredByFullName_ReturnsFalse()
     {
         MessageContractRegistry registry = new();
 
-        registry.TryResolve(typeof(PlainMessage).FullName!, out Type resolved).Should().BeTrue();
-        resolved.Should().Be<PlainMessage>();
+        registry.TryResolve(typeof(PlainMessage).FullName!, out Type resolved).Should().BeFalse();
+        resolved.Should().BeNull();
     }
 
     [Fact]

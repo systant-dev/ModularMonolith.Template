@@ -17,6 +17,7 @@ using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Modular;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Security;
+using ModularMonolith.Template.SharedKernel.Storage;
 using ModularMonolith.Template.SharedKernel.Validation;
 using UserModule.Contracts.Events;
 
@@ -34,7 +35,7 @@ public sealed class Module : IModule
         // This template uses Dapper over SQL Server (LocalDB in the example) so the persisted SQL
         // matches the production dialect. Automated tests substitute an in-memory IAccountStore, so no
         // database server is required to run them.
-        serviceCollection.AddSingleton(provider =>
+        serviceCollection.AddSingleton<IDbConnectionFactory>(provider =>
         {
             AccountsModuleOptions options = provider.GetRequiredService<IOptions<AccountsModuleOptions>>().Value;
             return new SqlServerConnectionFactory(options.ConnectionString);
@@ -54,14 +55,16 @@ public sealed class Module : IModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
+        ApiVersion apiVersion = new(1, 0);
+
         ApiVersionSet apiVersionSet = endpoints.NewApiVersionSet()
-            .HasApiVersion(new ApiVersion(1, 0))
+            .HasApiVersion(apiVersion)
             .ReportApiVersions()
             .Build();
 
         RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/accounts")
             .WithApiVersionSet(apiVersionSet)
-            .HasApiVersion(new ApiVersion(1, 0));
+            .HasApiVersion(apiVersion);
 
         group.RequireRateLimiting("default");
         group.WithRequestTimeout("default");

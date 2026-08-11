@@ -132,7 +132,11 @@ public sealed class AccountServiceTests
 
     #region Private Method Declarations
 
-    private static AccountService CreateService() => new(new InMemoryAccountStore(), NullLogger<AccountService>.Instance);
+    private static AccountService CreateService()
+    {
+        InMemoryAccountStore store = new();
+        return new AccountService(store, NullLogger<AccountService>.Instance);
+    }
 
     private static CreateAccountRequest NewRequest(int userId, string accountHolderName, decimal initialDeposit = 0m) =>
         new()

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -29,7 +29,7 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
         {
             try
             {
-                await ProcessAsync(stoppingToken).ConfigureAwait(false);
+                await ProcessAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -40,7 +40,7 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
                 ProcessingLoopFailed(logger, exception);
             }
         }
-        while (await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false));
+        while (await timer.WaitForNextTickAsync(stoppingToken));
 
         // On shutdown the current in-flight batch is abandoned rather than drained. Because delivery is
         // at-least-once and message state is only persisted after a dispatch attempt, any un-flushed
@@ -66,8 +66,7 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
             IMessageDispatcher dispatcher = scope.ServiceProvider.GetRequiredService<IMessageDispatcher>();
 
             IReadOnlyList<OutboxMessage> pending = await store
-                .GetPendingAsync(_options.MaxAttempts, _options.BatchSize, _options.ClaimTimeout, cancellationToken)
-                .ConfigureAwait(false);
+                .GetPendingAsync(_options.MaxAttempts, _options.BatchSize, _options.ClaimTimeout, cancellationToken);
 
             if (pending.Count == 0)
             {
@@ -76,10 +75,10 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
 
             foreach (OutboxMessage outboxMessage in pending)
             {
-                await DispatchAsync(dispatcher, outboxMessage, cancellationToken).ConfigureAwait(false);
+                await DispatchAsync(dispatcher, outboxMessage, cancellationToken);
             }
 
-            await store.UpdateAsync(pending, cancellationToken).ConfigureAwait(false);
+            await store.UpdateAsync(pending, cancellationToken);
         }
     }
 
@@ -103,7 +102,7 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
                 return;
             }
 
-            await dispatcher.PublishAsync(message, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await dispatcher.PublishAsync(message, cancellationToken: cancellationToken);
 
             outboxMessage.ProcessedOnUtc = DateTimeOffset.UtcNow;
             outboxMessage.NextAttemptOnUtc = null;

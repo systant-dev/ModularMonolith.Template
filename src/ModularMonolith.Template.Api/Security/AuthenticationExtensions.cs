@@ -26,11 +26,13 @@ public static class AuthenticationExtensions
 
         public IServiceCollection AddModuleAuthorization()
         {
+            AuthorizationPolicy fallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+
             serviceCollection
                 .AddAuthorizationBuilder()
-                .SetFallbackPolicy(new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build())
+                .SetFallbackPolicy(fallbackPolicy)
                 .AddPolicy(AuthorisationPolicies.RequireUser, policy => policy
                     .RequireAuthenticatedUser())
                 .AddPolicy(AuthorisationPolicies.ReadAccess, policy => policy

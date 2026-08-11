@@ -69,7 +69,8 @@ public sealed class OutboxMessageTests
             Payload = "{}"
         };
 
-        outboxMessage.Deserialise(new MessageContractRegistry()).Should().BeNull();
+        MessageContractRegistry registry = new();
+        outboxMessage.Deserialise(registry).Should().BeNull();
     }
 
     #endregion

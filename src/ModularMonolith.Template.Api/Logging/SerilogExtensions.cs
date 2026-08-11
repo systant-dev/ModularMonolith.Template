@@ -24,8 +24,10 @@ public static class SerilogExtensions
             builder.Logging.EnableRedaction();
             builder.Services.AddRedaction(redaction =>
             {
-                redaction.SetRedactor<MaskingRedactor>(new DataClassificationSet(DataTaxonomy.PersonalData));
-                redaction.SetRedactor<ErasingRedactor>(new DataClassificationSet(DataTaxonomy.SensitiveData));
+                DataClassificationSet personalDataClassificationSet = new(DataTaxonomy.PersonalData);
+                DataClassificationSet sensitiveDataClassificationSet = new(DataTaxonomy.SensitiveData);
+                redaction.SetRedactor<MaskingRedactor>(personalDataClassificationSet);
+                redaction.SetRedactor<ErasingRedactor>(sensitiveDataClassificationSet);
             });
         }
     }
