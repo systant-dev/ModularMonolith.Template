@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using Moq;
 using System.Collections.Concurrent;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Outbox;
@@ -33,7 +34,7 @@ public sealed class OutboxProcessorTests
     [Fact]
     public async Task Processes_WhenDispatchThrows_RecordsErrorAndIncrementsAttempts()
     {
-        ThrowingDispatcher dispatcher = new();
+        IMessageDispatcher dispatcher = CreateThrowingDispatcher();
         FakeStore store = new();
         store.Add(OutboxMessage.Create(new TestMessage("boom")));
 
@@ -69,7 +70,7 @@ public sealed class OutboxProcessorTests
     [Fact]
     public async Task Processes_WhenDispatchFailsBelowMaxAttempts_SchedulesBackoff()
     {
-        ThrowingDispatcher dispatcher = new();
+        IMessageDispatcher dispatcher = CreateThrowingDispatcher();
         FakeStore store = new();
         store.Add(OutboxMessage.Create(new TestMessage("retry-me")));
 
@@ -93,7 +94,7 @@ public sealed class OutboxProcessorTests
     [Fact]
     public async Task Processes_WhenAttemptsExhausted_DeadLettersMessage()
     {
-        ThrowingDispatcher dispatcher = new();
+        IMessageDispatcher dispatcher = CreateThrowingDispatcher();
         FakeStore store = new();
         store.Add(OutboxMessage.Create(new TestMessage("dead")));
 
@@ -193,6 +194,15 @@ public sealed class OutboxProcessorTests
         }
     }
 
+    private static IMessageDispatcher CreateThrowingDispatcher()
+    {
+        Mock<IMessageDispatcher> dispatcher = new();
+        dispatcher
+            .Setup(instance => instance.PublishAsync(It.IsAny<IMessage>(), It.IsAny<DispatchMode>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("dispatch failed"));
+        return dispatcher.Object;
+    }
+
     #endregion
 
     #region Nested Types
@@ -256,12 +266,6 @@ public sealed class OutboxProcessorTests
             _published.Add(message);
             return Task.CompletedTask;
         }
-    }
-
-    private sealed class ThrowingDispatcher : IMessageDispatcher
-    {
-        public Task PublishAsync(IMessage message, DispatchMode mode = DispatchMode.Sequential, CancellationToken cancellationToken = default) =>
-            throw new InvalidOperationException("dispatch failed");
     }
 
     private sealed class FailThenSucceedDispatcher(int failuresBeforeSuccess) : IMessageDispatcher

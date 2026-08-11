@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using Moq;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Outbox;
 
@@ -13,18 +14,18 @@ public sealed class OutboxHostExtensionsTests
     [Fact]
     public async Task MigrateModuleDatabasesAsync_InvokesAllRegisteredInitialisers()
     {
-        RecordingInitialiser first = new();
-        RecordingInitialiser second = new();
+        Mock<IModuleDatabaseInitialiser> first = new();
+        Mock<IModuleDatabaseInitialiser> second = new();
 
         ServiceCollection services = new();
-        services.AddScoped<IModuleDatabaseInitialiser>(_ => first);
-        services.AddScoped<IModuleDatabaseInitialiser>(_ => second);
+        services.AddScoped(_ => first.Object);
+        services.AddScoped(_ => second.Object);
         using ServiceProvider provider = services.BuildServiceProvider();
 
         await provider.MigrateModuleDatabasesAsync(TestContext.Current.CancellationToken);
 
-        first.Invoked.Should().BeTrue();
-        second.Invoked.Should().BeTrue();
+        first.Verify(initialiser => initialiser.InitialiseAsync(It.IsAny<CancellationToken>()), Times.Once);
+        second.Verify(initialiser => initialiser.InitialiseAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -36,21 +37,6 @@ public sealed class OutboxHostExtensionsTests
         Func<Task> act = async () => await provider.MigrateModuleDatabasesAsync(TestContext.Current.CancellationToken);
 
         await act.Should().NotThrowAsync();
-    }
-
-    #endregion
-
-    #region Nested Types
-
-    private sealed class RecordingInitialiser : IModuleDatabaseInitialiser
-    {
-        public bool Invoked { get; private set; }
-
-        public Task InitialiseAsync(CancellationToken cancellationToken = default)
-        {
-            Invoked = true;
-            return Task.CompletedTask;
-        }
     }
 
     #endregion

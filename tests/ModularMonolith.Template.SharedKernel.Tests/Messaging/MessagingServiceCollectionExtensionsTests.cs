@@ -27,6 +27,7 @@ public sealed class MessagingServiceCollectionExtensionsTests
     {
         ServiceCollection services = new();
         services.AddInProcessMessaging();
+        services.AddSingleton<IMessageDispatchMap, TestDispatchMap>();
 
         using ServiceProvider provider = services.BuildServiceProvider();
 
@@ -91,6 +92,20 @@ public sealed class MessagingServiceCollectionExtensionsTests
     private sealed class TestHandler : IMessageHandler<TestMessage>
     {
         public Task HandleAsync(TestMessage message, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class TestDispatchMap : IMessageDispatchMap
+    {
+        public Task DispatchAsync(IServiceProvider serviceProvider, IMessage message, DispatchMode mode, CancellationToken cancellationToken)
+        {
+            return message switch
+            {
+                TestMessage typedMessage => MessageHandlerInvoker.InvokeAsync(serviceProvider, typedMessage, mode, cancellationToken),
+                _ => throw new InvalidOperationException($"No dispatch entry for '{message.GetType().FullName}'."),
+            };
+        }
+
+        public bool CanDispatch(Type messageType) => messageType == typeof(TestMessage);
     }
 
     #endregion

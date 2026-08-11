@@ -7,6 +7,7 @@
 	<ItemGroup>
 		<InternalsVisibleTo Include="ModularMonolith.Template.AccountsModule.Tests" />
 		<InternalsVisibleTo Include="ModularMonolith.Template.Api.Tests" />
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
 	</ItemGroup>
 
 	<ItemGroup>
