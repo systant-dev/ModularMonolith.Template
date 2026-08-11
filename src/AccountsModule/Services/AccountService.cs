@@ -31,7 +31,6 @@ internal sealed class AccountService(
         Account toCreate = request.ToAccount();
         toCreate.AccountNumber = GenerateAccountNumber();
         toCreate.Balance = request.InitialDeposit;
-
         Account created = await store.CreateAsync(
             toCreate,
             account => new AccountOpenedIntegrationEvent
@@ -49,7 +48,6 @@ internal sealed class AccountService(
     public async Task<AccountResponse?> UpdateAsync(int id, UpdateAccountRequest request, CancellationToken cancellationToken = default)
     {
         Account? existing = await store.FindAsync(id, cancellationToken);
-
         if (existing is null)
         {
             return null;
@@ -59,7 +57,6 @@ internal sealed class AccountService(
         {
             AccountHolderName = request.AccountHolderName
         };
-
         await store.UpdateAsync(updated, cancellationToken);
 
         AccountLog.AccountUpdated(logger, updated);

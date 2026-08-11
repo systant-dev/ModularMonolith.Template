@@ -29,7 +29,6 @@ internal sealed class UserService(
     public async Task<UserResponse> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
         User toCreate = request.ToUser();
-
         User created = await store.CreateAsync(
             toCreate,
             user => new UserCreatedIntegrationEvent
@@ -47,7 +46,6 @@ internal sealed class UserService(
     public async Task<UserResponse?> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default)
     {
         User? existing = await store.FindAsync(id, cancellationToken);
-
         if (existing is null)
         {
             return null;
@@ -59,7 +57,6 @@ internal sealed class UserService(
             Email = request.Email,
             PhoneNumber = request.PhoneNumber
         };
-
         await store.UpdateAsync(updated, cancellationToken);
 
         UserLog.UserUpdated(logger, updated);

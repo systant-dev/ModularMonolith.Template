@@ -35,7 +35,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
             BatchSize = batchSize,
             VisibilitySeconds = (int)Math.Ceiling(visibilityTimeout.TotalSeconds)
         };
-
         CommandDefinition command = new(
             """
             UPDATE TOP (@BatchSize) dbo.OutboxMessages WITH (READPAST, UPDLOCK)
@@ -50,21 +49,18 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
             cancellationToken: cancellationToken);
 
         IEnumerable<OutboxMessage> messages = await connection.QueryAsync<OutboxMessage>(command);
-
         return [.. messages];
     }
 
     public async Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(messages);
-
         if (messages.Count == 0)
         {
             return;
         }
 
         await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-
         object[] parameters =
         [
             .. messages.Select(message => new
@@ -85,7 +81,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
             """,
             parameters,
             cancellationToken: cancellationToken);
-
         await connection.ExecuteAsync(command);
     }
 
@@ -110,7 +105,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
             message.Error,
             message.NextAttemptOnUtc
         };
-
         CommandDefinition command = new(
             """
             INSERT INTO OutboxMessages (Id, Type, Payload, OccurredOnUtc, ProcessedOnUtc, Attempts, Error, NextAttemptOnUtc)
