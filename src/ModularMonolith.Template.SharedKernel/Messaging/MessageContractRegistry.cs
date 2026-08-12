@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Reflection;
 
 namespace ModularMonolith.Template.SharedKernel.Messaging;
 
@@ -23,7 +22,7 @@ public sealed class MessageContractRegistry : IMessageContractRegistry
     public string GetContractName<TMessage>() where TMessage : IMessage
     {
         Type messageType = typeof(TMessage);
-        return _namesByType.GetOrAdd(messageType, ResolveContractName);
+        return _namesByType.GetOrAdd(messageType, MessageContractAttribute.ResolveContractName);
     }
 
     public bool TryResolve(string contractName, out Type messageType)
@@ -61,15 +60,9 @@ public sealed class MessageContractRegistry : IMessageContractRegistry
             return;
         }
 
-        string name = ResolveContractName(messageType);
+        string name = MessageContractAttribute.ResolveContractName(messageType);
         _typesByName[name] = messageType;
         _namesByType[messageType] = name;
-    }
-
-    private static string ResolveContractName(Type messageType)
-    {
-        MessageContractAttribute? attribute = messageType.GetCustomAttribute<MessageContractAttribute>(inherit: false);
-        return attribute?.Name ?? messageType.FullName ?? messageType.Name;
     }
 
     #endregion

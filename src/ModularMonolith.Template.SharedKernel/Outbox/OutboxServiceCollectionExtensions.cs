@@ -2,11 +2,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using System.Runtime.CompilerServices;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
 public static class OutboxServiceCollectionExtensions
 {
+    #region Field Declarations
+
+    private static readonly ConditionalWeakTable<IServiceCollection, OutboxStoreRegistry> Registries = new();
+
+    #endregion
+
     extension(IServiceCollection serviceCollection)
     {
         public IServiceCollection AddOutboxStore<TStore>() where TStore : class, IOutboxStore
@@ -42,18 +49,24 @@ public static class OutboxServiceCollectionExtensions
 
     private static OutboxStoreRegistry GetOrAddOutboxStoreRegistry(this IServiceCollection serviceCollection)
     {
-        OutboxStoreRegistry? existing = serviceCollection
-            .FirstOrDefault(descriptor => descriptor.ServiceType == typeof(OutboxStoreRegistry))?
-            .ImplementationInstance as OutboxStoreRegistry;
-
-        if (existing is not null)
+        // Cached per service collection so repeated store registrations are O(1) rather than
+        // scanning every descriptor each time (avoids O(n^2) startup wiring).
+        return Registries.GetValue(serviceCollection, static collection =>
         {
-            return existing;
-        }
+            ServiceDescriptor? descriptor = collection.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(OutboxStoreRegistry));
 
-        OutboxStoreRegistry registry = new();
-        serviceCollection.TryAddSingleton(registry);
-        return registry;
+            if (descriptor is not null)
+            {
+                return descriptor.ImplementationInstance as OutboxStoreRegistry
+                    ?? throw new InvalidOperationException(
+                        $"{nameof(OutboxStoreRegistry)} is already registered with an incompatible implementation. " +
+                        "Register outbox stores through AddOutboxStore/AddOutboxProcessing instead of registering the registry manually.");
+            }
+
+            OutboxStoreRegistry registry = new();
+            collection.TryAddSingleton(registry);
+            return registry;
+        });
     }
 
     #endregion

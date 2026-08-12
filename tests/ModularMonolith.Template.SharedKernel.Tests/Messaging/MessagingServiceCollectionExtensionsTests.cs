@@ -83,6 +83,33 @@ public sealed class MessagingServiceCollectionExtensionsTests
         registry.TryResolve(typeof(TestMessage).FullName!, out _).Should().BeTrue();
     }
 
+    [Fact]
+    public void AddMessageContract_WhenRegistryRegisteredIncompatibly_Throws()
+    {
+        ServiceCollection services = new();
+        services.AddSingleton<IMessageContractRegistry>(_ => new MessageContractRegistry());
+
+        Action act = () => services.AddMessageContract<TestMessage>();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void AddMessageContract_WhenRegistryPreRegisteredAsInstance_ReusesInstance()
+    {
+        ServiceCollection services = new();
+        MessageContractRegistry preRegistered = new();
+        services.AddSingleton<IMessageContractRegistry>(preRegistered);
+
+        services.AddMessageContract<TestMessage>();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMessageContractRegistry resolved = provider.GetRequiredService<IMessageContractRegistry>();
+
+        resolved.Should().BeSameAs(preRegistered);
+        resolved.TryResolve(typeof(TestMessage).FullName!, out _).Should().BeTrue();
+    }
+
     #endregion
 
     #region Nested Types

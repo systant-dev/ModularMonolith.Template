@@ -58,6 +58,33 @@ public sealed class OutboxServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void AddOutboxStore_WhenRegistryRegisteredIncompatibly_Throws()
+    {
+        ServiceCollection services = new();
+        services.AddSingleton(_ => new OutboxStoreRegistry());
+
+        Action act = () => services.AddOutboxStore<FakeStore>();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void AddOutboxStore_WhenRegistryPreRegisteredAsInstance_ReusesInstance()
+    {
+        ServiceCollection services = new();
+        OutboxStoreRegistry preRegistered = new();
+        services.AddSingleton(preRegistered);
+
+        services.AddOutboxStore<FakeStore>();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        OutboxStoreRegistry resolved = provider.GetRequiredService<OutboxStoreRegistry>();
+
+        resolved.Should().BeSameAs(preRegistered);
+        resolved.StoreTypes.Should().Contain(typeof(FakeStore));
+    }
+
+    [Fact]
     public void AddOutboxProcessing_RegistersHostedServiceAndOptions()
     {
         ServiceCollection services = new();

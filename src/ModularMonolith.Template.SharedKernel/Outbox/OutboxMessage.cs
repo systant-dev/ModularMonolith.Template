@@ -1,6 +1,5 @@
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Serialisation;
-using System.Reflection;
 using System.Text.Json;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
@@ -39,7 +38,7 @@ public sealed class OutboxMessage
         {
             Id = Guid.CreateVersion7(),
             OccurredOnUtc = DateTimeOffset.UtcNow,
-            Type = ResolveContractName(messageType),
+            Type = MessageContractAttribute.ResolveContractName(messageType),
             Payload = JsonSerializer.Serialize(message, messageType, JsonDefaults.Web)
         };
     }
@@ -54,16 +53,6 @@ public sealed class OutboxMessage
         }
 
         return JsonSerializer.Deserialize(Payload, messageType, JsonDefaults.Web) as IMessage;
-    }
-
-    #endregion
-
-    #region Private Method Declarations
-
-    private static string ResolveContractName(Type messageType)
-    {
-        MessageContractAttribute? attribute = messageType.GetCustomAttribute<MessageContractAttribute>(inherit: false);
-        return attribute?.Name ?? messageType.FullName ?? messageType.Name;
     }
 
     #endregion

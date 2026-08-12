@@ -39,5 +39,18 @@ public sealed class CorrelationIdTests(TestWebApplicationFactory factory) : ICla
         response.Headers.GetValues(CorrelationIdHeaderName).Should().ContainSingle().Which.Should().NotBeNullOrWhiteSpace();
     }
 
+    [Fact]
+    public async Task Response_GeneratesCorrelationIdWhenClientProvidesEmptyValue()
+    {
+        HttpClient client = factory.CreateClient();
+
+        using HttpRequestMessage request = new(HttpMethod.Get, "/v1/users");
+        request.Headers.TryAddWithoutValidation(CorrelationIdHeaderName, string.Empty);
+
+        HttpResponseMessage response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        response.Headers.GetValues(CorrelationIdHeaderName).Should().ContainSingle().Which.Should().NotBeNullOrWhiteSpace();
+    }
+
     #endregion
 }
