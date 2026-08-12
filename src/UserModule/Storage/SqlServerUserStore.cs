@@ -19,6 +19,20 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
         return [.. users];
     }
 
+    public async Task<IReadOnlyList<User>> GetPageAsync(int afterId, int limit, CancellationToken cancellationToken = default)
+    {
+        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var parameters = new { AfterId = afterId, Limit = limit };
+        // Keyset (seek) pagination: cheaper and more stable than OFFSET as the table grows because it
+        // seeks straight to the last-seen Id instead of counting and skipping rows.
+        CommandDefinition command = new(
+            "SELECT TOP (@Limit) Id, FullName, Email, PhoneNumber FROM Users WHERE Id > @AfterId ORDER BY Id;",
+            parameters,
+            cancellationToken: cancellationToken);
+        IEnumerable<User> users = await connection.QueryAsync<User>(command);
+        return [.. users];
+    }
+
     public async Task<User?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);

@@ -24,6 +24,18 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         return Task.FromResult(users);
     }
 
+    public Task<IReadOnlyList<User>> GetPageAsync(int afterId, int limit, CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<User> users =
+        [
+            .. _users.Values
+                .Where(user => user.Id > afterId)
+                .OrderBy(user => user.Id)
+                .Take(limit)
+        ];
+        return Task.FromResult(users);
+    }
+
     public Task<User?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         _users.TryGetValue(id, out User? user);

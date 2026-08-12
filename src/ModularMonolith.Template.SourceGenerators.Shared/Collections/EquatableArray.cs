@@ -62,6 +62,10 @@ public readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable<E
 
     public static implicit operator EquatableArray<T>(ImmutableArray<T> array) => new(array);
 
+    public static bool operator ==(EquatableArray<T> left, EquatableArray<T> right) => left.Equals(right);
+
+    public static bool operator !=(EquatableArray<T> left, EquatableArray<T> right) => !left.Equals(right);
+
     #endregion
 
     #region Private Method Declarations

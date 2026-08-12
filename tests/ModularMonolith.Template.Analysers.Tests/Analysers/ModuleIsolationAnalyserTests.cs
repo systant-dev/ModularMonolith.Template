@@ -2,6 +2,7 @@ using FluentAssertions;
 using ModularMonolith.Template.Analysers.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 using System.Collections.Immutable;
+using System.Globalization;
 
 namespace ModularMonolith.Template.Analysers.Tests.Analysers;
 
@@ -20,7 +21,7 @@ public sealed class ModuleIsolationAnalyserTests
         diagnostics.Should().Contain(diagnostic => diagnostic.Id == ModuleIsolationAnalyser.DiagnosticId);
         diagnostics.Where(diagnostic => diagnostic.Id == ModuleIsolationAnalyser.DiagnosticId)
                    .Should().OnlyContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning)
-                   .And.Contain(diagnostic => diagnostic.GetMessage().Contains("UserStore"));
+                   .And.Contain(diagnostic => diagnostic.GetMessage(CultureInfo.InvariantCulture).Contains("UserStore"));
     }
 
     [Fact]

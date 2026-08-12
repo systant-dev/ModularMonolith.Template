@@ -9,6 +9,8 @@ internal interface IUserService
 
     Task<IReadOnlyCollection<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyCollection<UserResponse>> GetPageAsync(int afterId, int limit, CancellationToken cancellationToken = default);
+
     Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default);
 
     Task<UserResponse> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default);

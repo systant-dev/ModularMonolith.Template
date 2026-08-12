@@ -19,7 +19,7 @@ public sealed class ValidationFilter<TRequest>(IValidator<TRequest> validator, I
             ValidationResult validation = await validator.ValidateAsync(request, context.HttpContext.RequestAborted);
             if (!validation.IsValid)
             {
-                logger.LogWarning("Validation failed for {RequestType}", typeof(TRequest).Name);
+                logger.LogValidationFailed(typeof(TRequest).Name);
                 return TypedResults.ValidationProblem(validation.ToDictionary());
             }
         }

@@ -30,7 +30,7 @@ public sealed class ComplianceRedactionIntegrationTests
         FakeLogCollector collector = provider.GetRequiredService<FakeLogCollector>();
         IReadOnlyList<KeyValuePair<string, string?>> state = collector.LatestRecord.StructuredState!;
 
-        string? fullName = state.Single(entry => entry.Key.EndsWith("FullName")).Value;
+        string? fullName = state.Single(entry => entry.Key.EndsWith("FullName", StringComparison.Ordinal)).Value;
         fullName.Should().NotBeNullOrEmpty();
         fullName.Should().MatchRegex("^\\*+$").And.NotContain("Jane");
 

@@ -6,8 +6,9 @@ public static partial class MessageDispatchServiceCollectionExtensions
 {
     extension(IServiceCollection serviceCollection)
     {
-        public IServiceCollection AddGeneratedMessageDispatch()
+        public IServiceCollection AddMessaging()
         {
+            serviceCollection.AddInProcessMessaging();
             RegisterGeneratedMessageDispatch(serviceCollection);
             return serviceCollection;
         }

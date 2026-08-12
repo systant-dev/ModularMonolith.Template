@@ -2,6 +2,7 @@ using FluentAssertions;
 using ModularMonolith.Template.Analysers.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 using System.Collections.Immutable;
+using System.Globalization;
 
 namespace ModularMonolith.Template.Analysers.Tests.Analysers;
 
@@ -18,7 +19,7 @@ public sealed class ModuleAttributeAnalyserTests
                                                  (TestContext.Current.CancellationToken, TestSources.MarkerTypes, TestSources.ModuleMissingInterface);
         Diagnostic diagnostic = diagnostics.Should().ContainSingle(diagnostic => diagnostic.Id == ModuleAttributeAnalyser.DiagnosticId).Subject;
         diagnostic.Severity.Should().Be(DiagnosticSeverity.Error);
-        diagnostic.GetMessage().Should().Contain("BadModule");
+        diagnostic.GetMessage(CultureInfo.InvariantCulture).Should().Contain("BadModule");
     }
 
     [Fact]

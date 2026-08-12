@@ -1,0 +1,7 @@
+# Analyzer settings scoped to test projects.
+[*.cs]
+
+# CA1707: Identifiers should not contain underscores
+# Disabled for tests because underscore-based names (e.g. Method_Scenario_ExpectedResult)
+# are an established convention for readable test method names.
+dotnet_diagnostic.CA1707.severity = none

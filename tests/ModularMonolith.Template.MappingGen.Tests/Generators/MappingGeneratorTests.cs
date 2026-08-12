@@ -1,6 +1,7 @@
 using FluentAssertions;
 using ModularMonolith.Template.MappingGen.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
+using System.Globalization;
 
 namespace ModularMonolith.Template.MappingGen.Tests.Generators;
 
@@ -88,7 +89,7 @@ public sealed class MappingGeneratorTests
             GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.UnmappableRequiredMember);
 
         Diagnostic diagnostic = diagnostics.Should().ContainSingle(diagnostic => diagnostic.Id == "MAP001").Subject;
-        diagnostic.GetMessage().Should().Contain("Name");
+        diagnostic.GetMessage(CultureInfo.InvariantCulture).Should().Contain("Name");
     }
 
     [Fact]
@@ -133,7 +134,7 @@ public sealed class MappingGeneratorTests
         System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.RecursiveCycle);
 
         Diagnostic diagnostic = diagnostics.Should().ContainSingle(diagnostic => diagnostic.Id == "MAP003").Subject;
-        diagnostic.GetMessage().Should().Contain("Next");
+        diagnostic.GetMessage(CultureInfo.InvariantCulture).Should().Contain("Next");
     }
 
     [Fact]
@@ -142,7 +143,7 @@ public sealed class MappingGeneratorTests
         System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = GeneratorTestHelper.RunGeneratorDiagnostics<MappingGenerator>(TestSources.IncompatibleOptionalMember);
 
         Diagnostic diagnostic = diagnostics.Should().ContainSingle(diagnostic => diagnostic.Id == "MAP002").Subject;
-        diagnostic.GetMessage().Should().Contain("Amount");
+        diagnostic.GetMessage(CultureInfo.InvariantCulture).Should().Contain("Amount");
     }
 
     [Fact]

@@ -1,8 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace ModularMonolith.Template.SharedKernel.Http;
 
+[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case",
+    Justification = "False positive on C# extension blocks; the receiver types (IServiceCollection and IHttpClientBuilder) are distinct.")]
 public static class HttpClientBuilderExtensions
 {
     extension(IServiceCollection serviceCollection)

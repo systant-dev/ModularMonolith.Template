@@ -1,0 +1,7 @@
+root = true
+
+[*.cs]
+# CA1716: Identifiers should not match keywords.
+# 'Module' is an intentional, repo-wide convention for the [Module]/IModule entry-point type in each
+# module. VB/C++ interop is not a requirement for this template, so the rule is suppressed.
+dotnet_diagnostic.CA1716.severity = none

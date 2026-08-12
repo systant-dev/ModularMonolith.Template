@@ -4,20 +4,25 @@ using Microsoft.Extensions.Primitives;
 using ModularMonolith.Template.SharedKernel.Compliance;
 using Serilog;
 using Serilog.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ModularMonolith.Template.Api.Logging;
 
+[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case",
+    Justification = "False positive on C# extension blocks; the receiver types (WebApplication and WebApplicationBuilder) are distinct.")]
 public static class SerilogExtensions
 {
     extension(WebApplicationBuilder builder)
     {
         public void AddSerilogWithRedaction()
         {
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(builder.Configuration)
-                .CreateLogger();
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 
             builder.Logging.AddSerilog(dispose: true);
+
+            // Register the concrete DiagnosticContext as a singleton, then map the IDiagnosticContext
+            // interface to that same instance. This intentional double registration lets consumers
+            // resolve either the concrete type or the abstraction while sharing one instance.
             builder.Services.AddSingleton(_ => new DiagnosticContext(Log.Logger));
             builder.Services.AddSingleton<IDiagnosticContext>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticContext>());
 

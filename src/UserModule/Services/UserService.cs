@@ -20,6 +20,12 @@ internal sealed class UserService(
         return [.. users.Select(user => user.ToResponse())];
     }
 
+    public async Task<IReadOnlyCollection<UserResponse>> GetPageAsync(int afterId, int limit, CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<User> users = await store.GetPageAsync(afterId, limit, cancellationToken);
+        return [.. users.Select(user => user.ToResponse())];
+    }
+
     public async Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         User? user = await store.FindAsync(id, cancellationToken);
