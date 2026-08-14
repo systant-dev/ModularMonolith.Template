@@ -1,7 +1,9 @@
-﻿using AccountsModule.Contracts.Requests;
+using AccountsModule.Contracts.Requests;
+using AccountsModule.Contracts.Responses;
 using AccountsModule.Services;
 using Microsoft.Extensions.Logging;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Contracts.Events;
 
 namespace AccountsModule.Messaging;
@@ -14,7 +16,7 @@ internal sealed class UserCreatedHandler(IAccountService accountService, ILogger
     {
         ArgumentNullException.ThrowIfNull(message);
 
-        await accountService.CreateAsync(
+        Result<AccountResponse> result = await accountService.CreateAsync(
             new CreateAccountRequest
             {
                 UserId = message.Id,
@@ -23,7 +25,14 @@ internal sealed class UserCreatedHandler(IAccountService accountService, ILogger
             },
             cancellationToken);
 
-        AccountMessagingLog.SavingsAccountOpenedForUser(logger, message.Id);
+        if (result.IsSuccess)
+        {
+            AccountMessagingLog.SavingsAccountOpenedForUser(logger, message.Id);
+        }
+        else
+        {
+            AccountMessagingLog.SavingsAccountNotOpenedForUser(logger, message.Id, result.Error.Message);
+        }
     }
 
     #endregion

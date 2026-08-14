@@ -135,5 +135,92 @@ internal static class TestSources
         }
         """;
 
+    public const string ResultMarkerTypes = """
+        namespace ModularMonolith.Template.SharedKernel.Results
+        {
+            public class Result { }
+
+            public sealed class Result<TValue> : Result { }
+        }
+
+        namespace Sample
+        {
+            using ModularMonolith.Template.SharedKernel.Results;
+            using System.Threading.Tasks;
+
+            public sealed class Service
+            {
+                public Result DoWork() => new();
+
+                public Result<int> Produce() => new();
+
+                public Task<Result> DoWorkAsync() => Task.FromResult(new Result());
+
+                public int Number() => 0;
+            }
+        }
+        """;
+
+    public const string ResultDiscarded = """
+        namespace Sample
+        {
+            public sealed class Consumer
+            {
+                public void Run()
+                {
+                    Service service = new();
+                    service.DoWork();
+                }
+            }
+        }
+        """;
+
+    public const string ResultDiscardedAsync = """
+        namespace Sample
+        {
+            using System.Threading.Tasks;
+
+            public sealed class Consumer
+            {
+                public async Task RunAsync()
+                {
+                    Service service = new();
+                    await service.DoWorkAsync();
+                }
+            }
+        }
+        """;
+
+    public const string ResultConsumedByAssignment = """
+        namespace Sample
+        {
+            using ModularMonolith.Template.SharedKernel.Results;
+
+            public sealed class Consumer
+            {
+                public void Run()
+                {
+                    Service service = new();
+                    Result result = service.DoWork();
+                    _ = result;
+                }
+            }
+        }
+        """;
+
+    public const string NonResultExpressionStatement = """
+        namespace Sample
+        {
+            public sealed class Consumer
+            {
+                public void Run()
+                {
+                    Service service = new();
+                    service.Number();
+                }
+            }
+        }
+        """;
+
     #endregion
 }

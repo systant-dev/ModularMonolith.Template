@@ -4,6 +4,7 @@ using AccountsModule.Messaging;
 using AccountsModule.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using ModularMonolith.Template.SharedKernel.Results;
 using Moq;
 using UserModule.Contracts.Events;
 
@@ -21,14 +22,14 @@ public sealed class UserCreatedHandlerTests
         Mock<IAccountService> accountService = new();
         accountService
             .Setup(service => service.CreateAsync(It.IsAny<CreateAccountRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((CreateAccountRequest request, CancellationToken _) => new AccountResponse
+            .ReturnsAsync((CreateAccountRequest request, CancellationToken _) => Result.Success(new AccountResponse
             {
                 Id = 1,
                 UserId = request.UserId,
                 AccountHolderName = request.AccountHolderName,
                 AccountNumber = "ACC-1",
                 Balance = request.InitialDeposit
-            });
+            }));
 
         UserCreatedHandler handler = new(accountService.Object, NullLogger<UserCreatedHandler>.Instance);
 

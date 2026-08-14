@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModularMonolith.Template.UserModule.Tests.Storage;
+using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
 using UserModule.Services;
@@ -39,12 +40,24 @@ public sealed class UserServiceTests
     {
         UserService service = await CreateService();
 
-        UserResponse created = await service.CreateAsync(NewRequest("Grace Hopper", "grace@example.com", "555-0100"), TestContext.Current.CancellationToken);
+        UserResponse created = (await service.CreateAsync(NewRequest("Grace Hopper", "grace@example.com", "555-0100"), TestContext.Current.CancellationToken)).Value;
 
         created.Id.Should().BePositive();
         created.FullName.Should().Be("Grace Hopper");
         created.Email.Should().Be("grace@example.com");
         created.PhoneNumber.Should().Be("555-0100");
+    }
+
+    [Fact]
+    public async Task Create_WhenEmailAlreadyExists_ReturnsConflict()
+    {
+        UserService service = await CreateService();
+        await service.CreateAsync(NewRequest("First User", "dupe@example.com"), TestContext.Current.CancellationToken);
+
+        Result<UserResponse> result = await service.CreateAsync(NewRequest("Second User", "DUPE@example.com"), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.Conflict);
     }
 
     [Fact]
@@ -65,7 +78,7 @@ public sealed class UserServiceTests
     public async Task Find_WhenExists_ReturnsUser()
     {
         UserService service = await CreateService();
-        UserResponse created = await service.CreateAsync(NewRequest("Katherine Johnson", "katherine@example.com"), TestContext.Current.CancellationToken);
+        UserResponse created = (await service.CreateAsync(NewRequest("Katherine Johnson", "katherine@example.com"), TestContext.Current.CancellationToken)).Value;
 
         UserResponse? found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
 
@@ -85,14 +98,14 @@ public sealed class UserServiceTests
     public async Task Update_WhenExists_ReturnsUpdatedUser()
     {
         UserService service = await CreateService();
-        UserResponse created = await service.CreateAsync(NewRequest("Original Name", "original@example.com"), TestContext.Current.CancellationToken);
+        UserResponse created = (await service.CreateAsync(NewRequest("Original Name", "original@example.com"), TestContext.Current.CancellationToken)).Value;
 
-        UserResponse? updated = await service.UpdateAsync(created.Id, new UpdateUserRequest
+        UserResponse? updated = (await service.UpdateAsync(created.Id, new UpdateUserRequest
         {
             FullName = "Updated Name",
             Email = "updated@example.com",
             PhoneNumber = "555-0199"
-        }, TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken)).Value;
 
         updated.Should().NotBeNull();
         updated!.Id.Should().Be(created.Id);
@@ -102,24 +115,25 @@ public sealed class UserServiceTests
     }
 
     [Fact]
-    public async Task Update_WhenMissing_ReturnsNull()
+    public async Task Update_WhenMissing_ReturnsNotFound()
     {
         UserService service = await CreateService();
 
-        UserResponse? updated = await service.UpdateAsync(999, new UpdateUserRequest
+        Result<UserResponse> updated = await service.UpdateAsync(999, new UpdateUserRequest
         {
             FullName = "Nobody",
             Email = "nobody@example.com"
         }, TestContext.Current.CancellationToken);
 
-        updated.Should().BeNull();
+        updated.IsFailure.Should().BeTrue();
+        updated.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]
     public async Task Delete_WhenExists_ReturnsTrueAndRemoves()
     {
         UserService service = await CreateService();
-        UserResponse created = await service.CreateAsync(NewRequest("Temp User", "temp@example.com"), TestContext.Current.CancellationToken);
+        UserResponse created = (await service.CreateAsync(NewRequest("Temp User", "temp@example.com"), TestContext.Current.CancellationToken)).Value;
 
         (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeTrue();
         (await service.FindAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeNull();

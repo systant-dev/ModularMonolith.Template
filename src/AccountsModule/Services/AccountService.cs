@@ -1,10 +1,11 @@
-﻿using AccountsModule.Contracts.Events;
+using AccountsModule.Contracts.Events;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Contracts.Responses;
 using AccountsModule.Mappings;
 using AccountsModule.Models;
 using AccountsModule.Storage;
 using Microsoft.Extensions.Logging;
+using ModularMonolith.Template.SharedKernel.Results;
 
 namespace AccountsModule.Services;
 
@@ -26,8 +27,14 @@ internal sealed class AccountService(
         return account?.ToResponse();
     }
 
-    public async Task<AccountResponse> CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<AccountResponse>> CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default)
     {
+        IReadOnlyList<Account> existing = await store.GetAllAsync(cancellationToken);
+        if (existing.Any(account => account.UserId == request.UserId))
+        {
+            return Error.Conflict("account.already-exists", $"An account already exists for user {request.UserId}.");
+        }
+
         Account toCreate = request.ToAccount();
         toCreate.AccountNumber = GenerateAccountNumber();
         toCreate.Balance = request.InitialDeposit;
@@ -45,12 +52,12 @@ internal sealed class AccountService(
         return created.ToResponse();
     }
 
-    public async Task<AccountResponse?> UpdateAsync(int id, UpdateAccountRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<AccountResponse>> UpdateAsync(int id, UpdateAccountRequest request, CancellationToken cancellationToken = default)
     {
         Account? existing = await store.FindAsync(id, cancellationToken);
         if (existing is null)
         {
-            return null;
+            return Error.NotFound("account.not-found", $"Account {id} was not found.");
         }
 
         Account updated = existing with

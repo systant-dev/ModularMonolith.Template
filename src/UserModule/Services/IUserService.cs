@@ -1,5 +1,6 @@
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
+using ModularMonolith.Template.SharedKernel.Results;
 
 namespace UserModule.Services;
 
@@ -13,9 +14,9 @@ internal interface IUserService
 
     Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default);
 
-    Task<UserResponse> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default);
+    Task<Result<UserResponse>> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default);
 
-    Task<UserResponse?> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default);
+    Task<Result<UserResponse>> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default);
 
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 

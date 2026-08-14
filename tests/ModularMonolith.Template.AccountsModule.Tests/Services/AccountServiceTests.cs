@@ -5,6 +5,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModularMonolith.Template.AccountsModule.Tests.Storage;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.SharedKernel.Results;
 
 namespace ModularMonolith.Template.AccountsModule.Tests.Services;
 
@@ -40,13 +41,25 @@ public sealed class AccountServiceTests
     {
         AccountService service = CreateService();
 
-        AccountResponse created = await service.CreateAsync(NewRequest(7, "Grace Hopper", initialDeposit: 250m), TestContext.Current.CancellationToken);
+        AccountResponse created = (await service.CreateAsync(NewRequest(7, "Grace Hopper", initialDeposit: 250m), TestContext.Current.CancellationToken)).Value;
 
         created.Id.Should().BePositive();
         created.UserId.Should().Be(7);
         created.AccountHolderName.Should().Be("Grace Hopper");
         created.AccountNumber.Should().NotBeNullOrWhiteSpace();
         created.Balance.Should().Be(250m);
+    }
+
+    [Fact]
+    public async Task Create_WhenAccountAlreadyExistsForUser_ReturnsConflict()
+    {
+        AccountService service = CreateService();
+        await service.CreateAsync(NewRequest(42, "First Holder"), TestContext.Current.CancellationToken);
+
+        Result<AccountResponse> result = await service.CreateAsync(NewRequest(42, "Second Holder"), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.Conflict);
     }
 
     [Fact]
@@ -66,7 +79,7 @@ public sealed class AccountServiceTests
     public async Task Find_WhenExists_ReturnsAccount()
     {
         AccountService service = CreateService();
-        AccountResponse created = await service.CreateAsync(NewRequest(4, "Katherine Johnson"), TestContext.Current.CancellationToken);
+        AccountResponse created = (await service.CreateAsync(NewRequest(4, "Katherine Johnson"), TestContext.Current.CancellationToken)).Value;
         AccountResponse? found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
 
         found.Should().NotBeNull();
@@ -85,12 +98,12 @@ public sealed class AccountServiceTests
     public async Task Update_WhenExists_ReturnsUpdatedAccount()
     {
         AccountService service = CreateService();
-        AccountResponse created = await service.CreateAsync(NewRequest(5, "Original Name"), TestContext.Current.CancellationToken);
+        AccountResponse created = (await service.CreateAsync(NewRequest(5, "Original Name"), TestContext.Current.CancellationToken)).Value;
 
-        AccountResponse? updated = await service.UpdateAsync(created.Id, new UpdateAccountRequest
+        AccountResponse? updated = (await service.UpdateAsync(created.Id, new UpdateAccountRequest
         {
             AccountHolderName = "Updated Name"
-        }, TestContext.Current.CancellationToken);
+        }, TestContext.Current.CancellationToken)).Value;
 
         updated.Should().NotBeNull();
         updated!.Id.Should().Be(created.Id);
@@ -98,23 +111,24 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task Update_WhenMissing_ReturnsNull()
+    public async Task Update_WhenMissing_ReturnsNotFound()
     {
         AccountService service = CreateService();
 
-        AccountResponse? updated = await service.UpdateAsync(999, new UpdateAccountRequest
+        Result<AccountResponse> updated = await service.UpdateAsync(999, new UpdateAccountRequest
         {
             AccountHolderName = "Nobody"
         }, TestContext.Current.CancellationToken);
 
-        updated.Should().BeNull();
+        updated.IsFailure.Should().BeTrue();
+        updated.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]
     public async Task Delete_WhenExists_ReturnsTrueAndRemoves()
     {
         AccountService service = CreateService();
-        AccountResponse created = await service.CreateAsync(NewRequest(6, "Temp Holder"), TestContext.Current.CancellationToken);
+        AccountResponse created = (await service.CreateAsync(NewRequest(6, "Temp Holder"), TestContext.Current.CancellationToken)).Value;
 
         (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeTrue();
         (await service.FindAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeNull();

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
 using UserModule.Services;
@@ -29,15 +30,16 @@ internal static class UserEndpoints
         return await userService.FindAsync(id, cancellationToken) is { } user ? TypedResults.Ok(user) : TypedResults.NotFound();
     }
 
-    public static async Task<Created<UserResponse>> Create(CreateUserRequest request, IUserService userService, CancellationToken cancellationToken)
+    public static async Task<Results<Created<UserResponse>, ProblemHttpResult>> Create(CreateUserRequest request, IUserService userService, CancellationToken cancellationToken)
     {
-        UserResponse created = await userService.CreateAsync(request, cancellationToken);
-        return TypedResults.Created($"/users/{created.Id}", created);
+        Result<UserResponse> result = await userService.CreateAsync(request, cancellationToken);
+        return result.IsSuccess ? TypedResults.Created($"/users/{result.Value.Id}", result.Value) : result.Error.ToProblem();
     }
 
-    public static async Task<Results<Ok<UserResponse>, NotFound>> Update(int id, UpdateUserRequest request, IUserService userService, CancellationToken cancellationToken)
+    public static async Task<Results<Ok<UserResponse>, ProblemHttpResult>> Update(int id, UpdateUserRequest request, IUserService userService, CancellationToken cancellationToken)
     {
-        return await userService.UpdateAsync(id, request, cancellationToken) is { } updated ? TypedResults.Ok(updated) : TypedResults.NotFound();
+        Result<UserResponse> result = await userService.UpdateAsync(id, request, cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Error.ToProblem();
     }
 
     public static async Task<Results<NoContent, NotFound>> Delete(int id, IUserService userService, CancellationToken cancellationToken)

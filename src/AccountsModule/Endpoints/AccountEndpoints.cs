@@ -3,6 +3,7 @@ using AccountsModule.Contracts.Responses;
 using AccountsModule.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using ModularMonolith.Template.SharedKernel.Results;
 
 namespace AccountsModule.Endpoints;
 
@@ -20,15 +21,18 @@ internal static class AccountEndpoints
         return await accountService.FindAsync(id, cancellationToken) is { } account ? TypedResults.Ok(account) : TypedResults.NotFound();
     }
 
-    public static async Task<Created<AccountResponse>> Create(CreateAccountRequest request, IAccountService accountService, CancellationToken cancellationToken)
+    public static async Task<Results<Created<AccountResponse>, ProblemHttpResult>> Create(CreateAccountRequest request, IAccountService accountService, CancellationToken cancellationToken)
     {
-        AccountResponse created = await accountService.CreateAsync(request, cancellationToken);
-        return TypedResults.Created($"/accounts/{created.Id}", created);
+        Result<AccountResponse> result = await accountService.CreateAsync(request, cancellationToken);
+        return result.IsSuccess
+            ? TypedResults.Created($"/accounts/{result.Value.Id}", result.Value)
+            : result.Error.ToProblem();
     }
 
-    public static async Task<Results<Ok<AccountResponse>, NotFound>> Update(int id, UpdateAccountRequest request, IAccountService accountService, CancellationToken cancellationToken)
+    public static async Task<Results<Ok<AccountResponse>, ProblemHttpResult>> Update(int id, UpdateAccountRequest request, IAccountService accountService, CancellationToken cancellationToken)
     {
-        return await accountService.UpdateAsync(id, request, cancellationToken) is { } updated ? TypedResults.Ok(updated) : TypedResults.NotFound();
+        Result<AccountResponse> result = await accountService.UpdateAsync(id, request, cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Error.ToProblem();
     }
 
     public static async Task<Results<NoContent, NotFound>> Delete(int id, IAccountService accountService, CancellationToken cancellationToken)

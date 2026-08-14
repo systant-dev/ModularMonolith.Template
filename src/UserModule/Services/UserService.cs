@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
+using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Contracts.Events;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
@@ -32,8 +33,14 @@ internal sealed class UserService(
         return user?.ToResponse();
     }
 
-    public async Task<UserResponse> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<UserResponse>> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
+        IReadOnlyList<User> existing = await store.GetAllAsync(cancellationToken);
+        if (existing.Any(user => string.Equals(user.Email, request.Email, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Error.Conflict("user.email-conflict", $"A user with email '{request.Email}' already exists.");
+        }
+
         User toCreate = request.ToUser();
         User created = await store.CreateAsync(
             toCreate,
@@ -49,12 +56,12 @@ internal sealed class UserService(
         return created.ToResponse();
     }
 
-    public async Task<UserResponse?> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<UserResponse>> UpdateAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default)
     {
         User? existing = await store.FindAsync(id, cancellationToken);
         if (existing is null)
         {
-            return null;
+            return Error.NotFound("user.not-found", $"User {id} was not found.");
         }
 
         User updated = existing with
