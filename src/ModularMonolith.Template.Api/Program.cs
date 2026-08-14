@@ -43,9 +43,9 @@ if (webApplication.Environment.IsDevelopment())
     webApplication.MapScalarApiReference().AllowAnonymous();
 }
 
+webApplication.UseMiddleware<CorrelationIdMiddleware>();
 webApplication.UseCustomExceptionHandler();
 webApplication.UseHttpsRedirection();
-webApplication.UseMiddleware<CorrelationIdMiddleware>();
 webApplication.UseEnrichedSerilogRequestLogging();
 webApplication.UseCors(CorsExtensions.DefaultPolicyName);
 webApplication.UseRateLimiter();

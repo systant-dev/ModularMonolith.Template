@@ -77,10 +77,12 @@ public sealed class ModuleRegistrationGenerator : IIncrementalGenerator
         INamedTypeSymbol? moduleInterface = context.SemanticModel.Compilation.GetTypeByMetadataName(ModuleInterfaceName);
         if (moduleInterface is null || !ModuleSymbolAnalyser.IsInstantiableModule(type, moduleInterface))
         {
-            return new ModuleCandidate(null, displayName, location);
+            ModuleCandidate nonInstantiableCandidate = new(null, displayName, location);
+            return nonInstantiableCandidate;
         }
 
-        return new ModuleCandidate(type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), displayName, location);
+        ModuleCandidate moduleCandidate = new(type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), displayName, location);
+        return moduleCandidate;
     }
 
     private static string GenerateAssemblyAttributes(ImmutableArray<string> moduleTypes)

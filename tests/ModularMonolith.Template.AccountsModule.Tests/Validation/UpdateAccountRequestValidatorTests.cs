@@ -52,10 +52,15 @@ public sealed class UpdateAccountRequestValidatorTests
 
     #region Private Method Declarations
 
-    private static UpdateAccountRequest NewRequest() => new()
+    private static UpdateAccountRequest NewRequest()
     {
-        AccountHolderName = "Ada Lovelace"
-    };
+        UpdateAccountRequest request = new()
+        {
+            AccountHolderName = "Ada Lovelace"
+        };
+
+        return request;
+    }
 
     #endregion
 }

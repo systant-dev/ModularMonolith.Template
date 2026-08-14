@@ -102,13 +102,17 @@ public sealed class CreateUserRequestValidatorTests
 
     #region Private Method Declarations
 
-    private static CreateUserRequest NewRequest() =>
-        new()
+    private static CreateUserRequest NewRequest()
+    {
+        CreateUserRequest request = new()
         {
             FullName = "Ada Lovelace",
             Email = "ada@example.com",
             PhoneNumber = "555-0100"
         };
+
+        return request;
+    }
 
     #endregion
 }

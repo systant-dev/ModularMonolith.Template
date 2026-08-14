@@ -144,13 +144,17 @@ public sealed class UserServiceTests
         return Task.FromResult(service);
     }
 
-    private static CreateUserRequest NewRequest(string fullName, string email, string? phoneNumber = null) =>
-        new()
+    private static CreateUserRequest NewRequest(string fullName, string email, string? phoneNumber = null)
+    {
+        CreateUserRequest request = new()
         {
             FullName = fullName,
             Email = email,
             PhoneNumber = phoneNumber
         };
+
+        return request;
+    }
 
     #endregion
 }

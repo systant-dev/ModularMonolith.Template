@@ -135,16 +135,21 @@ public sealed class AccountServiceTests
     private static AccountService CreateService()
     {
         InMemoryAccountStore store = new();
-        return new AccountService(store, NullLogger<AccountService>.Instance);
+        AccountService service = new(store, NullLogger<AccountService>.Instance);
+        return service;
     }
 
-    private static CreateAccountRequest NewRequest(int userId, string accountHolderName, decimal initialDeposit = 0m) =>
-        new()
+    private static CreateAccountRequest NewRequest(int userId, string accountHolderName, decimal initialDeposit = 0m)
+    {
+        CreateAccountRequest request = new()
         {
             UserId = userId,
             AccountHolderName = accountHolderName,
             InitialDeposit = initialDeposit
         };
+
+        return request;
+    }
 
     #endregion
 }

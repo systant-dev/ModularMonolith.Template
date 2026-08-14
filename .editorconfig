@@ -1,5 +1,10 @@
 root = true
 
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
 [*.cs]
 # CA1716: Identifiers should not match keywords.
 # 'Module' is an intentional, repo-wide convention for the [Module]/IModule entry-point type in each

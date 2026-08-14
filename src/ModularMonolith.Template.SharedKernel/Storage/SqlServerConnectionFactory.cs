@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Data.Common;
 
 namespace ModularMonolith.Template.SharedKernel.Storage;
@@ -7,16 +7,17 @@ public sealed class SqlServerConnectionFactory : IDbConnectionFactory
 {
     #region Field Declarations
 
-    // Transient-fault retry provider shared across connections. Handles the well-known transient
-    // SQL/Azure SQL error numbers (throttling, failovers, transport faults) with capped exponential
-    // backoff so callers don't have to implement their own retry loops.
-    private static readonly SqlRetryLogicBaseProvider RetryProvider = SqlConfigurableRetryFactory.CreateExponentialRetryProvider(
+    private static readonly SqlRetryLogicBaseProvider _retryProvider = SqlConfigurableRetryFactory.CreateExponentialRetryProvider
+    (
         new SqlRetryLogicOption
         {
             NumberOfTries = 5,
             DeltaTime = TimeSpan.FromMilliseconds(200),
             MaxTimeInterval = TimeSpan.FromSeconds(10)
-        });
+        })
+    ;
+
+    private readonly Func<DbConnection> _connectionFactory;
 
     #endregion
 
@@ -28,12 +29,17 @@ public sealed class SqlServerConnectionFactory : IDbConnectionFactory
 
     #region Constructor Declarations
 
-    public SqlServerConnectionFactory(string connectionString)
+    public SqlServerConnectionFactory(string connectionString) : this(connectionString, connectionFactory: null)
+    {
+    }
+
+    internal SqlServerConnectionFactory(string connectionString, Func<DbConnection>? connectionFactory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
         SqlConnectionStringBuilder builder = new(connectionString);
         ConnectionString = builder.ConnectionString;
+        _connectionFactory = connectionFactory ?? CreateSqlConnection;
     }
 
     #endregion
@@ -42,11 +48,30 @@ public sealed class SqlServerConnectionFactory : IDbConnectionFactory
 
     public async Task<DbConnection> CreateOpenConnectionAsync(CancellationToken cancellationToken = default)
     {
+        DbConnection connection = _connectionFactory();
+
+        try
+        {
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private SqlConnection CreateSqlConnection()
+    {
         SqlConnection connection = new(ConnectionString)
         {
-            RetryLogicProvider = RetryProvider
+            RetryLogicProvider = _retryProvider
         };
-        await connection.OpenAsync(cancellationToken);
         return connection;
     }
 

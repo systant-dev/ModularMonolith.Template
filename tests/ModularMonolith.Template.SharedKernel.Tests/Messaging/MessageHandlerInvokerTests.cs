@@ -100,8 +100,10 @@ public sealed class MessageHandlerInvokerTests
 
     private sealed class ThrowingHandler : IMessageHandler<TestMessage>
     {
-        public Task HandleAsync(TestMessage message, CancellationToken cancellationToken = default) =>
+        public Task HandleAsync(TestMessage message, CancellationToken cancellationToken = default)
+        {
             throw new InvalidOperationException("boom");
+        }
     }
 
     #endregion

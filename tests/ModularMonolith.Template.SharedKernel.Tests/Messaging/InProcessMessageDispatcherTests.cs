@@ -136,7 +136,10 @@ public sealed class InProcessMessageDispatcherTests
             };
         }
 
-        public bool CanDispatch(Type messageType) => messageType == typeof(TestMessage);
+        public bool CanDispatch(Type messageType)
+        {
+            return messageType == typeof(TestMessage);
+        }
     }
 
     private sealed class RecordingHandler(string name, List<string> log) : IMessageHandler<TestMessage>

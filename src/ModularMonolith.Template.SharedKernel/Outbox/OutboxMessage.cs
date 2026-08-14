@@ -34,13 +34,15 @@ public sealed class OutboxMessage
 
         Type messageType = message.GetType();
 
-        return new OutboxMessage
+        OutboxMessage outboxMessage = new()
         {
             Id = Guid.CreateVersion7(),
             OccurredOnUtc = DateTimeOffset.UtcNow,
             Type = MessageContractAttribute.ResolveContractName(messageType),
             Payload = JsonSerializer.Serialize(message, messageType, JsonDefaults.Web)
         };
+
+        return outboxMessage;
     }
 
     public IMessage? Deserialise(IMessageContractRegistry registry)

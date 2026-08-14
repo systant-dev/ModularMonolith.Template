@@ -76,8 +76,10 @@ public sealed class ModuleIsolationTests
 
     #region Private Method Declarations
 
-    private static string FailingTypes(TestResult result) =>
-        result.FailingTypeNames is { } names ? string.Join(", ", names) : string.Empty;
+    private static string FailingTypes(TestResult result)
+    {
+        return result.FailingTypeNames is { } names ? string.Join(", ", names) : string.Empty;
+    }
 
     #endregion
 }

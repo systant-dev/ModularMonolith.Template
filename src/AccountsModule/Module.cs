@@ -38,7 +38,8 @@ public sealed class Module : IModule
         serviceCollection.AddSingleton<IDbConnectionFactory>(provider =>
         {
             AccountsModuleOptions options = provider.GetRequiredService<IOptions<AccountsModuleOptions>>().Value;
-            return new SqlServerConnectionFactory(options.ConnectionString);
+            SqlServerConnectionFactory connectionFactory = new(options.ConnectionString);
+            return connectionFactory;
         });
 
         serviceCollection.AddScoped<IModuleDatabaseInitialiser, AccountsModuleDatabaseInitialiser>();

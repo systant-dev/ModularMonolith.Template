@@ -72,8 +72,10 @@ internal sealed class AccountService(
 
     #region Private Method Declarations
 
-    private static string GenerateAccountNumber() =>
-        $"SA{Random.Shared.NextInt64(0, 10_000_000_000L):D10}";
+    private static string GenerateAccountNumber()
+    {
+        return $"SA{Random.Shared.NextInt64(0, 10_000_000_000L):D10}";
+    }
 
     #endregion
 }

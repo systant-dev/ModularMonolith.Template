@@ -53,12 +53,17 @@ public sealed class UserModuleOptionsValidatorTests
 
     #region Private Method Declarations
 
-    private static UserModuleOptions NewOptions() => new()
+    private static UserModuleOptions NewOptions()
     {
-        Enabled = true,
-        MaxUsers = 1000,
-        ConnectionString = "Server=(localdb)\\mssqllocaldb;Database=ModularMonolith;Trusted_Connection=True"
-    };
+        UserModuleOptions options = new()
+        {
+            Enabled = true,
+            MaxUsers = 1000,
+            ConnectionString = "Server=(localdb)\\mssqllocaldb;Database=ModularMonolith;Trusted_Connection=True"
+        };
+
+        return options;
+    }
 
     #endregion
 }

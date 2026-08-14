@@ -73,8 +73,11 @@ public sealed class ValidationFilterTests
 
     #region Private Method Declarations
 
-    private static ValidationFilter<TestRequest> CreateFilter(IValidator<TestRequest> validator) =>
-        new(validator, NullLogger<ValidationFilter<TestRequest>>.Instance);
+    private static ValidationFilter<TestRequest> CreateFilter(IValidator<TestRequest> validator)
+    {
+        ValidationFilter<TestRequest> filter = new(validator, NullLogger<ValidationFilter<TestRequest>>.Instance);
+        return filter;
+    }
 
     private static InlineValidator<TestRequest> NotEmptyNameValidator()
     {

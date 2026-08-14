@@ -62,8 +62,10 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
         services.AddSingleton<IAccountStore>(store);
     }
 
-    private static void RemoveDatabaseInitialisers(IServiceCollection services) =>
+    private static void RemoveDatabaseInitialisers(IServiceCollection services)
+    {
         RemoveAll(services, typeof(IModuleDatabaseInitialiser));
+    }
 
     private static void RemoveOutboxProcessor(IServiceCollection services)
     {

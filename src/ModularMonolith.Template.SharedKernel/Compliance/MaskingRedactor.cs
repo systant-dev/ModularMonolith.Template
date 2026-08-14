@@ -12,7 +12,10 @@ public sealed class MaskingRedactor : Redactor
 
     #region Public Method Declarations
 
-    public override int GetRedactedLength(ReadOnlySpan<char> input) => input.Length;
+    public override int GetRedactedLength(ReadOnlySpan<char> input)
+    {
+        return input.Length;
+    }
 
     public override int Redact(ReadOnlySpan<char> source, Span<char> destination)
     {

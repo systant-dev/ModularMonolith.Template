@@ -102,13 +102,17 @@ public sealed class UpdateUserRequestValidatorTests
 
     #region Private Method Declarations
 
-    private static UpdateUserRequest NewRequest() =>
-        new()
+    private static UpdateUserRequest NewRequest()
+    {
+        UpdateUserRequest request = new()
         {
             FullName = "Ada Lovelace",
             Email = "ada@example.com",
             PhoneNumber = "555-0100"
         };
+
+        return request;
+    }
 
     #endregion
 }

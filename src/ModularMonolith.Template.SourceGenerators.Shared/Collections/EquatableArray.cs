@@ -41,7 +41,10 @@ public readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable<E
         return true;
     }
 
-    public override bool Equals(object? obj) => obj is EquatableArray<T> other && Equals(other);
+    public override bool Equals(object? obj)
+    {
+        return obj is EquatableArray<T> other && Equals(other);
+    }
 
     public override int GetHashCode()
     {
@@ -58,19 +61,36 @@ public readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable<E
         }
     }
 
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)(_array.IsDefault ? [] : _array)).GetEnumerator();
+    public IEnumerator<T> GetEnumerator()
+    {
+        return ((IEnumerable<T>)(_array.IsDefault ? [] : _array)).GetEnumerator();
+    }
 
-    public static implicit operator EquatableArray<T>(ImmutableArray<T> array) => new(array);
+    public static implicit operator EquatableArray<T>(ImmutableArray<T> array)
+    {
+        EquatableArray<T> equatableArray = new(array);
 
-    public static bool operator ==(EquatableArray<T> left, EquatableArray<T> right) => left.Equals(right);
+        return equatableArray;
+    }
 
-    public static bool operator !=(EquatableArray<T> left, EquatableArray<T> right) => !left.Equals(right);
+    public static bool operator ==(EquatableArray<T> left, EquatableArray<T> right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(EquatableArray<T> left, EquatableArray<T> right)
+    {
+        return !left.Equals(right);
+    }
 
     #endregion
 
     #region Private Method Declarations
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
     #endregion
 }

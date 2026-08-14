@@ -74,12 +74,17 @@ public sealed class CreateAccountRequestValidatorTests
 
     #region Private Method Declarations
 
-    private static CreateAccountRequest NewRequest() => new()
+    private static CreateAccountRequest NewRequest()
     {
-        UserId = 1,
-        AccountHolderName = "Ada Lovelace",
-        InitialDeposit = 100m
-    };
+        CreateAccountRequest request = new()
+        {
+            UserId = 1,
+            AccountHolderName = "Ada Lovelace",
+            InitialDeposit = 100m
+        };
+
+        return request;
+    }
 
     #endregion
 }

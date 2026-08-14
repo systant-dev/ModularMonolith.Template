@@ -35,13 +35,16 @@ public sealed class MappingGeneratorCacheabilityTests
 
     #region Public Method Declarations
 
-    public static TheoryData<string> Sources() =>
-    [
-        TestSources.MatchingProperties,
-        TestSources.CaseInsensitiveAndConvertible,
-        TestSources.MultipleTargets,
-        TestSources.NoInvocations,
-    ];
+    public static TheoryData<string> Sources()
+    {
+        return
+        [
+            TestSources.MatchingProperties,
+            TestSources.CaseInsensitiveAndConvertible,
+            TestSources.MultipleTargets,
+            TestSources.NoInvocations,
+        ];
+    }
 
     #endregion
 }

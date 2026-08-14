@@ -78,7 +78,8 @@ public sealed class MessageDispatchGenerator : IIncrementalGenerator
         INamedTypeSymbol containingType = methodSymbol.ContainingType;
         string namespaceName = containingType.ContainingNamespace.ToDisplayString();
         LocationInfo? location = context.TargetNode is { } node ? LocationInfo.CreateFrom(node) : null;
-        return new StubInfo(namespaceName, containingType.Name, methodSymbol.Name, location);
+        StubInfo stubInfo = new(namespaceName, containingType.Name, methodSymbol.Name, location);
+        return stubInfo;
     }
 
     private static EquatableArray<MessageInfo> GetMessageTypes(Compilation compilation, CancellationToken cancellationToken)

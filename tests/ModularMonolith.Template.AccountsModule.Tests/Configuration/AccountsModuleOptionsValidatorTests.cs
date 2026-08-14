@@ -53,12 +53,17 @@ public sealed class AccountsModuleOptionsValidatorTests
 
     #region Private Method Declarations
 
-    private static AccountsModuleOptions NewOptions() => new()
+    private static AccountsModuleOptions NewOptions()
     {
-        Enabled = true,
-        MaxAccounts = 1000,
-        ConnectionString = "Server=(localdb)\\mssqllocaldb;Database=ModularMonolithAccounts;Trusted_Connection=True"
-    };
+        AccountsModuleOptions options = new()
+        {
+            Enabled = true,
+            MaxAccounts = 1000,
+            ConnectionString = "Server=(localdb)\\mssqllocaldb;Database=ModularMonolithAccounts;Trusted_Connection=True"
+        };
+
+        return options;
+    }
 
     #endregion
 }

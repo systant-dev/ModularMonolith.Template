@@ -19,7 +19,9 @@ public static class AzureCredentialFactory
 
         configure?.Invoke(options);
 
-        return new DefaultAzureCredential(options);
+        DefaultAzureCredential credential = new(options);
+
+        return credential;
     }
 
     #endregion

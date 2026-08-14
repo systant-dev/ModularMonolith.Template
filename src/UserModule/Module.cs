@@ -39,7 +39,8 @@ public sealed class Module : IModule
         {
             UserModuleOptions options = provider
                 .GetRequiredService<IOptions<UserModuleOptions>>().Value;
-            return new SqlServerConnectionFactory(options.ConnectionString);
+            SqlServerConnectionFactory connectionFactory = new(options.ConnectionString);
+            return connectionFactory;
         });
 
         serviceCollection.AddScoped<IModuleDatabaseInitialiser, UserModuleDatabaseInitialiser>();
