@@ -58,6 +58,11 @@ public sealed class OutboxStoreRegistryTests
             throw new NotImplementedException();
         }
 
+        public Task<IReadOnlyList<OutboxMessage>> GetDeadLetteredAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
@@ -72,6 +77,11 @@ public sealed class OutboxStoreRegistryTests
         }
 
         public Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IReadOnlyList<OutboxMessage>> GetDeadLetteredAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }

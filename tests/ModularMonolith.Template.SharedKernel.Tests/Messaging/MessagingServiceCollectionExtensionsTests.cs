@@ -41,10 +41,19 @@ public sealed class MessagingServiceCollectionExtensionsTests
 
         services.AddMessageHandler<TestMessage, TestHandler>();
 
+        // The concrete handler is registered as scoped and IMessageHandler<T> resolves to the
+        // logging decorator that wraps it.
         services.Should().Contain(descriptor =>
-            descriptor.ServiceType == typeof(IMessageHandler<TestMessage>) &&
-            descriptor.ImplementationType == typeof(TestHandler) &&
+            descriptor.ServiceType == typeof(TestHandler) &&
             descriptor.Lifetime == ServiceLifetime.Scoped);
+
+        services.AddLogging();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        IMessageHandler<TestMessage> handler = scope.ServiceProvider.GetRequiredService<IMessageHandler<TestMessage>>();
+        handler.Should().BeOfType<LoggingMessageHandlerDecorator<TestMessage>>();
     }
 
     [Fact]
@@ -114,7 +123,7 @@ public sealed class MessagingServiceCollectionExtensionsTests
 
     #region Nested Types
 
-    private sealed record TestMessage : IMessage;
+    private sealed record TestMessage : Message;
 
     private sealed class TestHandler : IMessageHandler<TestMessage>
     {

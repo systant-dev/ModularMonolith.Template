@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
@@ -39,6 +39,17 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
         var parameters = new { Id = id };
         CommandDefinition command = new("SELECT Id, FullName, Email, PhoneNumber FROM Users WHERE Id = @Id;", parameters, cancellationToken: cancellationToken);
         return await connection.QuerySingleOrDefaultAsync<User>(command);
+    }
+
+    public async Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var parameters = new { Email = email };
+        CommandDefinition command = new(
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE Email = @Email) THEN 1 ELSE 0 END;",
+            parameters,
+            cancellationToken: cancellationToken);
+        return await connection.ExecuteScalarAsync<bool>(command);
     }
 
     public async Task<User> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)

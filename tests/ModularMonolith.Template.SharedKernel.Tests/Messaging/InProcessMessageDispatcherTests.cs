@@ -123,7 +123,7 @@ public sealed class InProcessMessageDispatcherTests
 
     #region Nested Types
 
-    private sealed record TestMessage : IMessage;
+    private sealed record TestMessage : Message;
 
     private sealed class TestDispatchMap : IMessageDispatchMap
     {

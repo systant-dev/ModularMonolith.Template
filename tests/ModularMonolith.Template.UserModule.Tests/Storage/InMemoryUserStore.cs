@@ -1,4 +1,4 @@
-﻿using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using System.Collections.Concurrent;
 using UserModule.Models;
@@ -40,6 +40,11 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
     {
         _users.TryGetValue(id, out User? user);
         return Task.FromResult(user);
+    }
+
+    public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_users.Values.Any(user => string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase)));
     }
 
     public Task<User> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
@@ -95,6 +100,19 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         ];
 
         return Task.FromResult(pending);
+    }
+
+    public Task<IReadOnlyList<OutboxMessage>> GetDeadLetteredAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<OutboxMessage> deadLettered =
+        [
+            .. _outbox.Values
+                .Where(message => message.ProcessedOnUtc is null && message.Attempts >= maxAttempts)
+                .OrderBy(message => message.OccurredOnUtc)
+                .Take(batchSize)
+        ];
+
+        return Task.FromResult(deadLettered);
     }
 
     public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)

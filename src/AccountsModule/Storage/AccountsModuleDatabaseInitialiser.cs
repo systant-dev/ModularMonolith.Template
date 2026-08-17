@@ -1,4 +1,5 @@
-﻿using Dapper;
+using Dapper;
+using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
 using System.Data.Common;
@@ -24,7 +25,8 @@ internal sealed class AccountsModuleDatabaseInitialiser(IDbConnectionFactory con
             CREATE INDEX IX_Accounts_UserId ON dbo.Accounts (UserId);
         END;
         """
-        + "\n\n" + OutboxSchema.CreateTableSql;
+        + "\n\n" + OutboxSchema.CreateTableSql
+        + "\n\n" + InboxSchema.CreateTableSql;
 
     #endregion
 

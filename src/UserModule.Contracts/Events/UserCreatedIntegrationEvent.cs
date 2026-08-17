@@ -2,7 +2,7 @@ using ModularMonolith.Template.SharedKernel.Messaging;
 
 namespace UserModule.Contracts.Events;
 
-public sealed record UserCreatedIntegrationEvent : IMessage
+public sealed record UserCreatedIntegrationEvent : Message
 {
     #region Property Declarations
 

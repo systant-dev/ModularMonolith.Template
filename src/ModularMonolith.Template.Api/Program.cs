@@ -4,6 +4,7 @@ using ModularMonolith.Template.Api.Logging;
 using ModularMonolith.Template.Api.Messaging;
 using ModularMonolith.Template.Api.Modular;
 using ModularMonolith.Template.Api.Observability;
+using ModularMonolith.Template.Api.Outbox;
 using ModularMonolith.Template.Api.RequestPipeline;
 using ModularMonolith.Template.Api.Security;
 using ModularMonolith.Template.Api.Versioning;
@@ -56,5 +57,6 @@ webApplication.UseStatusCodePages();
 
 webApplication.MapModuleEndpoints(webApplication.Configuration);
 webApplication.MapModuleHealthChecks();
+webApplication.MapOutboxDeadLetterEndpoints();
 
 webApplication.Run();

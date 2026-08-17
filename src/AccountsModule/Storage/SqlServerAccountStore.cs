@@ -1,4 +1,4 @@
-﻿using AccountsModule.Models;
+using AccountsModule.Models;
 using Dapper;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
@@ -25,6 +25,17 @@ internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFacto
         var parameters = new { Id = id };
         CommandDefinition command = new("SELECT Id, UserId, AccountNumber, AccountHolderName, Balance FROM Accounts WHERE Id = @Id;", parameters, cancellationToken: cancellationToken);
         return await connection.QuerySingleOrDefaultAsync<Account>(command);
+    }
+
+    public async Task<bool> ExistsForUserAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var parameters = new { UserId = userId };
+        CommandDefinition command = new(
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM Accounts WHERE UserId = @UserId) THEN 1 ELSE 0 END;",
+            parameters,
+            cancellationToken: cancellationToken);
+        return await connection.ExecuteScalarAsync<bool>(command);
     }
 
     public async Task<Account> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)

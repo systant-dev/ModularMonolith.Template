@@ -8,7 +8,8 @@ using UserModule.Contracts.Events;
 
 namespace AccountsModule.Messaging;
 
-internal sealed class UserCreatedHandler(IAccountService accountService, ILogger<UserCreatedHandler> logger) : IMessageHandler<UserCreatedIntegrationEvent>
+internal sealed class UserCreatedHandler(IAccountService accountService, ILogger<UserCreatedHandler> logger)
+    : IMessageHandler<UserCreatedIntegrationEvent>
 {
     #region Public Method Declarations
 
@@ -16,15 +17,14 @@ internal sealed class UserCreatedHandler(IAccountService accountService, ILogger
     {
         ArgumentNullException.ThrowIfNull(message);
 
-        Result<AccountResponse> result = await accountService.CreateAsync(
-            new CreateAccountRequest
-            {
-                UserId = message.Id,
-                AccountHolderName = message.FullName,
-                InitialDeposit = 0
-            },
-            cancellationToken);
+        CreateAccountRequest request = new()
+        {
+            UserId = message.Id,
+            AccountHolderName = message.FullName,
+            InitialDeposit = 0
+        };
 
+        Result<AccountResponse> result = await accountService.CreateAsync(request, cancellationToken);
         if (result.IsSuccess)
         {
             AccountMessagingLog.SavingsAccountOpenedForUser(logger, message.Id);

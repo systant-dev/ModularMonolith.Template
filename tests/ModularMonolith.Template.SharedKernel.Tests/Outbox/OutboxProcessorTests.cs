@@ -217,7 +217,7 @@ public sealed class OutboxProcessorTests
 
     #region Nested Types
 
-    public sealed record TestMessage(string Value) : IMessage;
+    public sealed record TestMessage(string Value) : Message;
 
     private sealed class FakeStore : IOutboxStore
     {
@@ -250,6 +250,19 @@ public sealed class OutboxProcessorTests
             ];
 
             return Task.FromResult(pending);
+        }
+
+        public Task<IReadOnlyList<OutboxMessage>> GetDeadLetteredAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
+        {
+            IReadOnlyList<OutboxMessage> deadLettered =
+            [
+                .. _messages.Values
+                    .Where(message => message.ProcessedOnUtc is null && message.Attempts >= maxAttempts)
+                    .OrderBy(message => message.OccurredOnUtc)
+                    .Take(batchSize)
+            ];
+
+            return Task.FromResult(deadLettered);
         }
 
         public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)

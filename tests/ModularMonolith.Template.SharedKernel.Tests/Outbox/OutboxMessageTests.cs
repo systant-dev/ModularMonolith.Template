@@ -77,10 +77,10 @@ public sealed class OutboxMessageTests
 
     #region Nested Types
 
-    public sealed record TestMessage(string Value) : IMessage;
+    public sealed record TestMessage(string Value) : Message;
 
     [MessageContract("test.outbox-message.v1")]
-    public sealed record NamedMessage(string Value) : IMessage;
+    public sealed record NamedMessage(string Value) : Message;
 
     #endregion
 }

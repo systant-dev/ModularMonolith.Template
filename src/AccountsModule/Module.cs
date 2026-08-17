@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Configuration;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Modular;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Security;
@@ -45,13 +46,15 @@ public sealed class Module : IModule
         serviceCollection.AddScoped<IModuleDatabaseInitialiser, AccountsModuleDatabaseInitialiser>();
         serviceCollection.AddOutboxStore<SqlServerAccountStore>();
         serviceCollection.AddScoped<IAccountStore>(provider => provider.GetRequiredService<SqlServerAccountStore>());
+        serviceCollection.AddScoped<IInboxStore>(provider => provider.GetRequiredService<SqlServerAccountStore>());
 
         serviceCollection.AddScoped<IAccountService, AccountService>();
         serviceCollection.AddScoped<IValidator<CreateAccountRequest>, Validation.CreateAccountRequestValidator>();
         serviceCollection.AddScoped<IValidator<UpdateAccountRequest>, Validation.UpdateAccountRequestValidator>();
 
         // React to users being created in the User module by opening a savings account for them.
-        serviceCollection.AddMessageHandler<UserCreatedIntegrationEvent, UserCreatedHandler>();
+        // Idempotency is handled centrally by the inbox decorator, keyed on the message's MessageId.
+        serviceCollection.AddIdempotentMessageHandler<UserCreatedIntegrationEvent, UserCreatedHandler>();
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)

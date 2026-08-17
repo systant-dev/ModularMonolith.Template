@@ -29,8 +29,7 @@ internal sealed class AccountService(
 
     public async Task<Result<AccountResponse>> CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<Account> existing = await store.GetAllAsync(cancellationToken);
-        if (existing.Any(account => account.UserId == request.UserId))
+        if (await store.ExistsForUserAsync(request.UserId, cancellationToken))
         {
             return Error.Conflict("account.already-exists", $"An account already exists for user {request.UserId}.");
         }

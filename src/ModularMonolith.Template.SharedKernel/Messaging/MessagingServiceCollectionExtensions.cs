@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 
 namespace ModularMonolith.Template.SharedKernel.Messaging;
@@ -8,7 +9,7 @@ public static class MessagingServiceCollectionExtensions
 {
     #region Field Declarations
 
-    private static readonly ConditionalWeakTable<IServiceCollection, MessageContractRegistry> Registries = new();
+    private static readonly ConditionalWeakTable<IServiceCollection, MessageContractRegistry> Registries = [];
 
     #endregion
 
@@ -23,7 +24,37 @@ public static class MessagingServiceCollectionExtensions
 
         public IServiceCollection AddMessageHandler<TMessage, THandler>() where TMessage : IMessage where THandler : class, IMessageHandler<TMessage>
         {
-            serviceCollection.AddScoped<IMessageHandler<TMessage>, THandler>();
+            // Register the concrete handler, then expose IMessageHandler<TMessage> as the logging
+            // decorator wrapping it so every handler gets consistent start/finish/error logging
+            // without changing the handler implementations themselves.
+            serviceCollection.AddScoped<THandler>();
+            serviceCollection.AddScoped<IMessageHandler<TMessage>>(provider =>
+                new LoggingMessageHandlerDecorator<TMessage>(
+                    provider.GetRequiredService<THandler>(),
+                    provider.GetRequiredService<ILogger<LoggingMessageHandlerDecorator<TMessage>>>()));
+            serviceCollection.GetOrAddMessageContractRegistry().Register<TMessage>();
+            return serviceCollection;
+        }
+
+        public IServiceCollection AddIdempotentMessageHandler<TMessage, THandler>()
+            where TMessage : IMessage where THandler : class, IMessageHandler<TMessage>
+        {
+            // Same as AddMessageHandler but additionally wraps the handler in the inbox idempotency
+            // decorator, so at-least-once delivery is de-duplicated centrally on the message's own
+            // MessageId instead of inside the handler. The consumer name is the handler type name.
+            serviceCollection.AddScoped<THandler>();
+            serviceCollection.AddScoped<IMessageHandler<TMessage>>(provider =>
+            {
+                LoggingMessageHandlerDecorator<TMessage> logging = new(
+                    provider.GetRequiredService<THandler>(),
+                    provider.GetRequiredService<ILogger<LoggingMessageHandlerDecorator<TMessage>>>());
+
+                return new InboxIdempotencyMessageHandlerDecorator<TMessage>(
+                    logging,
+                    provider.GetRequiredService<Inbox.IInboxStore>(),
+                    typeof(THandler).Name,
+                    provider.GetRequiredService<ILogger<InboxIdempotencyMessageHandlerDecorator<TMessage>>>());
+            });
             serviceCollection.GetOrAddMessageContractRegistry().Register<TMessage>();
             return serviceCollection;
         }

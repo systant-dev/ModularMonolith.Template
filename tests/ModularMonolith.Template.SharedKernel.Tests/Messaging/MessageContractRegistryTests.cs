@@ -66,10 +66,10 @@ public sealed class MessageContractRegistryTests
 
     #region Nested Types
 
-    public sealed record PlainMessage : IMessage;
+    public sealed record PlainMessage : Message;
 
     [MessageContract("test.named.v1")]
-    public sealed record NamedMessage : IMessage;
+    public sealed record NamedMessage : Message;
 
     #endregion
 }

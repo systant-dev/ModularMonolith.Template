@@ -11,6 +11,8 @@ internal interface IAccountStore
 
     Task<Account?> FindAsync(int id, CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsForUserAsync(int userId, CancellationToken cancellationToken = default);
+
     Task<Account> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 
     Task<bool> UpdateAsync(Account account, CancellationToken cancellationToken = default);

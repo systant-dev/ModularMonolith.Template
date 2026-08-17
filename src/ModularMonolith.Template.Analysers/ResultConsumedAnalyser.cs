@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace ModularMonolith.Template.Analysers;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 public sealed class ResultConsumedAnalyser : DiagnosticAnalyzer
 {
     #region Field Declarations

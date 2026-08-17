@@ -1,17 +1,19 @@
 using AccountsModule.Models;
 using AccountsModule.Storage;
+using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using System.Collections.Concurrent;
 
 namespace ModularMonolith.Template.AccountsModule.Tests.Storage;
 
-internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore
+internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore, IInboxStore
 {
     #region Field Declarations
 
     private readonly ConcurrentDictionary<int, Account> _accounts = new();
     private readonly ConcurrentDictionary<Guid, OutboxMessage> _outbox = new();
+    private readonly ConcurrentDictionary<(string Consumer, string MessageId), byte> _inbox = new();
     private int _nextId;
 
     #endregion
@@ -28,6 +30,11 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore
     {
         _accounts.TryGetValue(id, out Account? account);
         return Task.FromResult(account);
+    }
+
+    public Task<bool> ExistsForUserAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_accounts.Values.Any(account => account.UserId == userId));
     }
 
     public Task<Account> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
@@ -85,6 +92,19 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore
         return Task.FromResult(pending);
     }
 
+    public Task<IReadOnlyList<OutboxMessage>> GetDeadLetteredAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<OutboxMessage> deadLettered =
+        [
+            .. _outbox.Values
+                .Where(message => message.ProcessedOnUtc is null && message.Attempts >= maxAttempts)
+                .OrderBy(message => message.OccurredOnUtc)
+                .Take(batchSize)
+        ];
+
+        return Task.FromResult(deadLettered);
+    }
+
     public Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)
     {
         foreach (OutboxMessage message in messages)
@@ -93,6 +113,15 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore
         }
 
         return Task.CompletedTask;
+    }
+
+    #endregion
+
+    #region IInboxStore Method Declarations
+
+    public Task<bool> TryMarkProcessedAsync(string consumer, string messageId, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_inbox.TryAdd((consumer, messageId), 0));
     }
 
     #endregion

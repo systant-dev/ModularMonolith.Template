@@ -35,8 +35,7 @@ internal sealed class UserService(
 
     public async Task<Result<UserResponse>> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<User> existing = await store.GetAllAsync(cancellationToken);
-        if (existing.Any(user => string.Equals(user.Email, request.Email, StringComparison.OrdinalIgnoreCase)))
+        if (await store.ExistsByEmailAsync(request.Email, cancellationToken))
         {
             return Error.Conflict("user.email-conflict", $"A user with email '{request.Email}' already exists.");
         }
