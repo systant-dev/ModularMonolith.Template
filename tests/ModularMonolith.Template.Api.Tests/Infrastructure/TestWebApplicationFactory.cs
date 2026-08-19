@@ -1,4 +1,4 @@
-using AccountsModule.Storage;
+﻿using AccountsModule.Storage;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -48,7 +48,6 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
         RemoveAll(services, typeof(IUserStore));
         RemoveAll(services, typeof(SqlServerUserStore));
 
-        // Singleton so data persists across the scoped requests of a single test host.
         InMemoryUserStore store = new();
         services.AddSingleton<IUserStore>(store);
     }
@@ -60,9 +59,6 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
         RemoveAll(services, typeof(IOutboxStore));
         RemoveAll(services, typeof(SqlServerAccountStore));
 
-        // Singleton so data persists across the scoped requests of a single test host.
-        // The in-memory store backs the account, inbox and outbox stores just like the
-        // SqlServerAccountStore it replaces, so all three must point at the same instance.
         InMemoryAccountStore store = new();
         services.AddSingleton<IAccountStore>(store);
         services.AddSingleton<IInboxStore>(store);

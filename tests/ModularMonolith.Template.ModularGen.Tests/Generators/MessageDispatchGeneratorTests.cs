@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using ModularMonolith.Template.ModularGen.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
@@ -30,9 +30,6 @@ public sealed class MessageDispatchGeneratorTests
             }
             """;
 
-        // The emitted map references System.IServiceProvider (forwarded to an assembly the synthetic
-        // compilation does not reference), so run the generator without asserting output compilation
-        // errors and snapshot the generated source instead.
         CSharpCompilation compilation = GeneratorTestHelper.CreateCompilation(source);
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new MessageDispatchGenerator());
         driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);

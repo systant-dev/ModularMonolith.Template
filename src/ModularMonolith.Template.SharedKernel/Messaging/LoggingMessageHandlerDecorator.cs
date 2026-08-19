@@ -21,7 +21,10 @@ internal sealed class LoggingMessageHandlerDecorator<TMessage>(IMessageHandler<T
         try
         {
             await inner.HandleAsync(message, cancellationToken);
-            logger.LogHandled(messageType, handlerName, Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds);
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogHandled(messageType, handlerName, Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds);
+            }
         }
         catch (Exception exception)
         {

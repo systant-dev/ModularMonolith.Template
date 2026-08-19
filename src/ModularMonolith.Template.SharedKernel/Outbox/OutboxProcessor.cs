@@ -42,9 +42,6 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));
 
-        // On shutdown the current in-flight batch is abandoned rather than drained. Because delivery is
-        // at-least-once and message state is only persisted after a dispatch attempt, any un-flushed
-        // messages simply remain pending and are picked up on the next start.
     }
 
     #endregion

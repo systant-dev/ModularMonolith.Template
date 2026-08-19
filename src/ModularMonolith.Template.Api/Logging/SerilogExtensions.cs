@@ -20,9 +20,6 @@ public static class SerilogExtensions
 
             builder.Logging.AddSerilog(dispose: true);
 
-            // Register the concrete DiagnosticContext as a singleton, then map the IDiagnosticContext
-            // interface to that same instance. This intentional double registration lets consumers
-            // resolve either the concrete type or the abstraction while sharing one instance.
             builder.Services.AddSingleton(_ => new DiagnosticContext(Log.Logger));
             builder.Services.AddSingleton<IDiagnosticContext>(serviceProvider => serviceProvider.GetRequiredService<DiagnosticContext>());
 

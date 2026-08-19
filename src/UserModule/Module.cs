@@ -1,4 +1,4 @@
-using AccountsModule.Contracts.Events;
+﻿using AccountsModule.Contracts.Events;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using FluentValidation;
@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Configuration;
+using ModularMonolith.Template.SharedKernel.Auditing;
+using ModularMonolith.Template.SharedKernel.Features;
+using ModularMonolith.Template.SharedKernel.Idempotency;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Modular;
 using ModularMonolith.Template.SharedKernel.Outbox;
@@ -32,9 +35,6 @@ public sealed class Module : IModule
     {
         serviceCollection.AddValidatedOptions<UserModuleOptions, UserModuleOptionsValidator>(nameof(UserModule));
 
-        // This template uses Dapper over SQL Server (LocalDB in the example) so the persisted SQL
-        // matches the production dialect. Automated tests substitute an in-memory IUserStore, so no
-        // database server is required to run them.
         serviceCollection.AddSingleton<IDbConnectionFactory>(provider =>
         {
             UserModuleOptions options = provider.GetRequiredService<IOptions<UserModuleOptions>>().Value;
@@ -50,7 +50,6 @@ public sealed class Module : IModule
         serviceCollection.AddScoped<IValidator<CreateUserRequest>, Validation.CreateUserRequestValidator>();
         serviceCollection.AddScoped<IValidator<UpdateUserRequest>, Validation.UpdateUserRequestValidator>();
 
-        // React to savings accounts being opened for our users by the Accounts module.
         serviceCollection.AddMessageHandler<AccountOpenedIntegrationEvent, AccountOpenedHandler>();
     }
 
@@ -72,9 +71,9 @@ public sealed class Module : IModule
 
         group.MapGet("/", UserEndpoints.GetAll).RequireAuthorization(AuthorisationPolicies.ReadAccess);
         group.MapGet("/{id:int}", UserEndpoints.Get).RequireAuthorization(AuthorisationPolicies.ReadAccess);
-        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapDelete("/{id:int}", UserEndpoints.Delete).RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>().AddEndpointFilter<IdempotencyFilter>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapDelete("/{id:int}", UserEndpoints.Delete).AddEndpointFilter<AuditLogFilter>().RequireFeature("UserDeletion").RequireAuthorization(AuthorisationPolicies.WriteAccess);
     }
 
     #endregion

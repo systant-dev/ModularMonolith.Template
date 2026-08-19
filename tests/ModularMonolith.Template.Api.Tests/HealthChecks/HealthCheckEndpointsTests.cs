@@ -8,7 +8,7 @@ public sealed class HealthCheckEndpointsTests(TestWebApplicationFactory factory)
 {
     #region Field Declarations
 
-    private readonly TestWebApplicationFactory factory = factory;
+    private readonly TestWebApplicationFactory _factory = factory;
 
     #endregion
 
@@ -17,7 +17,7 @@ public sealed class HealthCheckEndpointsTests(TestWebApplicationFactory factory)
     [Fact]
     public async Task LivenessEndpoint_ReturnsHealthy()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/health/live", TestContext.Current.CancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class HealthCheckEndpointsTests(TestWebApplicationFactory factory)
     [Fact]
     public async Task ReadinessEndpoint_ReturnsSuccess()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
 

@@ -13,7 +13,7 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
 {
     #region Field Declarations
 
-    private readonly TestWebApplicationFactory factory = factory;
+    private readonly TestWebApplicationFactory _factory = factory;
 
     #endregion
 
@@ -22,7 +22,7 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
     [Fact]
     public void DispatchMap_CanDispatch_UserCreatedIntegrationEvent()
     {
-        IMessageDispatchMap dispatchMap = factory.Services.GetRequiredService<IMessageDispatchMap>();
+        IMessageDispatchMap dispatchMap = _factory.Services.GetRequiredService<IMessageDispatchMap>();
 
         dispatchMap.CanDispatch<UserCreatedIntegrationEvent>().Should().BeTrue();
     }
@@ -30,7 +30,7 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
     [Fact]
     public void DispatchMap_CanDispatch_AccountOpenedIntegrationEvent()
     {
-        IMessageDispatchMap dispatchMap = factory.Services.GetRequiredService<IMessageDispatchMap>();
+        IMessageDispatchMap dispatchMap = _factory.Services.GetRequiredService<IMessageDispatchMap>();
 
         dispatchMap.CanDispatch<AccountOpenedIntegrationEvent>().Should().BeTrue();
     }
@@ -47,7 +47,7 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
 
         await PublishAsync(userCreated);
 
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
         IReadOnlyList<AccountResponse>? accounts = await client.GetFromJsonAsync<IReadOnlyList<AccountResponse>>("/v1/accounts", TestContext.Current.CancellationToken);
 
         accounts.Should().NotBeNull();
@@ -76,7 +76,7 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
 
     private async Task PublishAsync(IMessage message)
     {
-        await using AsyncServiceScope scope = factory.Services.CreateAsyncScope();
+        await using AsyncServiceScope scope = _factory.Services.CreateAsyncScope();
         IMessageDispatcher dispatcher = scope.ServiceProvider.GetRequiredService<IMessageDispatcher>();
 
         await dispatcher.PublishAsync(message, DispatchMode.Sequential, TestContext.Current.CancellationToken);

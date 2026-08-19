@@ -1,4 +1,4 @@
-using AccountsModule.Contracts.Events;
+﻿using AccountsModule.Contracts.Events;
 using Microsoft.Extensions.Logging;
 using ModularMonolith.Template.SharedKernel.Messaging;
 
@@ -13,8 +13,6 @@ internal sealed class AccountOpenedHandler(
     {
         ArgumentNullException.ThrowIfNull(message);
 
-        // The Accounts module opened a savings account for one of our users. In a real application we
-        // might flag the user record; here we simply acknowledge the cross-module notification.
         UserMessagingLog.AccountOpenedForUser(logger, message.UserId, message.AccountNumber);
 
         return Task.CompletedTask;

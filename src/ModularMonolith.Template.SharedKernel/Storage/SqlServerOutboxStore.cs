@@ -1,4 +1,4 @@
-using Dapper;
+﻿using Dapper;
 using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
@@ -29,9 +29,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
     {
         await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
-        // Atomically claim a batch: READPAST skips rows another processor already locked, and deferring
-        // NextAttemptOnUtc by the visibility timeout leases the rows so competing processors won't
-        // redeliver them until this attempt completes or the lease expires (crash recovery).
         int visibility = (int)Math.Ceiling(visibilityTimeout.TotalSeconds);
         var parameters = new { MaxAttempts = maxAttempts, BatchSize = batchSize, VisibilitySeconds = visibility };
         CommandDefinition command = new(
@@ -55,8 +52,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
     {
         await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
-        // Dead-lettered messages are those that were never processed yet have exhausted their retry
-        // budget. They stay in the table for operational inspection rather than being deleted.
         var parameters = new { MaxAttempts = maxAttempts, BatchSize = batchSize };
         CommandDefinition command = new(
             """
@@ -82,9 +77,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
             return;
         }
 
-        // Persist the whole batch in a single set-based round-trip instead of one UPDATE per row.
-        // The state is shipped as JSON and shredded with OPENJSON, then joined back to the table.
-        // A transaction wraps the write so the batch state is applied atomically.
         string json = JsonSerializer.Serialize(messages.Select(message => new
         {
             message.Id,
@@ -128,8 +120,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
 
         await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
 
-        // Insert-if-absent: the row count tells us whether this consumer had already processed the
-        // message. The composite primary key guarantees at-most-once even under concurrent delivery.
         var parameters = new { Consumer = consumer, MessageId = messageId };
         CommandDefinition command = new(
             """

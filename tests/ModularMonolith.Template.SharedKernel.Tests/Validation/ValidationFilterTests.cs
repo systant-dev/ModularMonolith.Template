@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -60,7 +60,6 @@ public sealed class ValidationFilterTests
         object sentinel = new();
         EndpointFilterDelegate next = _ => ValueTask.FromResult<object?>(sentinel);
 
-        // The validator would fail any TestRequest, so a sentinel result proves validation was skipped.
         ValidationFilter<TestRequest> filter = CreateFilter(NotEmptyNameValidator());
         EndpointFilterInvocationContext context = CreateContext("not-a-request");
 

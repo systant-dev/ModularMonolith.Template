@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Messaging;
 
@@ -41,8 +41,6 @@ public sealed class MessagingServiceCollectionExtensionsTests
 
         services.AddMessageHandler<TestMessage, TestHandler>();
 
-        // The concrete handler is registered as scoped and IMessageHandler<T> resolves to the
-        // logging decorator that wraps it.
         services.Should().Contain(descriptor =>
             descriptor.ServiceType == typeof(TestHandler) &&
             descriptor.Lifetime == ServiceLifetime.Scoped);

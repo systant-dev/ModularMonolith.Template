@@ -10,7 +10,7 @@ public sealed class ProblemDetailsTests(TestWebApplicationFactory factory) : ICl
 {
     #region Field Declarations
 
-    private readonly TestWebApplicationFactory factory = factory;
+    private readonly TestWebApplicationFactory _factory = factory;
 
     #endregion
 
@@ -19,7 +19,7 @@ public sealed class ProblemDetailsTests(TestWebApplicationFactory factory) : ICl
     [Fact]
     public async Task InvalidCreateRequest_ReturnsValidationProblemDetails()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
             "/v1/users",
@@ -33,7 +33,7 @@ public sealed class ProblemDetailsTests(TestWebApplicationFactory factory) : ICl
     [Fact]
     public async Task ProblemDetails_IncludesCustomInstanceAndRequestId()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
             "/v1/users",

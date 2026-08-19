@@ -1,11 +1,9 @@
-namespace ModularMonolith.Template.SharedKernel.Outbox;
+﻿namespace ModularMonolith.Template.SharedKernel.Outbox;
 
 public static class OutboxSchema
 {
     #region Constant Declarations
 
-    // Shared DDL for the transactional outbox table. Modules append this to their own entity
-    // schema so every module persists outbox messages with an identical structure.
     public const string CreateTableSql =
         """
         IF OBJECT_ID(N'dbo.OutboxMessages', N'U') IS NULL

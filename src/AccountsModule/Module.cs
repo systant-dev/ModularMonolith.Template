@@ -1,4 +1,4 @@
-using AccountsModule.Configuration;
+﻿using AccountsModule.Configuration;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Endpoints;
 using AccountsModule.Messaging;
@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Configuration;
+using ModularMonolith.Template.SharedKernel.Auditing;
+using ModularMonolith.Template.SharedKernel.Features;
+using ModularMonolith.Template.SharedKernel.Idempotency;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Modular;
@@ -33,9 +36,6 @@ public sealed class Module : IModule
     {
         serviceCollection.AddValidatedOptions<AccountsModuleOptions, AccountsModuleOptionsValidator>(nameof(AccountsModule));
 
-        // This template uses Dapper over SQL Server (LocalDB in the example) so the persisted SQL
-        // matches the production dialect. Automated tests substitute an in-memory IAccountStore, so no
-        // database server is required to run them.
         serviceCollection.AddSingleton<IDbConnectionFactory>(provider =>
         {
             AccountsModuleOptions options = provider.GetRequiredService<IOptions<AccountsModuleOptions>>().Value;
@@ -52,8 +52,6 @@ public sealed class Module : IModule
         serviceCollection.AddScoped<IValidator<CreateAccountRequest>, Validation.CreateAccountRequestValidator>();
         serviceCollection.AddScoped<IValidator<UpdateAccountRequest>, Validation.UpdateAccountRequestValidator>();
 
-        // React to users being created in the User module by opening a savings account for them.
-        // Idempotency is handled centrally by the inbox decorator, keyed on the message's MessageId.
         serviceCollection.AddIdempotentMessageHandler<UserCreatedIntegrationEvent, UserCreatedHandler>();
     }
 
@@ -75,9 +73,9 @@ public sealed class Module : IModule
 
         group.MapGet("/", AccountEndpoints.GetAll).RequireAuthorization(AuthorisationPolicies.ReadAccess);
         group.MapGet("/{id:int}", AccountEndpoints.Get).RequireAuthorization(AuthorisationPolicies.ReadAccess);
-        group.MapPost("/", AccountEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateAccountRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapPut("/{id:int}", AccountEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateAccountRequest>>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapDelete("/{id:int}", AccountEndpoints.Delete).RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapPost("/", AccountEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateAccountRequest>>().AddEndpointFilter<IdempotencyFilter>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapPut("/{id:int}", AccountEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateAccountRequest>>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
+        group.MapDelete("/{id:int}", AccountEndpoints.Delete).AddEndpointFilter<AuditLogFilter>().RequireFeature("AccountsDeletion").RequireAuthorization(AuthorisationPolicies.WriteAccess);
     }
 
     #endregion

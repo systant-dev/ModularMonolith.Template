@@ -1,4 +1,4 @@
-using Dapper;
+﻿using Dapper;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
@@ -23,8 +23,6 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var parameters = new { AfterId = afterId, Limit = limit };
-        // Keyset (seek) pagination: cheaper and more stable than OFFSET as the table grows because it
-        // seeks straight to the last-seen Id instead of counting and skipping rows.
         CommandDefinition command = new(
             "SELECT TOP (@Limit) Id, FullName, Email, PhoneNumber FROM Users WHERE Id > @AfterId ORDER BY Id;",
             parameters,

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Contracts.Requests;
@@ -11,9 +11,6 @@ internal static class UserEndpoints
 {
     #region Endpoint Handlers
 
-    // When a page size is supplied the endpoint returns a keyset (seek) page starting after
-    // 'afterId'; otherwise it returns the full collection for backward compatibility. The page size
-    // is clamped to a sane maximum to protect the database from unbounded reads.
     public static async Task<Ok<IReadOnlyCollection<UserResponse>>> GetAll(IUserService userService, CancellationToken cancellationToken, int? afterId = null, int? limit = null)
     {
         if (limit is null)

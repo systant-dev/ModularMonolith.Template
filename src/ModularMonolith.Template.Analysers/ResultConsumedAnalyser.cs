@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using System.Collections.Immutable;
@@ -65,8 +65,6 @@ public sealed class ResultConsumedAnalyser : DiagnosticAnalyzer
         IExpressionStatementOperation statement = (IExpressionStatementOperation)context.Operation;
         IOperation value = statement.Operation;
 
-        // Only a bare method call (optionally awaited) discards the value. Assignments, discards
-        // (_ = ...), returns, and argument usage are all legitimate consumption and are skipped.
         if (value is not (IInvocationOperation or IAwaitOperation))
         {
             return;

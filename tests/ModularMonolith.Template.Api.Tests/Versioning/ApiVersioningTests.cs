@@ -8,7 +8,7 @@ public sealed class ApiVersioningTests(TestWebApplicationFactory factory) : ICla
 {
     #region Field Declarations
 
-    private readonly TestWebApplicationFactory factory = factory;
+    private readonly TestWebApplicationFactory _factory = factory;
 
     #endregion
 
@@ -17,7 +17,7 @@ public sealed class ApiVersioningTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task VersionedRoute_ReturnsSuccess()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/v1/users", TestContext.Current.CancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class ApiVersioningTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task UnversionedRoute_ReturnsNotFound()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 

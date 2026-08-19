@@ -8,7 +8,7 @@ public sealed class UserEndpointsTests(TestWebApplicationFactory factory) : ICla
 {
     #region Field Declarations
 
-    private readonly TestWebApplicationFactory factory = factory;
+    private readonly TestWebApplicationFactory _factory = factory;
 
     #endregion
 
@@ -17,7 +17,7 @@ public sealed class UserEndpointsTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task GetAllUsers_ReturnsSuccess()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/v1/users", TestContext.Current.CancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class UserEndpointsTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task Response_IncludesCorrelationIdHeader()
     {
-        using HttpClient client = factory.CreateClient();
+        using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/v1/users", TestContext.Current.CancellationToken);
 

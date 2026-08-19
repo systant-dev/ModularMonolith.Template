@@ -49,8 +49,6 @@ public static class OutboxServiceCollectionExtensions
 
     private static OutboxStoreRegistry GetOrAddOutboxStoreRegistry(this IServiceCollection serviceCollection)
     {
-        // Cached per service collection so repeated store registrations are O(1) rather than
-        // scanning every descriptor each time (avoids O(n^2) startup wiring).
         return Registries.GetValue(serviceCollection, static collection =>
         {
             ServiceDescriptor? descriptor = collection.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(OutboxStoreRegistry));

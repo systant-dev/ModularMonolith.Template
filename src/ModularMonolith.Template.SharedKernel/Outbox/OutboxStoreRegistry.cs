@@ -23,8 +23,6 @@ public sealed class OutboxStoreRegistry
     {
         Type storeType = typeof(TStore);
 
-        // Rebuild the snapshot only when a new store type is added (registration is startup-only),
-        // so the outbox processor's per-poll reads return a cached collection without allocating.
         if (_storeTypes.TryAdd(storeType, 0))
         {
             _snapshot = [.. _storeTypes.Keys];

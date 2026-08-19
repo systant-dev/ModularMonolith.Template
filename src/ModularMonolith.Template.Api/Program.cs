@@ -1,4 +1,4 @@
-using ModularMonolith.Template.Api.Exceptions;
+﻿using ModularMonolith.Template.Api.Exceptions;
 using ModularMonolith.Template.Api.HealthChecks;
 using ModularMonolith.Template.Api.Logging;
 using ModularMonolith.Template.Api.Messaging;
@@ -8,6 +8,7 @@ using ModularMonolith.Template.Api.Outbox;
 using ModularMonolith.Template.Api.RequestPipeline;
 using ModularMonolith.Template.Api.Security;
 using ModularMonolith.Template.Api.Versioning;
+using ModularMonolith.Template.SharedKernel.Idempotency;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using Scalar.AspNetCore;
 
@@ -22,6 +23,7 @@ builder.Services.AddModuleRequestTimeouts();
 builder.Services.AddModuleCors(builder.Configuration);
 builder.Services.AddModuleAuthentication(builder.Configuration);
 builder.Services.AddModuleAuthorization();
+builder.Services.AddIdempotency();
 builder.Services.AddModules(builder.Configuration);
 builder.Services.AddOutboxProcessing(builder.Configuration);
 builder.Services.AddApplicationInsightsTelemetry(builder.Configuration);
@@ -29,10 +31,6 @@ builder.AddSerilogWithRedaction();
 
 WebApplication webApplication = builder.Build();
 
-// Initialise each module's database (EF migrations or Dapper DDL) on startup. Enabled by default so
-// the in-memory example databases are created before requests are served. In scaled-out production
-// deployments this should be disabled (set "Modules:RunDatabaseInitialisationOnStartup" to false) to
-// avoid multiple replicas racing to apply the same migrations; run migrations as a deploy step instead.
 if (webApplication.Configuration.GetValue("Modules:RunDatabaseInitialisationOnStartup", defaultValue: true))
 {
     await webApplication.Services.MigrateModuleDatabasesAsync();
