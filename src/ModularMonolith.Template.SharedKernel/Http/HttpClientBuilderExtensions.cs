@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace ModularMonolith.Template.SharedKernel.Http;
 
-[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case",
-    Justification = "False positive on C# extension blocks; the receiver types (IServiceCollection and IHttpClientBuilder) are distinct.")]
+[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case", Justification = "False positive on C# extension blocks; the receiver types (IServiceCollection and IHttpClientBuilder) are distinct.")]
 public static class HttpClientBuilderExtensions
 {
     extension(IServiceCollection serviceCollection)
@@ -18,9 +17,8 @@ public static class HttpClientBuilderExtensions
                 ? serviceCollection.AddHttpClient(name)
                 : serviceCollection.AddHttpClient(name, configureClient);
 
-            return builder
-                .ConfigureSharedPrimaryHandler()
-                .AddSharedResilienceHandler(totalRequestTimeout, maxRetryAttempts);
+            return builder.ConfigureSharedPrimaryHandler()
+                          .AddSharedResilienceHandler(totalRequestTimeout, maxRetryAttempts);
         }
 
         public IHttpClientBuilder AddResilientHttpClient<TClient>(Action<HttpClient>? configureClient = null, TimeSpan? totalRequestTimeout = null, int maxRetryAttempts = 3)
@@ -30,9 +28,8 @@ public static class HttpClientBuilderExtensions
                 ? serviceCollection.AddHttpClient<TClient>()
                 : serviceCollection.AddHttpClient<TClient>(configureClient);
 
-            return builder
-                .ConfigureSharedPrimaryHandler()
-                .AddSharedResilienceHandler(totalRequestTimeout, maxRetryAttempts);
+            return builder.ConfigureSharedPrimaryHandler()
+                          .AddSharedResilienceHandler(totalRequestTimeout, maxRetryAttempts);
         }
     }
 

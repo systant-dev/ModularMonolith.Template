@@ -37,8 +37,7 @@ public sealed class Module : IModule
         // database server is required to run them.
         serviceCollection.AddSingleton<IDbConnectionFactory>(provider =>
         {
-            UserModuleOptions options = provider
-                .GetRequiredService<IOptions<UserModuleOptions>>().Value;
+            UserModuleOptions options = provider.GetRequiredService<IOptions<UserModuleOptions>>().Value;
             SqlServerConnectionFactory connectionFactory = new(options.ConnectionString);
             return connectionFactory;
         });
@@ -60,9 +59,9 @@ public sealed class Module : IModule
         ApiVersion apiVersion = new(1, 0);
 
         ApiVersionSet apiVersionSet = endpoints.NewApiVersionSet()
-            .HasApiVersion(apiVersion)
-            .ReportApiVersions()
-            .Build();
+                                               .HasApiVersion(apiVersion)
+                                               .ReportApiVersions()
+                                               .Build();
 
         RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/users")
             .WithApiVersionSet(apiVersionSet)

@@ -19,14 +19,14 @@ public sealed class CorrelationIdTests(TestWebApplicationFactory factory) : ICla
     public async Task Response_EchoesClientProvidedCorrelationId()
     {
         HttpClient client = factory.CreateClient();
-        const string correlationId = "test-correlation-id-123";
+        const string CorrelationId = "test-correlation-id-123";
 
         using HttpRequestMessage request = new(HttpMethod.Get, "/v1/users");
-        request.Headers.Add(CorrelationIdHeaderName, correlationId);
+        request.Headers.Add(CorrelationIdHeaderName, CorrelationId);
 
         HttpResponseMessage response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
-        response.Headers.GetValues(CorrelationIdHeaderName).Should().ContainSingle().Which.Should().Be(correlationId);
+        response.Headers.GetValues(CorrelationIdHeaderName).Should().ContainSingle().Which.Should().Be(CorrelationId);
     }
 
     [Fact]

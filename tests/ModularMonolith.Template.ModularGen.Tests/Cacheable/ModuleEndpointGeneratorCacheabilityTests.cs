@@ -37,12 +37,12 @@ public sealed class ModuleEndpointGeneratorCacheabilityTests
             }
             """;
 
-        const string assemblyAttributes = """
+        const string AssemblyAttributes = """
             [assembly: ModularMonolith.Template.SharedKernel.Modular.ModuleRegistration<ExampleModuleA.Module>]
             """;
 
         (System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics, _) =
-            CacheableHelper.GetGeneratedTrees<ModuleEndpointGenerator>(TrackingNames, source, assemblyAttributes);
+            CacheableHelper.GetGeneratedTrees<ModuleEndpointGenerator>(TrackingNames, source, AssemblyAttributes);
 
         diagnostics.Should().NotContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
@@ -68,11 +68,11 @@ public sealed class ModuleEndpointGeneratorCacheabilityTests
             }
             """;
 
-        const string assemblyAttributes = """
+        const string AssemblyAttributes = """
             [assembly: ModularMonolith.Template.SharedKernel.Modular.ModuleRegistration<ExampleModuleA.Module>]
             """;
 
-        CacheableHelper.AssertUnchangedAfterUnrelatedEdit<ModuleEndpointGenerator>(TrackingNames, source, assemblyAttributes);
+        CacheableHelper.AssertUnchangedAfterUnrelatedEdit<ModuleEndpointGenerator>(TrackingNames, source, AssemblyAttributes);
     }
 
     #endregion
