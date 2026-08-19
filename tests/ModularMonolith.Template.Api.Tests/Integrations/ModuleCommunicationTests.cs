@@ -47,14 +47,12 @@ public sealed class ModuleCommunicationTests(TestWebApplicationFactory factory) 
 
         await PublishAsync(userCreated);
 
-        HttpClient client = factory.CreateClient();
-        IReadOnlyList<AccountResponse>? accounts = await client.GetFromJsonAsync<IReadOnlyList<AccountResponse>>(
-            "/v1/accounts",
-            TestContext.Current.CancellationToken);
+        using HttpClient client = factory.CreateClient();
+        IReadOnlyList<AccountResponse>? accounts = await client.GetFromJsonAsync<IReadOnlyList<AccountResponse>>("/v1/accounts", TestContext.Current.CancellationToken);
 
         accounts.Should().NotBeNull();
         accounts!.Should().ContainSingle(account => account.UserId == userCreated.Id)
-            .Which.AccountHolderName.Should().Be(userCreated.FullName);
+                 .Which.AccountHolderName.Should().Be(userCreated.FullName);
     }
 
     [Fact]

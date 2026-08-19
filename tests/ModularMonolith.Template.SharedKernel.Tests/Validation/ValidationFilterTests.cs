@@ -51,7 +51,7 @@ public sealed class ValidationFilterTests
 
         nextInvoked.Should().BeFalse();
         result.Should().BeOfType<ValidationProblem>()
-            .Which.ProblemDetails.Errors.Should().ContainKey(nameof(TestRequest.Name));
+              .Which.ProblemDetails.Errors.Should().ContainKey(nameof(TestRequest.Name));
     }
 
     [Fact]

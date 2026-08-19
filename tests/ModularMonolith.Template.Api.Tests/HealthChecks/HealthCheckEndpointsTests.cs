@@ -17,7 +17,7 @@ public sealed class HealthCheckEndpointsTests(TestWebApplicationFactory factory)
     [Fact]
     public async Task LivenessEndpoint_ReturnsHealthy()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/health/live", TestContext.Current.CancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class HealthCheckEndpointsTests(TestWebApplicationFactory factory)
     [Fact]
     public async Task ReadinessEndpoint_ReturnsSuccess()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
 

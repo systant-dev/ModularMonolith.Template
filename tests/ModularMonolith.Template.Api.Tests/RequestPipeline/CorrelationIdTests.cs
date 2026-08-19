@@ -18,7 +18,7 @@ public sealed class CorrelationIdTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task Response_EchoesClientProvidedCorrelationId()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
         const string CorrelationId = "test-correlation-id-123";
 
         using HttpRequestMessage request = new(HttpMethod.Get, "/v1/users");
@@ -32,7 +32,7 @@ public sealed class CorrelationIdTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task Response_GeneratesCorrelationIdWhenNoneProvided()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/v1/users", TestContext.Current.CancellationToken);
 
@@ -42,7 +42,7 @@ public sealed class CorrelationIdTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task Response_GeneratesCorrelationIdWhenClientProvidesEmptyValue()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         using HttpRequestMessage request = new(HttpMethod.Get, "/v1/users");
         request.Headers.TryAddWithoutValidation(CorrelationIdHeaderName, string.Empty);

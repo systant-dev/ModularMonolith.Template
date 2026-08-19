@@ -64,8 +64,8 @@ public sealed class Module : IModule
                                                .Build();
 
         RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/users")
-            .WithApiVersionSet(apiVersionSet)
-            .HasApiVersion(apiVersion);
+                                           .WithApiVersionSet(apiVersionSet)
+                                           .HasApiVersion(apiVersion);
 
         group.RequireRateLimiting("default");
         group.WithRequestTimeout("default");

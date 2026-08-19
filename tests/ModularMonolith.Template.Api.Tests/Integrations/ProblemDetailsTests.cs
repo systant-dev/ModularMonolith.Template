@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using ModularMonolith.Template.Api.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
@@ -19,7 +19,7 @@ public sealed class ProblemDetailsTests(TestWebApplicationFactory factory) : ICl
     [Fact]
     public async Task InvalidCreateRequest_ReturnsValidationProblemDetails()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
             "/v1/users",
@@ -33,7 +33,7 @@ public sealed class ProblemDetailsTests(TestWebApplicationFactory factory) : ICl
     [Fact]
     public async Task ProblemDetails_IncludesCustomInstanceAndRequestId()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
             "/v1/users",

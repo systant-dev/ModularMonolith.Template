@@ -17,7 +17,7 @@ public sealed class ApiVersioningTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task VersionedRoute_ReturnsSuccess()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/v1/users", TestContext.Current.CancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class ApiVersioningTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task UnversionedRoute_ReturnsNotFound()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 

@@ -17,7 +17,7 @@ public sealed class UserEndpointsTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task GetAllUsers_ReturnsSuccess()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/v1/users", TestContext.Current.CancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class UserEndpointsTests(TestWebApplicationFactory factory) : ICla
     [Fact]
     public async Task Response_IncludesCorrelationIdHeader()
     {
-        HttpClient client = factory.CreateClient();
+        using HttpClient client = factory.CreateClient();
 
         HttpResponseMessage response = await client.GetAsync("/v1/users", TestContext.Current.CancellationToken);
 
