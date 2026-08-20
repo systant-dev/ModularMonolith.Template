@@ -12,5 +12,8 @@ internal static partial class IdempotencyFilterLog
     [LoggerMessage(Level = LogLevel.Warning, Message = "Idempotency rejected: duplicate key {IdempotencyKey}")]
     public static partial void LogDuplicateIdempotencyKey(this ILogger logger, string idempotencyKey);
 
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Idempotency reservation released for key {IdempotencyKey} after a failed request")]
+    public static partial void LogReleasedIdempotencyKey(this ILogger logger, string idempotencyKey);
+
     #endregion
 }

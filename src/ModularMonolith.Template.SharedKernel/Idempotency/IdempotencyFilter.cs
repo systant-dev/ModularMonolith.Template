@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 
@@ -21,21 +21,36 @@ public sealed class IdempotencyFilter(IIdempotencyStore store, ILogger<Idempoten
         if (string.IsNullOrWhiteSpace(idempotencyKey))
         {
             logger.LogMissingIdempotencyKey(IdempotencyKeyHeaderName);
-            return TypedResults.Problem(
-                detail: $"The '{IdempotencyKeyHeaderName}' header is required for this operation.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return TypedResults.Problem(detail: $"The '{IdempotencyKeyHeaderName}' header is required for this operation.",
+                                        statusCode: StatusCodes.Status400BadRequest);
         }
 
         bool reserved = await store.TryReserveAsync(idempotencyKey, context.HttpContext.RequestAborted);
         if (!reserved)
         {
             logger.LogDuplicateIdempotencyKey(idempotencyKey);
-            return TypedResults.Problem(
-                detail: "A request with the same idempotency key has already been processed.",
-                statusCode: StatusCodes.Status409Conflict);
+            return TypedResults.Problem(detail: "A request with the same idempotency key has already been processed.",
+                                        statusCode: StatusCodes.Status409Conflict);
         }
 
-        return await next(context);
+        try
+        {
+            object? result = await next(context);
+
+            if (result is IStatusCodeHttpResult { StatusCode: >= StatusCodes.Status500InternalServerError })
+            {
+                await store.ReleaseAsync(idempotencyKey, context.HttpContext.RequestAborted);
+                logger.LogReleasedIdempotencyKey(idempotencyKey);
+            }
+
+            return result;
+        }
+        catch
+        {
+            await store.ReleaseAsync(idempotencyKey, CancellationToken.None);
+            logger.LogReleasedIdempotencyKey(idempotencyKey);
+            throw;
+        }
     }
 
     #endregion

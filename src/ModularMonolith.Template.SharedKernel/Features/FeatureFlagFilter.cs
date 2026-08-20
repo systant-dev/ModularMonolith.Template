@@ -1,24 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.FeatureManagement;
 
 namespace ModularMonolith.Template.SharedKernel.Features;
 
 public sealed class FeatureFlagFilter(string featureName) : IEndpointFilter
 {
-    #region Field Declarations
-
-    public const string ConfigurationSectionName = "Features";
-
-    #endregion
-
     #region Public Method Declarations
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        IConfiguration configuration = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        IFeatureManager featureManager = context.HttpContext.RequestServices.GetRequiredService<IFeatureManager>();
 
-        bool enabled = configuration.GetValue($"{ConfigurationSectionName}:{featureName}", defaultValue: false);
+        bool enabled = await featureManager.IsEnabledAsync(featureName);
         if (!enabled)
         {
             return TypedResults.NotFound();

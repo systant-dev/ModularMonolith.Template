@@ -137,42 +137,7 @@ public sealed class MappingGenerator : IIncrementalGenerator
         string key = SymbolFormatting.CreateKey(containingType, methodSymbol.Name);
         string sourceParameterName = methodSymbol.Parameters[0].Name;
 
-        bool isGeneric;
-        string typeParameterName;
-        string constraintClause;
-        string returnTypeName;
-        MapTargetInfo? concreteTarget;
-
-        if (methodSymbol.TypeParameters.Length == 1
-            && SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, methodSymbol.TypeParameters[0]))
-        {
-            ITypeParameterSymbol typeParameter = methodSymbol.TypeParameters[0];
-            isGeneric = true;
-            typeParameterName = typeParameter.Name;
-            constraintClause = SymbolFormatting.GetConstraintClause(typeParameter);
-            returnTypeName = typeParameter.Name;
-            concreteTarget = null;
-        }
-        else if (methodSymbol.TypeParameters.Length == 0
-            && methodSymbol.ReturnType is INamedTypeSymbol targetType
-            && targetType.SpecialType != SpecialType.System_Void)
-        {
-            isGeneric = false;
-            typeParameterName = string.Empty;
-            constraintClause = string.Empty;
-            returnTypeName = targetType.ToDisplayString(FullyQualifiedFormat);
-
-            MappingResolution resolution = MappingResolver.Resolve(sourceType, targetType, sourceParameterName, context.SemanticModel.Compilation);
-            concreteTarget = new MapTargetInfo(
-                Key: key,
-                TargetTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
-                Assignments: resolution.Assignments,
-                UnmappedRequiredMembers: resolution.UnmappedRequiredMembers,
-                IncompatibleMembers: resolution.IncompatibleMembers,
-                CycleMembers: resolution.CycleMembers,
-                Location: LocationInfo.CreateFrom(context.TargetNode));
-        }
-        else
+        if (ResolveMethodShape(context, methodSymbol, sourceType, sourceParameterName, key) is not { } shape)
         {
             return null;
         }
@@ -186,15 +151,66 @@ public sealed class MappingGenerator : IIncrementalGenerator
             ContainingTypeKeyword: SymbolFormatting.GetTypeKeyword(containingType),
             Accessibility: SymbolFormatting.GetAccessibilityKeyword(methodSymbol.DeclaredAccessibility),
             MethodName: methodSymbol.Name,
-            IsGeneric: isGeneric,
-            TypeParameterName: typeParameterName,
-            ConstraintClause: constraintClause,
+            IsGeneric: shape.IsGeneric,
+            TypeParameterName: shape.TypeParameterName,
+            ConstraintClause: shape.ConstraintClause,
             SourceParameterName: sourceParameterName,
             SourceTypeName: sourceType.ToDisplayString(FullyQualifiedFormat),
-            ReturnTypeName: returnTypeName,
-            ConcreteTarget: concreteTarget);
+            ReturnTypeName: shape.ReturnTypeName,
+            ConcreteTarget: shape.ConcreteTarget);
         return mapMethodInfo;
     }
+
+    private static MapMethodShape? ResolveMethodShape(
+        GeneratorAttributeSyntaxContext context,
+        IMethodSymbol methodSymbol,
+        INamedTypeSymbol sourceType,
+        string sourceParameterName,
+        string key)
+    {
+        if (methodSymbol.TypeParameters.Length == 1
+            && SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, methodSymbol.TypeParameters[0]))
+        {
+            ITypeParameterSymbol typeParameter = methodSymbol.TypeParameters[0];
+            return new MapMethodShape(
+                IsGeneric: true,
+                TypeParameterName: typeParameter.Name,
+                ConstraintClause: SymbolFormatting.GetConstraintClause(typeParameter),
+                ReturnTypeName: typeParameter.Name,
+                ConcreteTarget: null);
+        }
+
+        if (methodSymbol.TypeParameters.Length == 0
+            && methodSymbol.ReturnType is INamedTypeSymbol targetType
+            && targetType.SpecialType != SpecialType.System_Void)
+        {
+            MappingResolution resolution = MappingResolver.Resolve(sourceType, targetType, sourceParameterName, context.SemanticModel.Compilation);
+            MapTargetInfo concreteTarget = new(
+                Key: key,
+                TargetTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
+                Assignments: resolution.Assignments,
+                UnmappedRequiredMembers: resolution.UnmappedRequiredMembers,
+                IncompatibleMembers: resolution.IncompatibleMembers,
+                CycleMembers: resolution.CycleMembers,
+                Location: LocationInfo.CreateFrom(context.TargetNode));
+
+            return new MapMethodShape(
+                IsGeneric: false,
+                TypeParameterName: string.Empty,
+                ConstraintClause: string.Empty,
+                ReturnTypeName: targetType.ToDisplayString(FullyQualifiedFormat),
+                ConcreteTarget: concreteTarget);
+        }
+
+        return null;
+    }
+
+    private readonly record struct MapMethodShape(
+        bool IsGeneric,
+        string TypeParameterName,
+        string ConstraintClause,
+        string ReturnTypeName,
+        MapTargetInfo? ConcreteTarget);
 
     private static bool IsCandidateInvocation(SyntaxNode node)
     {

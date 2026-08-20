@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.FeatureManagement;
 using ModularMonolith.Template.SharedKernel.Features;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Features;
@@ -74,12 +75,14 @@ public sealed class FeatureFlagFilterTests
         IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                [$"{FeatureFlagFilter.ConfigurationSectionName}:SampleFeature"] = featureEnabled ? "true" : "false"
+                ["FeatureManagement:SampleFeature"] = featureEnabled ? "true" : "false"
             })
             .Build();
 
         ServiceProvider provider = new ServiceCollection()
             .AddSingleton(configuration)
+            .AddFeatureManagement()
+            .Services
             .BuildServiceProvider();
 
         DefaultHttpContext httpContext = new() { RequestServices = provider };

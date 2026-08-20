@@ -5,6 +5,7 @@
     <File Path="LICENSE.txt" />
     <File Path="README.md" />
     <File Path="tests/Tests.Common.props" />
+	<File Path=".editorconfig" />
   </Folder>
   <Folder Name="/pipelines/">
     <File Path=".github/workflows/github-workflow-branches.yaml" />

@@ -6,5 +6,7 @@ public interface IIdempotencyStore
 
     ValueTask<bool> TryReserveAsync(string idempotencyKey, CancellationToken cancellationToken = default);
 
+    ValueTask ReleaseAsync(string idempotencyKey, CancellationToken cancellationToken = default);
+
     #endregion
 }

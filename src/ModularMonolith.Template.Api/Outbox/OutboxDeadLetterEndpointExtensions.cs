@@ -30,30 +30,46 @@ public static class OutboxDeadLetterEndpointExtensions
         OutboxOptions outboxOptions = options.Value;
         int limit = batchSize is > 0 ? batchSize.Value : outboxOptions.BatchSize;
 
-        List<OutboxDeadLetterResponse> deadLetters = [];
+        IEnumerable<Task<IReadOnlyList<OutboxDeadLetterResponse>>> fetchTasks = registry.StoreTypes
+            .Select(storeType => GetStoreDeadLettersAsync(scopeFactory, storeType, outboxOptions, limit, cancellationToken));
 
-        foreach (Type storeType in registry.StoreTypes)
+        IReadOnlyList<OutboxDeadLetterResponse>[] results = await Task.WhenAll(fetchTasks);
+
+        IReadOnlyList<OutboxDeadLetterResponse> response =
+        [
+            .. results
+                .SelectMany(storeDeadLetters => storeDeadLetters)
+                .OrderBy(deadLetter => deadLetter.OccurredOnUtc)
+        ];
+
+        return TypedResults.Ok(response);
+    }
+
+    private static async Task<IReadOnlyList<OutboxDeadLetterResponse>> GetStoreDeadLettersAsync(IServiceScopeFactory scopeFactory,
+                                                                                                Type storeType,
+                                                                                                OutboxOptions outboxOptions,
+                                                                                                int limit,
+                                                                                                CancellationToken cancellationToken)
+    {
+        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+
+        if (scope.ServiceProvider.GetRequiredService(storeType) is not IOutboxStore store)
         {
-            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+            return [];
+        }
 
-            if (scope.ServiceProvider.GetRequiredService(storeType) is not IOutboxStore store)
-            {
-                continue;
-            }
+        IReadOnlyList<OutboxMessage> messages = await store
+            .GetDeadLetteredAsync(outboxOptions.MaxAttempts, limit, cancellationToken);
 
-            IReadOnlyList<OutboxMessage> messages = await store
-                .GetDeadLetteredAsync(outboxOptions.MaxAttempts, limit, cancellationToken);
-
-            deadLetters.AddRange(messages.Select(message => new OutboxDeadLetterResponse(
+        return
+        [
+            .. messages.Select(message => new OutboxDeadLetterResponse(
                 message.Id,
                 message.Type,
                 message.OccurredOnUtc,
                 message.Attempts,
-                message.Error)));
-        }
-
-        IReadOnlyList<OutboxDeadLetterResponse> response = [.. deadLetters.OrderBy(deadLetter => deadLetter.OccurredOnUtc)];
-        return TypedResults.Ok(response);
+                message.Error))
+        ];
     }
 
     #endregion

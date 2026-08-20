@@ -1,11 +1,19 @@
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Serialisation;
+using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
 public sealed class OutboxMessage
 {
+    #region Field Declarations
+
+    private static readonly ConcurrentDictionary<Type, JsonTypeInfo> TypeInfoCache = new();
+
+    #endregion
+
     #region Property Declarations
 
     public Guid Id { get; init; }
@@ -33,13 +41,13 @@ public sealed class OutboxMessage
         ArgumentNullException.ThrowIfNull(message);
 
         Type messageType = message.GetType();
-
+        JsonTypeInfo jsonTypeInfo = GetTypeInfo(messageType);
         OutboxMessage outboxMessage = new()
         {
             Id = Guid.CreateVersion7(),
             OccurredOnUtc = DateTimeOffset.UtcNow,
             Type = MessageContractAttribute.ResolveContractName(messageType),
-            Payload = JsonSerializer.Serialize(message, messageType, JsonDefaults.Web)
+            Payload = JsonSerializer.Serialize(message, jsonTypeInfo)
         };
 
         return outboxMessage;
@@ -54,7 +62,17 @@ public sealed class OutboxMessage
             return null;
         }
 
-        return JsonSerializer.Deserialize(Payload, messageType, JsonDefaults.Web) as IMessage;
+        JsonTypeInfo jsonTypeInfo = GetTypeInfo(messageType);
+        return JsonSerializer.Deserialize(Payload, jsonTypeInfo) as IMessage;
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private static JsonTypeInfo GetTypeInfo(Type messageType)
+    {
+        return TypeInfoCache.GetOrAdd(messageType, static type => JsonDefaults.Web.GetTypeInfo(type));
     }
 
     #endregion

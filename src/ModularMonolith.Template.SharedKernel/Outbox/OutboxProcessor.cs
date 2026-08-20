@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,6 +16,7 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
     #region Field Declarations
 
     private readonly OutboxOptions _options = options.Value;
+    private readonly long[] _backoffTicks = PrecomputeBackoff(options.Value);
 
     #endregion
 
@@ -50,33 +51,69 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
 
     private async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        foreach (Type storeType in registry.StoreTypes)
+        if (_options.MaxDegreeOfParallelism <= 1)
         {
-            await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
-
-            if (scope.ServiceProvider.GetRequiredService(storeType) is not IOutboxStore store)
+            foreach (Type storeType in registry.StoreTypes)
             {
-                StoreTypeNotAnOutboxStore(logger, storeType);
-                continue;
+                await ProcessStoreAsync(storeType, cancellationToken);
             }
+            return;
+        }
 
+        ParallelOptions parallelOptions = new()
+        {
+            MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism,
+            CancellationToken = cancellationToken
+        };
+
+        await Parallel.ForEachAsync(registry.StoreTypes, parallelOptions, async (storeType, token) => await ProcessStoreAsync(storeType, token));
+    }
+
+    private async Task ProcessStoreAsync(Type storeType, CancellationToken cancellationToken)
+    {
+        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+
+        if (scope.ServiceProvider.GetRequiredService(storeType) is not IOutboxStore store)
+        {
+            StoreTypeNotAnOutboxStore(logger, storeType);
+            return;
+        }
+
+        IReadOnlyList<OutboxMessage> pending = await store.GetPendingAsync(_options.MaxAttempts, _options.BatchSize, _options.ClaimTimeout, cancellationToken);
+
+        if (pending.Count == 0)
+        {
+            return;
+        }
+
+        if (_options.MaxDegreeOfParallelism <= 1)
+        {
             IMessageDispatcher dispatcher = scope.ServiceProvider.GetRequiredService<IMessageDispatcher>();
-
-            IReadOnlyList<OutboxMessage> pending = await store
-                .GetPendingAsync(_options.MaxAttempts, _options.BatchSize, _options.ClaimTimeout, cancellationToken);
-
-            if (pending.Count == 0)
-            {
-                continue;
-            }
 
             foreach (OutboxMessage outboxMessage in pending)
             {
                 await DispatchAsync(dispatcher, outboxMessage, cancellationToken);
             }
-
-            await store.UpdateAsync(pending, cancellationToken);
         }
+        else
+        {
+            ParallelOptions parallelOptions = new()
+            {
+                MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism,
+                CancellationToken = cancellationToken
+            };
+
+            await Parallel.ForEachAsync(pending, parallelOptions, DispatchInIsolatedScopeAsync);
+        }
+
+        await store.UpdateAsync(pending, cancellationToken);
+    }
+
+    private async ValueTask DispatchInIsolatedScopeAsync(OutboxMessage outboxMessage, CancellationToken cancellationToken)
+    {
+        await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
+        IMessageDispatcher dispatcher = scope.ServiceProvider.GetRequiredService<IMessageDispatcher>();
+        await DispatchAsync(dispatcher, outboxMessage, cancellationToken);
     }
 
     private async Task DispatchAsync(IMessageDispatcher dispatcher, OutboxMessage outboxMessage, CancellationToken cancellationToken)
@@ -134,9 +171,23 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
 
     private TimeSpan CalculateBackoff(int attempts)
     {
-        double exponentialTicks = _options.BackoffBaseDelay.Ticks * Math.Pow(2, attempts - 1);
-        double cappedTicks = Math.Min(exponentialTicks, _options.MaxBackoffDelay.Ticks);
-        return TimeSpan.FromTicks((long)cappedTicks);
+        int index = Math.Clamp(attempts, 1, _backoffTicks.Length) - 1;
+        return TimeSpan.FromTicks(_backoffTicks[index]);
+    }
+
+    private static long[] PrecomputeBackoff(OutboxOptions options)
+    {
+        int count = Math.Max(options.MaxAttempts, 1);
+        long[] ticks = new long[count];
+
+        for (int attempt = 1; attempt <= count; attempt++)
+        {
+            double exponentialTicks = options.BackoffBaseDelay.Ticks * Math.Pow(2, attempt - 1);
+            double cappedTicks = Math.Min(exponentialTicks, options.MaxBackoffDelay.Ticks);
+            ticks[attempt - 1] = (long)cappedTicks;
+        }
+
+        return ticks;
     }
 
     #endregion

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
 
@@ -10,13 +10,10 @@ public static class OutboxHostExtensions
         {
             await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
 
-            IEnumerable<IModuleDatabaseInitialiser> initialisers =
-                scope.ServiceProvider.GetServices<IModuleDatabaseInitialiser>();
+            IEnumerable<IModuleDatabaseInitialiser> initialisers = scope.ServiceProvider.GetServices<IModuleDatabaseInitialiser>();
+            IEnumerable<Task> initialisationTasks = initialisers.Select(initialiser => initialiser.InitialiseAsync(cancellationToken));
 
-            foreach (IModuleDatabaseInitialiser initialiser in initialisers)
-            {
-                await initialiser.InitialiseAsync(cancellationToken);
-            }
+            await Task.WhenAll(initialisationTasks);
         }
     }
 }

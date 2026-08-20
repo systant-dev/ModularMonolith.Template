@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -12,11 +12,13 @@
 		<PackageReference Include="Azure.Core" />
 		<PackageReference Include="Azure.Identity" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
+		<PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" />
 		<PackageReference Include="Dapper" />
 		<PackageReference Include="FluentValidation" />
 		<PackageReference Include="Microsoft.Data.SqlClient" />
 		<PackageReference Include="Microsoft.Extensions.Compliance.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+		<PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
 	</ItemGroup>
 
 </Project>

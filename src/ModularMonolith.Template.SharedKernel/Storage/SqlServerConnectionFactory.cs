@@ -7,7 +7,7 @@ public sealed class SqlServerConnectionFactory : IDbConnectionFactory
 {
     #region Field Declarations
 
-    private static readonly SqlRetryLogicBaseProvider _retryProvider = SqlConfigurableRetryFactory.CreateExponentialRetryProvider
+    private static readonly SqlRetryLogicBaseProvider RetryProvider = SqlConfigurableRetryFactory.CreateExponentialRetryProvider
     (
         new SqlRetryLogicOption
         {
@@ -70,7 +70,7 @@ public sealed class SqlServerConnectionFactory : IDbConnectionFactory
     {
         SqlConnection connection = new(ConnectionString)
         {
-            RetryLogicProvider = _retryProvider
+            RetryLogicProvider = RetryProvider
         };
         return connection;
     }
