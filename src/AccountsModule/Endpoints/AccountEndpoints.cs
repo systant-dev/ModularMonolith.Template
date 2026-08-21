@@ -35,9 +35,10 @@ internal static class AccountEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.Error.ToProblem();
     }
 
-    public static async Task<Results<NoContent, NotFound>> Delete(int id, IAccountService accountService, CancellationToken cancellationToken)
+    public static async Task<Results<NoContent, ProblemHttpResult>> Delete(int id, IAccountService accountService, CancellationToken cancellationToken)
     {
-        return await accountService.DeleteAsync(id, cancellationToken) ? TypedResults.NoContent() : TypedResults.NotFound();
+        Result result = await accountService.DeleteAsync(id, cancellationToken);
+        return result.IsSuccess ? TypedResults.NoContent() : result.Error.ToProblem();
     }
 
     #endregion

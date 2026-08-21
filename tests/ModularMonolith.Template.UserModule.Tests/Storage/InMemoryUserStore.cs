@@ -42,9 +42,20 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         return Task.FromResult(user);
     }
 
+    public Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_users.Count);
+    }
+
     public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(_users.Values.Any(user => string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public Task<bool> ExistsByEmailAsync(string email, int excludingUserId, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_users.Values.Any(user =>
+            user.Id != excludingUserId && string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase)));
     }
 
     public Task<User> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
@@ -59,7 +70,7 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         return Task.FromResult(created);
     }
 
-    public Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default)
+    public Task<bool> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         if (!_users.ContainsKey(user.Id))
         {
@@ -67,12 +78,24 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         }
 
         _users[user.Id] = user;
+
+        OutboxMessage message = OutboxMessage.Create(integrationEventFactory(user));
+        _outbox[message.Id] = message;
+
         return Task.FromResult(true);
     }
 
-    public Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public Task<bool> DeleteAsync(int id, Func<int, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(_users.TryRemove(id, out _));
+        if (!_users.TryRemove(id, out _))
+        {
+            return Task.FromResult(false);
+        }
+
+        OutboxMessage message = OutboxMessage.Create(integrationEventFactory(id));
+        _outbox[message.Id] = message;
+
+        return Task.FromResult(true);
     }
 
     #endregion

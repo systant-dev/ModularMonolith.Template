@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
@@ -31,6 +31,13 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
         return [.. users];
     }
 
+    public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        CommandDefinition command = new("SELECT COUNT_BIG(*) FROM Users;", cancellationToken: cancellationToken);
+        return (int)await connection.ExecuteScalarAsync<long>(command);
+    }
+
     public async Task<User?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
@@ -45,6 +52,17 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
         var parameters = new { Email = email };
         CommandDefinition command = new(
             "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE Email = @Email) THEN 1 ELSE 0 END;",
+            parameters,
+            cancellationToken: cancellationToken);
+        return await connection.ExecuteScalarAsync<bool>(command);
+    }
+
+    public async Task<bool> ExistsByEmailAsync(string email, int excludingUserId, CancellationToken cancellationToken = default)
+    {
+        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        var parameters = new { Email = email, ExcludingUserId = excludingUserId };
+        CommandDefinition command = new(
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE Email = @Email AND Id <> @ExcludingUserId) THEN 1 ELSE 0 END;",
             parameters,
             cancellationToken: cancellationToken);
         return await connection.ExecuteScalarAsync<bool>(command);
@@ -73,9 +91,10 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
         return created;
     }
 
-    public async Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
         var parameters = new { user.Id, user.FullName, user.Email, user.PhoneNumber };
         CommandDefinition command = new(
             """
@@ -84,19 +103,37 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
             WHERE Id = @Id;
             """,
             parameters,
+            transaction,
             cancellationToken: cancellationToken);
 
         int affected = await connection.ExecuteAsync(command);
-        return affected > 0;
+        if (affected == 0)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return false;
+        }
+
+        await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(user)), cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return true;
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(int id, Func<int, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
         var parameters = new { Id = id };
-        CommandDefinition command = new("DELETE FROM Users WHERE Id = @Id;", parameters, cancellationToken: cancellationToken);
+        CommandDefinition command = new("DELETE FROM Users WHERE Id = @Id;", parameters, transaction, cancellationToken: cancellationToken);
         int affected = await connection.ExecuteAsync(command);
-        return affected > 0;
+        if (affected == 0)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return false;
+        }
+
+        await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(id)), cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return true;
     }
 
     #endregion

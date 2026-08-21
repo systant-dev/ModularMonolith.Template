@@ -67,9 +67,14 @@ internal sealed class AccountService(IAccountStore store, ILogger<AccountService
         return updated.ToResponse();
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await store.DeleteAsync(id, cancellationToken);
+        if (!await store.DeleteAsync(id, cancellationToken))
+        {
+            return Error.NotFound("account.not-found", $"Account {id} was not found.");
+        }
+
+        return Result.Success();
     }
 
     #endregion

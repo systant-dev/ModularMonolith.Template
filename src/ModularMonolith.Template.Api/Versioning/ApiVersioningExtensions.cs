@@ -18,7 +18,8 @@ public static class ApiVersioningExtensions
                 {
                     options.GroupNameFormat = "'v'VVV";
                     options.SubstituteApiVersionInUrl = true;
-                });
+                })
+                .AddOpenApi();
 
             return serviceCollection;
         }

@@ -11,15 +11,19 @@ internal interface IUserStore
 
     Task<IReadOnlyList<User>> GetPageAsync(int afterId, int limit, CancellationToken cancellationToken = default);
 
+    Task<int> CountAsync(CancellationToken cancellationToken = default);
+
     Task<User?> FindAsync(int id, CancellationToken cancellationToken = default);
 
     Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsByEmailAsync(string email, int excludingUserId, CancellationToken cancellationToken = default);
+
     Task<User> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 
-    Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default);
+    Task<bool> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(int id, Func<int, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 
     #endregion
 }

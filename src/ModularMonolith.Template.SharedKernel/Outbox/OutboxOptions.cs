@@ -29,5 +29,14 @@ public sealed class OutboxOptions
     [Range(1, int.MaxValue)]
     public int MaxDegreeOfParallelism { get; set; } = 1;
 
+    /// <summary>
+    /// When <see langword="true"/>, each message's state is persisted immediately after it is
+    /// dispatched (sequential processing only), narrowing the window in which a crash can cause a
+    /// message to be re-dispatched. When <see langword="false"/> (the default), the whole batch is
+    /// persisted once after all messages are dispatched, favouring throughput over a tighter
+    /// duplicate window. Delivery remains at-least-once either way, so handlers must be idempotent.
+    /// </summary>
+    public bool PersistAfterEachMessage { get; set; }
+
     #endregion
 }

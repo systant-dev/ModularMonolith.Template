@@ -25,6 +25,11 @@ internal sealed class UserService(IUserStore store, ILogger<UserService> logger)
         return [.. users.Select(user => user.ToResponse())];
     }
 
+    public Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        return store.CountAsync(cancellationToken);
+    }
+
     public async Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         User? user = await store.FindAsync(id, cancellationToken);
@@ -61,21 +66,51 @@ internal sealed class UserService(IUserStore store, ILogger<UserService> logger)
             return Error.NotFound("user.not-found", $"User {id} was not found.");
         }
 
+        if (await store.ExistsByEmailAsync(request.Email, id, cancellationToken))
+        {
+            return Error.Conflict("user.email-conflict", $"A user with email '{request.Email}' already exists.");
+        }
+
         User updated = existing with
         {
             FullName = request.FullName,
             Email = request.Email,
             PhoneNumber = request.PhoneNumber
         };
-        await store.UpdateAsync(updated, cancellationToken);
+
+        bool wasUpdated = await store.UpdateAsync(
+            updated,
+            user => new UserUpdatedIntegrationEvent
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email
+            },
+            cancellationToken);
+
+        if (!wasUpdated)
+        {
+            return Error.NotFound("user.not-found", $"User {id} was not found.");
+        }
 
         UserLog.UserUpdated(logger, updated);
         return updated.ToResponse();
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await store.DeleteAsync(id, cancellationToken);
+        bool wasDeleted = await store.DeleteAsync(
+            id,
+            deletedId => new UserDeletedIntegrationEvent { Id = deletedId },
+            cancellationToken);
+
+        if (!wasDeleted)
+        {
+            return Error.NotFound("user.not-found", $"User {id} was not found.");
+        }
+
+        UserLog.UserDeleted(logger, id);
+        return Result.Success();
     }
 
     #endregion

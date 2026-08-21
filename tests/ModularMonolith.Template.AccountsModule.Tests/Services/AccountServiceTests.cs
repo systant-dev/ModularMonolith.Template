@@ -1,9 +1,11 @@
+using AccountsModule.Contracts.Events;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Contracts.Responses;
 using AccountsModule.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModularMonolith.Template.AccountsModule.Tests.Storage;
+using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Results;
 
@@ -68,11 +70,16 @@ public sealed class AccountServiceTests
         InMemoryAccountStore store = new();
         AccountService service = new(store, NullLogger<AccountService>.Instance);
 
-        await service.CreateAsync(NewRequest(3, "Margaret Hamilton"), TestContext.Current.CancellationToken);
+        AccountResponse created = (await service.CreateAsync(NewRequest(3, "Margaret Hamilton"), TestContext.Current.CancellationToken)).Value;
 
         IReadOnlyList<OutboxMessage> pending = await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, visibilityTimeout: TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
 
         pending.Should().ContainSingle();
+
+        AccountOpenedIntegrationEvent published = DeserialiseSingle<AccountOpenedIntegrationEvent>(pending);
+        published.AccountId.Should().Be(created.Id);
+        published.UserId.Should().Be(3);
+        published.AccountNumber.Should().Be(created.AccountNumber);
     }
 
     [Fact]
@@ -125,21 +132,24 @@ public sealed class AccountServiceTests
     }
 
     [Fact]
-    public async Task Delete_WhenExists_ReturnsTrueAndRemoves()
+    public async Task Delete_WhenExists_SucceedsAndRemoves()
     {
         AccountService service = CreateService();
         AccountResponse created = (await service.CreateAsync(NewRequest(6, "Temp Holder"), TestContext.Current.CancellationToken)).Value;
 
-        (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeTrue();
+        (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).IsSuccess.Should().BeTrue();
         (await service.FindAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeNull();
     }
 
     [Fact]
-    public async Task Delete_WhenMissing_ReturnsFalse()
+    public async Task Delete_WhenMissing_ReturnsNotFound()
     {
         AccountService service = CreateService();
 
-        (await service.DeleteAsync(999, TestContext.Current.CancellationToken)).Should().BeFalse();
+        Result result = await service.DeleteAsync(999, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     #endregion
@@ -163,6 +173,19 @@ public sealed class AccountServiceTests
         };
 
         return request;
+    }
+
+    private static TEvent DeserialiseSingle<TEvent>(IReadOnlyList<OutboxMessage> messages)
+        where TEvent : class, IMessage
+    {
+        MessageContractRegistry registry = new();
+        registry.Register<TEvent>();
+
+        return messages
+            .Select(message => message.Deserialise(registry))
+            .OfType<TEvent>()
+            .Should().ContainSingle()
+            .Subject;
     }
 
     #endregion

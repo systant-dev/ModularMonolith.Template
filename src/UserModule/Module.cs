@@ -18,6 +18,7 @@ using ModularMonolith.Template.SharedKernel.Security;
 using ModularMonolith.Template.SharedKernel.Storage;
 using ModularMonolith.Template.SharedKernel.Validation;
 using UserModule.Configuration;
+using UserModule.Contracts.Events;
 using UserModule.Contracts.Requests;
 using UserModule.Endpoints;
 using UserModule.Messaging;
@@ -51,6 +52,9 @@ public sealed class Module : IModule
         serviceCollection.AddScoped<IValidator<UpdateUserRequest>, Validation.UpdateUserRequestValidator>();
 
         serviceCollection.AddMessageHandler<AccountOpenedIntegrationEvent, AccountOpenedHandler>();
+
+        serviceCollection.AddMessageContract<UserUpdatedIntegrationEvent>();
+        serviceCollection.AddMessageContract<UserDeletedIntegrationEvent>();
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)

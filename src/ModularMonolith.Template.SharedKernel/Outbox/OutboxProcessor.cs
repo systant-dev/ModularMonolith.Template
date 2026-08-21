@@ -93,6 +93,17 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
             foreach (OutboxMessage outboxMessage in pending)
             {
                 await DispatchAsync(dispatcher, outboxMessage, cancellationToken);
+
+                if (_options.PersistAfterEachMessage)
+                {
+                    await store.UpdateAsync([outboxMessage], cancellationToken);
+                }
+            }
+
+            if (_options.PersistAfterEachMessage)
+            {
+                // Each message was already persisted immediately after dispatch above.
+                return;
             }
         }
         else
@@ -106,6 +117,12 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
             await Parallel.ForEachAsync(pending, parallelOptions, DispatchInIsolatedScopeAsync);
         }
 
+        // Delivery is at-least-once. Messages are claimed by GetPendingAsync and their in-memory
+        // state (Attempts, ProcessedOnUtc, NextAttemptOnUtc, Error) is only persisted here, once the
+        // whole batch has been dispatched. If the process crashes after publishing but before this
+        // UpdateAsync completes, the affected messages remain claimed until ClaimTimeout elapses, at
+        // which point a later poll re-claims and re-dispatches them. Handlers must therefore be
+        // idempotent (see the inbox decorator) to tolerate duplicate deliveries.
         await store.UpdateAsync(pending, cancellationToken);
     }
 

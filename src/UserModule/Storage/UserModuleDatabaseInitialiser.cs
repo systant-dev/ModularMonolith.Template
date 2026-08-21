@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
 using System.Data.Common;
@@ -19,6 +19,11 @@ internal sealed class UserModuleDatabaseInitialiser(IDbConnectionFactory connect
                 Email       NVARCHAR(256)   NOT NULL,
                 PhoneNumber NVARCHAR(64)    NULL
             );
+        END;
+
+        IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Users_Email' AND object_id = OBJECT_ID(N'dbo.Users', N'U'))
+        BEGIN
+            CREATE UNIQUE INDEX UX_Users_Email ON dbo.Users (Email);
         END;
         """
         + "\n\n" + OutboxSchema.CreateTableSql;

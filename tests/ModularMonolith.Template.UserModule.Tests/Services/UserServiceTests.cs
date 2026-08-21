@@ -1,7 +1,10 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModularMonolith.Template.UserModule.Tests.Storage;
+using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Results;
+using UserModule.Contracts.Events;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
 using UserModule.Services;
@@ -66,12 +69,17 @@ public sealed class UserServiceTests
         InMemoryUserStore store = new();
         UserService service = new(store, NullLogger<UserService>.Instance);
 
-        await service.CreateAsync(NewRequest("Margaret Hamilton", "margaret@example.com"), TestContext.Current.CancellationToken);
+        UserResponse created = (await service.CreateAsync(NewRequest("Margaret Hamilton", "margaret@example.com"), TestContext.Current.CancellationToken)).Value;
 
-        IReadOnlyList<ModularMonolith.Template.SharedKernel.Outbox.OutboxMessage> pending =
+        IReadOnlyList<OutboxMessage> pending =
             await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, visibilityTimeout: TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
 
         pending.Should().ContainSingle();
+
+        UserCreatedIntegrationEvent published = DeserialiseSingle<UserCreatedIntegrationEvent>(pending);
+        published.Id.Should().Be(created.Id);
+        published.FullName.Should().Be("Margaret Hamilton");
+        published.Email.Should().Be("margaret@example.com");
     }
 
     [Fact]
@@ -130,21 +138,99 @@ public sealed class UserServiceTests
     }
 
     [Fact]
-    public async Task Delete_WhenExists_ReturnsTrueAndRemoves()
+    public async Task Update_WhenEmailBelongsToAnotherUser_ReturnsConflict()
+    {
+        UserService service = await CreateService();
+        await service.CreateAsync(NewRequest("First User", "taken@example.com"), TestContext.Current.CancellationToken);
+        UserResponse second = (await service.CreateAsync(NewRequest("Second User", "second@example.com"), TestContext.Current.CancellationToken)).Value;
+
+        Result<UserResponse> result = await service.UpdateAsync(second.Id, new UpdateUserRequest
+        {
+            FullName = "Second User",
+            Email = "TAKEN@example.com"
+        }, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.Conflict);
+    }
+
+    [Fact]
+    public async Task Update_WhenKeepingOwnEmail_Succeeds()
+    {
+        UserService service = await CreateService();
+        UserResponse created = (await service.CreateAsync(NewRequest("Same Email", "same@example.com"), TestContext.Current.CancellationToken)).Value;
+
+        Result<UserResponse> result = await service.UpdateAsync(created.Id, new UpdateUserRequest
+        {
+            FullName = "Same Email Updated",
+            Email = "same@example.com"
+        }, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.FullName.Should().Be("Same Email Updated");
+    }
+
+    [Fact]
+    public async Task Update_EnqueuesOutboxMessage()
+    {
+        InMemoryUserStore store = new();
+        UserService service = new(store, NullLogger<UserService>.Instance);
+        UserResponse created = (await service.CreateAsync(NewRequest("Update Event", "update-event@example.com"), TestContext.Current.CancellationToken)).Value;
+
+        await service.UpdateAsync(created.Id, new UpdateUserRequest
+        {
+            FullName = "Update Event Changed",
+            Email = "update-event-changed@example.com"
+        }, TestContext.Current.CancellationToken);
+
+        IReadOnlyList<OutboxMessage> pending =
+            await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, visibilityTimeout: TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
+
+        pending.Should().HaveCount(2);
+
+        UserUpdatedIntegrationEvent published = DeserialiseSingle<UserUpdatedIntegrationEvent>(pending);
+        published.Id.Should().Be(created.Id);
+        published.FullName.Should().Be("Update Event Changed");
+        published.Email.Should().Be("update-event-changed@example.com");
+    }
+
+    [Fact]
+    public async Task Delete_WhenExists_SucceedsAndRemoves()
     {
         UserService service = await CreateService();
         UserResponse created = (await service.CreateAsync(NewRequest("Temp User", "temp@example.com"), TestContext.Current.CancellationToken)).Value;
 
-        (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeTrue();
+        (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).IsSuccess.Should().BeTrue();
         (await service.FindAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeNull();
     }
 
     [Fact]
-    public async Task Delete_WhenMissing_ReturnsFalse()
+    public async Task Delete_EnqueuesOutboxMessage()
+    {
+        InMemoryUserStore store = new();
+        UserService service = new(store, NullLogger<UserService>.Instance);
+        UserResponse created = (await service.CreateAsync(NewRequest("Delete Event", "delete-event@example.com"), TestContext.Current.CancellationToken)).Value;
+
+        await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken);
+
+        IReadOnlyList<OutboxMessage> pending =
+            await store.GetPendingAsync(maxAttempts: 5, batchSize: 10, visibilityTimeout: TimeSpan.FromMinutes(1), TestContext.Current.CancellationToken);
+
+        pending.Should().HaveCount(2);
+
+        UserDeletedIntegrationEvent published = DeserialiseSingle<UserDeletedIntegrationEvent>(pending);
+        published.Id.Should().Be(created.Id);
+    }
+
+    [Fact]
+    public async Task Delete_WhenMissing_ReturnsNotFound()
     {
         UserService service = await CreateService();
 
-        (await service.DeleteAsync(999, TestContext.Current.CancellationToken)).Should().BeFalse();
+        Result result = await service.DeleteAsync(999, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     #endregion
@@ -168,6 +254,19 @@ public sealed class UserServiceTests
         };
 
         return request;
+    }
+
+    private static TEvent DeserialiseSingle<TEvent>(IReadOnlyList<OutboxMessage> messages)
+        where TEvent : class, IMessage
+    {
+        MessageContractRegistry registry = new();
+        registry.Register<TEvent>();
+
+        return messages
+            .Select(message => message.Deserialise(registry))
+            .OfType<TEvent>()
+            .Should().ContainSingle()
+            .Subject;
     }
 
     #endregion
