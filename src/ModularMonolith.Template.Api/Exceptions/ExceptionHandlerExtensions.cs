@@ -1,8 +1,8 @@
-﻿namespace ModularMonolith.Template.Api.Exceptions;
+namespace ModularMonolith.Template.Api.Exceptions;
 
 public static class ExceptionHandlerExtensions
 {
-    extension(IApplicationBuilder app)
+    extension(IApplicationBuilder builder)
     {
         public IApplicationBuilder UseCustomExceptionHandler()
         {
@@ -15,8 +15,8 @@ public static class ExceptionHandlerExtensions
                     _ => StatusCodes.Status500InternalServerError
                 }
             };
-            app.UseExceptionHandler(options);
-            return app;
+            builder.UseExceptionHandler(options);
+            return builder;
         }
     }
 }

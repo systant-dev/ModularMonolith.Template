@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
@@ -140,11 +140,10 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
 
     #region Protected Method Declarations
 
-    protected static async Task InsertOutboxMessageAsync(
-        IDbConnection connection,
-        IDbTransaction? transaction,
-        OutboxMessage message,
-        CancellationToken cancellationToken)
+    protected static async Task InsertOutboxMessageAsync(IDbConnection connection,
+                                                         IDbTransaction? transaction,
+                                                         OutboxMessage message,
+                                                         CancellationToken cancellationToken)
     {
         var parameters = new
         {

@@ -17,30 +17,26 @@ public static class AuthenticationExtensions
     {
         public IServiceCollection AddModuleAuthentication(IConfiguration configuration)
         {
-            serviceCollection
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApi(configuration.GetSection(ConfigurationSectionName));
+            serviceCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                             .AddMicrosoftIdentityWebApi(configuration.GetSection(ConfigurationSectionName));
 
             return serviceCollection;
         }
 
         public IServiceCollection AddModuleAuthorization()
         {
-            AuthorizationPolicy fallbackPolicy = new AuthorizationPolicyBuilder()
-                .RequireAuthenticatedUser()
-                .Build();
+            AuthorizationPolicy fallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
+                                                                                 .Build();
 
-            serviceCollection
-                .AddAuthorizationBuilder()
-                .SetFallbackPolicy(fallbackPolicy)
-                .AddPolicy(AuthorisationPolicies.RequireUser, policy => policy
-                    .RequireAuthenticatedUser())
-                .AddPolicy(AuthorisationPolicies.ReadAccess, policy => policy
-                    .RequireAuthenticatedUser()
-                    .RequireClaim(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Read, AuthorisationScopes.Write))
-                .AddPolicy(AuthorisationPolicies.WriteAccess, policy => policy
-                    .RequireAuthenticatedUser()
-                    .RequireClaim(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Write));
+            serviceCollection.AddAuthorizationBuilder()
+                             .SetFallbackPolicy(fallbackPolicy)
+                             .AddPolicy(AuthorisationPolicies.RequireUser, policy => policy.RequireAuthenticatedUser())
+                             .AddPolicy(AuthorisationPolicies.ReadAccess, policy => policy
+                                 .RequireAuthenticatedUser()
+                                 .RequireClaim(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Read, AuthorisationScopes.Write))
+                             .AddPolicy(AuthorisationPolicies.WriteAccess, policy => policy
+                                 .RequireAuthenticatedUser()
+                                 .RequireClaim(AuthorisationScopes.ScopeClaimType, AuthorisationScopes.Write));
 
             return serviceCollection;
         }

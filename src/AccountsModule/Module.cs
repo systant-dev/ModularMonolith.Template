@@ -1,4 +1,4 @@
-﻿using AccountsModule.Configuration;
+using AccountsModule.Configuration;
 using AccountsModule.Contracts.Requests;
 using AccountsModule.Endpoints;
 using AccountsModule.Messaging;
@@ -60,9 +60,9 @@ public sealed class Module : IModule
         ApiVersion apiVersion = new(1, 0);
 
         ApiVersionSet apiVersionSet = endpoints.NewApiVersionSet()
-            .HasApiVersion(apiVersion)
-            .ReportApiVersions()
-            .Build();
+                                               .HasApiVersion(apiVersion)
+                                               .ReportApiVersions()
+                                               .Build();
 
         RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/accounts")
                                            .WithApiVersionSet(apiVersionSet)
@@ -73,9 +73,19 @@ public sealed class Module : IModule
 
         group.MapGet("/", AccountEndpoints.GetAll).RequireAuthorization(AuthorisationPolicies.ReadAccess);
         group.MapGet("/{id:int}", AccountEndpoints.Get).RequireAuthorization(AuthorisationPolicies.ReadAccess);
-        group.MapPost("/", AccountEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateAccountRequest>>().AddEndpointFilter<IdempotencyFilter>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapPut("/{id:int}", AccountEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateAccountRequest>>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapDelete("/{id:int}", AccountEndpoints.Delete).AddEndpointFilter<AuditLogFilter>().RequireFeature("AccountsDeletion").RequireAuthorization(AuthorisationPolicies.WriteAccess);
+
+        group.MapPost("/", AccountEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateAccountRequest>>()
+                                                   .AddEndpointFilter<IdempotencyFilter>()
+                                                   .AddEndpointFilter<AuditLogFilter>()
+                                                   .RequireAuthorization(AuthorisationPolicies.WriteAccess);
+
+        group.MapPut("/{id:int}", AccountEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateAccountRequest>>()
+                                                          .AddEndpointFilter<AuditLogFilter>()
+                                                          .RequireAuthorization(AuthorisationPolicies.WriteAccess);
+
+        group.MapDelete("/{id:int}", AccountEndpoints.Delete).AddEndpointFilter<AuditLogFilter>()
+                                                             .RequireFeature("AccountsDeletion")
+                                                             .RequireAuthorization(AuthorisationPolicies.WriteAccess);
     }
 
     #endregion

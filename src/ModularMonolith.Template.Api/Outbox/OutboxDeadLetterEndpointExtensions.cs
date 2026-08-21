@@ -37,9 +37,8 @@ public static class OutboxDeadLetterEndpointExtensions
 
         IReadOnlyList<OutboxDeadLetterResponse> response =
         [
-            .. results
-                .SelectMany(storeDeadLetters => storeDeadLetters)
-                .OrderBy(deadLetter => deadLetter.OccurredOnUtc)
+            .. results.SelectMany(storeDeadLetters => storeDeadLetters)
+                      .OrderBy(deadLetter => deadLetter.OccurredOnUtc)
         ];
 
         return TypedResults.Ok(response);
@@ -58,8 +57,7 @@ public static class OutboxDeadLetterEndpointExtensions
             return [];
         }
 
-        IReadOnlyList<OutboxMessage> messages = await store
-            .GetDeadLetteredAsync(outboxOptions.MaxAttempts, limit, cancellationToken);
+        IReadOnlyList<OutboxMessage> messages = await store.GetDeadLetteredAsync(outboxOptions.MaxAttempts, limit, cancellationToken);
 
         return
         [

@@ -9,7 +9,7 @@ namespace AccountsModule.Storage;
 
 internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFactory) : SqlServerOutboxStore(connectionFactory), IAccountStore
 {
-    #region IAccountStore Method Declarations
+    #region Public Method Declarations
 
     public async Task<IReadOnlyList<Account>> GetAllAsync(CancellationToken cancellationToken = default)
     {

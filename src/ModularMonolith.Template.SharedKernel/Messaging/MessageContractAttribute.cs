@@ -12,6 +12,12 @@ public sealed class MessageContractAttribute : Attribute
 
     #endregion
 
+    #region Property Declarations
+
+    public string Name { get; }
+
+    #endregion
+
     #region Constructor Declarations
 
     public MessageContractAttribute(string name)
@@ -19,12 +25,6 @@ public sealed class MessageContractAttribute : Attribute
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Name = name;
     }
-
-    #endregion
-
-    #region Property Declarations
-
-    public string Name { get; }
 
     #endregion
 

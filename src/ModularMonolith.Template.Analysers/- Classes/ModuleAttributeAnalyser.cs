@@ -53,16 +53,9 @@ public sealed class ModuleAttributeAnalyser : DiagnosticAnalyzer
                 Compilation compilation = context.Compilation;
                 INamedTypeSymbol? moduleInterface = compilation.GetTypeByMetadataName("ModularMonolith.Template.SharedKernel.Modular.IModule");
 
-                bool implementsInterface = false;
-
-                if (moduleInterface is not null)
-                {
-                    implementsInterface = namedType.AllInterfaces.Contains(moduleInterface, SymbolEqualityComparer.Default);
-                }
-                else
-                {
-                    implementsInterface = namedType.AllInterfaces.Any(namedTypeSymbol => namedTypeSymbol.Name == "IModule");
-                }
+                bool implementsInterface = moduleInterface is not null
+                    ? namedType.AllInterfaces.Contains(moduleInterface, SymbolEqualityComparer.Default)
+                    : namedType.AllInterfaces.Any(namedTypeSymbol => namedTypeSymbol.Name == "IModule");
 
                 if (!implementsInterface)
                 {

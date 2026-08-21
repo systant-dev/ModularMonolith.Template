@@ -1,8 +1,8 @@
-﻿namespace ModularMonolith.Template.SharedKernel.Security;
+namespace ModularMonolith.Template.SharedKernel.Security;
 
 public static class AuthorisationPolicies
 {
-    #region Field Declarations
+    #region Constant Declarations
 
     public const string RequireUser = "RequireUser";
 

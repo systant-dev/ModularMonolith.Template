@@ -9,9 +9,7 @@ using UserModule.Storage;
 
 namespace UserModule.Services;
 
-internal sealed class UserService(
-    IUserStore store,
-    ILogger<UserService> logger) : IUserService
+internal sealed class UserService(IUserStore store, ILogger<UserService> logger) : IUserService
 {
     #region Public Method Declarations
 

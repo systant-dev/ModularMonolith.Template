@@ -9,7 +9,7 @@ namespace AccountsModule.Endpoints;
 
 internal static class AccountEndpoints
 {
-    #region Endpoint Handlers
+    #region Public Method Declarations
 
     public static async Task<Ok<IReadOnlyCollection<AccountResponse>>> GetAll(IAccountService accountService, CancellationToken cancellationToken)
     {

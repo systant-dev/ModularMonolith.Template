@@ -17,9 +17,8 @@ public static class ApplicationInsightsExtensions
     {
         public IServiceCollection AddApplicationInsightsTelemetry(IConfiguration configuration)
         {
-            bool connectionStringConfigured =
-                !string.IsNullOrWhiteSpace(configuration[ConnectionStringKey]) ||
-                !string.IsNullOrWhiteSpace(configuration[AzureMonitorConnectionStringKey]);
+            bool connectionStringConfigured = !string.IsNullOrWhiteSpace(configuration[ConnectionStringKey]) ||
+                                              !string.IsNullOrWhiteSpace(configuration[AzureMonitorConnectionStringKey]);
 
             if (!connectionStringConfigured)
             {
@@ -27,9 +26,9 @@ public static class ApplicationInsightsExtensions
             }
 
             serviceCollection.AddOpenTelemetry()
-                .WithTracing(tracing => tracing.AddSource(OutboxDiagnostics.Name))
-                .WithMetrics(metrics => metrics.AddMeter(OutboxDiagnostics.Name))
-                .UseAzureMonitor();
+                             .WithTracing(tracing => tracing.AddSource(OutboxDiagnostics.Name))
+                             .WithMetrics(metrics => metrics.AddMeter(OutboxDiagnostics.Name))
+                             .UseAzureMonitor();
 
             return serviceCollection;
         }

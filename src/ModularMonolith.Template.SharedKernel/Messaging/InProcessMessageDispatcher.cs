@@ -7,7 +7,6 @@ internal sealed class InProcessMessageDispatcher(IServiceProvider serviceProvide
     public Task PublishAsync(IMessage message, DispatchMode mode = DispatchMode.Sequential, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
-
         return dispatchMap.DispatchAsync(serviceProvider, message, mode, cancellationToken);
     }
 

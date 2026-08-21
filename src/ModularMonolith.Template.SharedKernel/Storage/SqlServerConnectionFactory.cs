@@ -14,8 +14,8 @@ public sealed class SqlServerConnectionFactory : IDbConnectionFactory
             NumberOfTries = 5,
             DeltaTime = TimeSpan.FromMilliseconds(200),
             MaxTimeInterval = TimeSpan.FromSeconds(10)
-        })
-    ;
+        }
+    );
 
     private readonly Func<DbConnection> _connectionFactory;
 

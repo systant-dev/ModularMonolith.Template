@@ -9,9 +9,7 @@ using ModularMonolith.Template.SharedKernel.Results;
 
 namespace AccountsModule.Services;
 
-internal sealed class AccountService(
-    IAccountStore store,
-    ILogger<AccountService> logger) : IAccountService
+internal sealed class AccountService(IAccountStore store, ILogger<AccountService> logger) : IAccountService
 {
     #region Public Method Declarations
 

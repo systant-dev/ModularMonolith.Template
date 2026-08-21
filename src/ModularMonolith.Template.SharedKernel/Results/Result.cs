@@ -34,7 +34,6 @@ public class Result
 
     #endregion
 
-
     #region Public Method Declarations
 
     public static Result Success() => new(true, Error.None);

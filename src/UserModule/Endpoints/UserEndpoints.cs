@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Contracts.Requests;
@@ -9,7 +9,7 @@ namespace UserModule.Endpoints;
 
 internal static class UserEndpoints
 {
-    #region Endpoint Handlers
+    #region Public Method Declarations
 
     public static async Task<Ok<IReadOnlyCollection<UserResponse>>> GetAll(IUserService userService, CancellationToken cancellationToken, int? afterId = null, int? limit = null)
     {

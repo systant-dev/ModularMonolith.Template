@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ModularMonolith.Template.SharedKernel.Modular;
@@ -11,9 +11,7 @@ public interface IModule
 
     void MapEndpoints(IEndpointRouteBuilder endpoints);
 
-    void RegisterHealthChecks(IHealthChecksBuilder healthChecks)
-    {
-    }
+    void RegisterHealthChecks(IHealthChecksBuilder healthChecks) { }
 
     #endregion
 }

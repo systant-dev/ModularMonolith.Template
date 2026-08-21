@@ -5,6 +5,12 @@
 	<PropertyGroup>
 		<InvariantGlobalization>true</InvariantGlobalization>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="Logs\**" />
+	  <Content Remove="Logs\**" />
+	  <EmbeddedResource Remove="Logs\**" />
+	  <None Remove="Logs\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
@@ -28,10 +34,6 @@
 	  <ProjectReference Include="..\AccountsModule\AccountsModule.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Logs\" />
 	</ItemGroup>
 
 </Project>

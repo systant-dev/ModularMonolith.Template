@@ -26,11 +26,6 @@ public sealed class OutboxOptions
 
     public TimeSpan MaxBackoffDelay { get; set; } = TimeSpan.FromMinutes(5);
 
-    /// <summary>
-    /// Maximum number of stores and messages processed concurrently per polling cycle.
-    /// A value of 1 preserves fully sequential processing. Values greater than 1 dispatch
-    /// messages in parallel, each within its own dependency-injection scope.
-    /// </summary>
     [Range(1, int.MaxValue)]
     public int MaxDegreeOfParallelism { get; set; } = 1;
 

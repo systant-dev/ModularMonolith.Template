@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Compliance.Classification;
+using Microsoft.Extensions.Compliance.Classification;
 using Microsoft.Extensions.Compliance.Redaction;
 using Microsoft.Extensions.Primitives;
 using ModularMonolith.Template.SharedKernel.Compliance;
@@ -8,8 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ModularMonolith.Template.Api.Logging;
 
-[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case",
-    Justification = "False positive on C# extension blocks; the receiver types (WebApplication and WebApplicationBuilder) are distinct.")]
+[SuppressMessage("Naming", "CA1708:Identifiers should differ by more than case", Justification = "False positive on C# extension blocks; the receiver types (WebApplication and WebApplicationBuilder) are distinct.")]
 public static class SerilogExtensions
 {
     extension(WebApplicationBuilder builder)

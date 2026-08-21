@@ -9,6 +9,7 @@ internal static class ModuleInitializer
     [ModuleInitializer]
     public static void Initialize()
     {
+        VerifierSettings.FixNewlinesOnRead();
         VerifySourceGenerators.Initialize();
         UseProjectRelativeDirectory("Snapshots");
     }

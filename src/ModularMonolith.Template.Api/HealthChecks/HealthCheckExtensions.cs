@@ -4,7 +4,7 @@ namespace ModularMonolith.Template.Api.HealthChecks;
 
 public static class HealthCheckExtensions
 {
-    #region Field Declarations
+    #region Constant Declarations
 
     public const string LiveTag = "live";
 

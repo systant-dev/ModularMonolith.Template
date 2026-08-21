@@ -5,7 +5,7 @@
   </PropertyGroup>
   <!-- Production Dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Azure.Core" Version="1.61.0" />
+    <PackageVersion Include="Azure.Core" Version="1.62.0" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.2" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
@@ -26,7 +26,7 @@
     <PackageVersion Include="Microsoft.Extensions.Telemetry" Version="10.9.0" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry.Abstractions" Version="10.9.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="[2.11.0]" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.20" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.17.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />

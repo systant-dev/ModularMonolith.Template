@@ -1,4 +1,4 @@
-﻿using AccountsModule.Contracts.Events;
+using AccountsModule.Contracts.Events;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using FluentValidation;
@@ -71,9 +71,19 @@ public sealed class Module : IModule
 
         group.MapGet("/", UserEndpoints.GetAll).RequireAuthorization(AuthorisationPolicies.ReadAccess);
         group.MapGet("/{id:int}", UserEndpoints.Get).RequireAuthorization(AuthorisationPolicies.ReadAccess);
-        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>().AddEndpointFilter<IdempotencyFilter>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>().AddEndpointFilter<AuditLogFilter>().RequireAuthorization(AuthorisationPolicies.WriteAccess);
-        group.MapDelete("/{id:int}", UserEndpoints.Delete).AddEndpointFilter<AuditLogFilter>().RequireFeature("UserDeletion").RequireAuthorization(AuthorisationPolicies.WriteAccess);
+
+        group.MapPost("/", UserEndpoints.Create).AddEndpointFilter<ValidationFilter<CreateUserRequest>>()
+                                                .AddEndpointFilter<IdempotencyFilter>()
+                                                .AddEndpointFilter<AuditLogFilter>()
+                                                .RequireAuthorization(AuthorisationPolicies.WriteAccess);
+
+        group.MapPut("/{id:int}", UserEndpoints.Update).AddEndpointFilter<ValidationFilter<UpdateUserRequest>>()
+                                                       .AddEndpointFilter<AuditLogFilter>()
+                                                       .RequireAuthorization(AuthorisationPolicies.WriteAccess);
+
+        group.MapDelete("/{id:int}", UserEndpoints.Delete).AddEndpointFilter<AuditLogFilter>()
+                                                          .RequireFeature("UserDeletion")
+                                                          .RequireAuthorization(AuthorisationPolicies.WriteAccess);
     }
 
     #endregion

@@ -7,9 +7,6 @@
     <File Path="tests/Tests.Common.props" />
 	<File Path=".editorconfig" />
   </Folder>
-  <Folder Name="/pipelines/">
-    <File Path=".github/workflows/github-workflow-branches.yaml" />
-  </Folder>
   <Folder Name="/src/">
     <Project Path="src/ModularMonolith.Template.Api/ModularMonolith.Template.Api.csproj" />
     <Project Path="src/ModularMonolith.Template.SharedKernel/ModularMonolith.Template.SharedKernel.csproj" />

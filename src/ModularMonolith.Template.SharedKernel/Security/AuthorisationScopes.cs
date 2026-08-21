@@ -1,8 +1,8 @@
-﻿namespace ModularMonolith.Template.SharedKernel.Security;
+namespace ModularMonolith.Template.SharedKernel.Security;
 
 public static class AuthorisationScopes
 {
-    #region Field Declarations
+    #region Constant Declarations
 
     public const string ScopeClaimType = "scp";
 
