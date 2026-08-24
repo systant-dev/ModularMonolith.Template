@@ -18,6 +18,17 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore, IInbox
 
     #endregion
 
+    #region Property Declarations
+
+    /// <summary>
+    /// Number of consecutive <see cref="CreateAsync"/> calls that should throw
+    /// <see cref="DuplicateAccountNumberException"/> before succeeding, used to exercise the
+    /// account-number regeneration retry in the service layer.
+    /// </summary>
+    public int AccountNumberCollisionsToSimulate { get; set; }
+
+    #endregion
+
     #region IAccountStore Method Declarations
 
     public Task<IReadOnlyList<Account>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -39,6 +50,12 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore, IInbox
 
     public Task<Account> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
+        if (AccountNumberCollisionsToSimulate > 0)
+        {
+            AccountNumberCollisionsToSimulate--;
+            throw new DuplicateAccountNumberException(account.AccountNumber, new InvalidOperationException("Simulated account number collision."));
+        }
+
         int id = Interlocked.Increment(ref _nextId);
         Account created = account with { Id = id };
         _accounts[id] = created;

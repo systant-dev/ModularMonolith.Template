@@ -1,11 +1,22 @@
 <Solution>
   <Folder Name="/docs/">
+    <File Path="README.md" />
+    <File Path="docs/analysers.md" />
+    <File Path="docs/api-host.md" />
+    <File Path="docs/architecture.md" />
+    <File Path="docs/contracts.md" />
+    <File Path="docs/messaging.md" />
+    <File Path="docs/modules.md" />
+    <File Path="docs/shared-kernel.md" />
+    <File Path="docs/source-generators.md" />
+    <File Path="docs/testing.md" />
+  </Folder>
+  <Folder Name="/docs/dev/">
+    <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="LICENSE.txt" />
-    <File Path="README.md" />
     <File Path="tests/Tests.Common.props" />
-	<File Path=".editorconfig" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ModularMonolith.Template.Api/ModularMonolith.Template.Api.csproj" />
@@ -27,6 +38,7 @@
     <Project Path="src/ModularMonolith.Template.SourceGenerators.Shared/ModularMonolith.Template.SourceGenerators.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ModularMonolith.Template.AccountsModule.Tests/ModularMonolith.Template.AccountsModule.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.Analysers.Tests/ModularMonolith.Template.Analysers.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.Api.Tests/ModularMonolith.Template.Api.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.MappingGen.Tests/ModularMonolith.Template.MappingGen.Tests.csproj" Id="9f3d2c41-8b17-4e6a-9d2f-1c5b7a4e0d88" />
@@ -34,7 +46,6 @@
     <Project Path="tests/ModularMonolith.Template.SharedKernel.Tests/ModularMonolith.Template.SharedKernel.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.SourceGenerators.Shared.Tests/ModularMonolith.Template.SourceGenerators.Shared.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.SourceGenerators.TestKit/ModularMonolith.Template.SourceGenerators.TestKit.csproj" />
-    <Project Path="tests/ModularMonolith.Template.AccountsModule.Tests/ModularMonolith.Template.AccountsModule.Tests.csproj" />
     <Project Path="tests/ModularMonolith.Template.UserModule.Tests/ModularMonolith.Template.UserModule.Tests.csproj" />
   </Folder>
 </Solution>

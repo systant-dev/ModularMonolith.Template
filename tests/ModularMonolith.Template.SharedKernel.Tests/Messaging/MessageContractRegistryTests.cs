@@ -45,12 +45,14 @@ public sealed class MessageContractRegistryTests
     }
 
     [Fact]
-    public void TryResolve_WithAssemblyQualifiedName_ResolvesViaTypeGetType()
+    public void TryResolve_WithAssemblyQualifiedName_FailsClosed()
     {
         MessageContractRegistry registry = new();
 
-        registry.TryResolve(typeof(PlainMessage).AssemblyQualifiedName!, out Type resolved).Should().BeTrue();
-        resolved.Should().Be<PlainMessage>();
+        // Contract resolution deliberately does not fall back to Type.GetType. Unregistered
+        // (assembly-qualified) names must fail closed to avoid resolving arbitrary CLR types.
+        registry.TryResolve(typeof(PlainMessage).AssemblyQualifiedName!, out Type resolved).Should().BeFalse();
+        resolved.Should().BeNull();
     }
 
     [Fact]

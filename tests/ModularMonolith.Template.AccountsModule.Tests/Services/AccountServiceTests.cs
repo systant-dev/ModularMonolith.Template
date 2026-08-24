@@ -152,15 +152,44 @@ public sealed class AccountServiceTests
         result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
+    [Fact]
+    public async Task Create_WhenAccountNumberCollides_RegeneratesAndSucceeds()
+    {
+        InMemoryAccountStore store = new() { AccountNumberCollisionsToSimulate = 2 };
+        AccountService service = CreateService(store);
+
+        Result<AccountResponse> result = await service.CreateAsync(NewRequest(11, "Katherine Johnson"), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.AccountNumber.Should().NotBeNullOrWhiteSpace();
+        store.AccountNumberCollisionsToSimulate.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Create_WhenAccountNumberCollisionPersists_ReturnsConflict()
+    {
+        InMemoryAccountStore store = new() { AccountNumberCollisionsToSimulate = 100 };
+        AccountService service = CreateService(store);
+
+        Result<AccountResponse> result = await service.CreateAsync(NewRequest(12, "Dorothy Vaughan"), TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.Conflict);
+        result.Error.Code.Should().Be("account.number-generation-failed");
+    }
+
     #endregion
 
     #region Private Method Declarations
 
     private static AccountService CreateService()
     {
-        InMemoryAccountStore store = new();
-        AccountService service = new(store, NullLogger<AccountService>.Instance);
-        return service;
+        return CreateService(new InMemoryAccountStore());
+    }
+
+    private static AccountService CreateService(InMemoryAccountStore store)
+    {
+        return new AccountService(store, NullLogger<AccountService>.Instance);
     }
 
     private static CreateAccountRequest NewRequest(int userId, string accountHolderName, decimal initialDeposit = 0m)

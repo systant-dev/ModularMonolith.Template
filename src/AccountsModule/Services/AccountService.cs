@@ -11,6 +11,12 @@ namespace AccountsModule.Services;
 
 internal sealed class AccountService(IAccountStore store, ILogger<AccountService> logger) : IAccountService
 {
+    #region Constant Declarations
+
+    private const int MaxAccountNumberAttempts = 5;
+
+    #endregion
+
     #region Public Method Declarations
 
     public async Task<IReadOnlyCollection<AccountResponse>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -33,20 +39,35 @@ internal sealed class AccountService(IAccountStore store, ILogger<AccountService
         }
 
         Account toCreate = request.ToAccount();
-        toCreate.AccountNumber = GenerateAccountNumber();
         toCreate.Balance = request.InitialDeposit;
-        Account created = await store.CreateAsync(
-            toCreate,
-            account => new AccountOpenedIntegrationEvent
-            {
-                AccountId = account.Id,
-                UserId = account.UserId,
-                AccountNumber = account.AccountNumber
-            },
-            cancellationToken);
 
-        AccountLog.AccountOpened(logger, created);
-        return created.ToResponse();
+        for (int attempt = 1; attempt <= MaxAccountNumberAttempts; attempt++)
+        {
+            toCreate.AccountNumber = GenerateAccountNumber();
+
+            try
+            {
+                Account created = await store.CreateAsync(
+                    toCreate,
+                    account => new AccountOpenedIntegrationEvent
+                    {
+                        AccountId = account.Id,
+                        UserId = account.UserId,
+                        AccountNumber = account.AccountNumber
+                    },
+                    cancellationToken);
+
+                AccountLog.AccountOpened(logger, created);
+                return created.ToResponse();
+            }
+            catch (DuplicateAccountNumberException)
+            {
+                AccountLog.AccountNumberCollision(logger, attempt);
+            }
+        }
+
+        AccountLog.AccountNumberAllocationFailed(logger, MaxAccountNumberAttempts);
+        return Error.Conflict("account.number-generation-failed", "Unable to allocate a unique account number. Please retry.");
     }
 
     public async Task<Result<AccountResponse>> UpdateAsync(int id, UpdateAccountRequest request, CancellationToken cancellationToken = default)

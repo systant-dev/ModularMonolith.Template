@@ -22,7 +22,12 @@ public sealed class MessageContractRegistry : IMessageContractRegistry
     public string GetContractName<TMessage>() where TMessage : IMessage
     {
         Type messageType = typeof(TMessage);
-        return _namesByType.GetOrAdd(messageType, MessageContractAttribute.ResolveContractName);
+        return _namesByType.GetOrAdd(messageType, type =>
+        {
+            string name = MessageContractAttribute.ResolveContractName(type);
+            _typesByName[name] = type;
+            return name;
+        });
     }
 
     public bool TryResolve(string contractName, out Type messageType)
@@ -32,14 +37,6 @@ public sealed class MessageContractRegistry : IMessageContractRegistry
         if (_typesByName.TryGetValue(contractName, out Type? registered))
         {
             messageType = registered;
-            return true;
-        }
-
-        Type? clrType = Type.GetType(contractName, throwOnError: false);
-        if (clrType is not null && typeof(IMessage).IsAssignableFrom(clrType))
-        {
-            Register(clrType);
-            messageType = clrType;
             return true;
         }
 

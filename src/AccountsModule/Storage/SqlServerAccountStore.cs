@@ -1,5 +1,6 @@
 using AccountsModule.Models;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
@@ -9,6 +10,12 @@ namespace AccountsModule.Storage;
 
 internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFactory) : SqlServerOutboxStore(connectionFactory), IAccountStore
 {
+    #region Constant Declarations
+
+    private const string AccountNumberIndexName = "UX_Accounts_AccountNumber";
+
+    #endregion
+
     #region Public Method Declarations
 
     public async Task<IReadOnlyList<Account>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -53,12 +60,20 @@ internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFacto
             transaction,
             cancellationToken: cancellationToken);
 
-        int id = await connection.ExecuteScalarAsync<int>(command);
-        Account created = account with { Id = id };
-        await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(created)), cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        try
+        {
+            int id = await connection.ExecuteScalarAsync<int>(command);
+            Account created = account with { Id = id };
+            await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(created)), cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
-        return created;
+            return created;
+        }
+        catch (SqlException exception) when (IsAccountNumberConflict(exception))
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw new DuplicateAccountNumberException(account.AccountNumber, exception);
+        }
     }
 
     public async Task<bool> UpdateAsync(Account account, CancellationToken cancellationToken = default)
@@ -85,6 +100,19 @@ internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFacto
         CommandDefinition command = new("DELETE FROM Accounts WHERE Id = @Id;", parameters, cancellationToken: cancellationToken);
         int affected = await connection.ExecuteAsync(command);
         return affected > 0;
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private static bool IsAccountNumberConflict(SqlException exception)
+    {
+        // 2601 = duplicate key in a unique index, 2627 = unique constraint violation. Match the
+        // specific AccountNumber index so an unrelated unique violation (e.g. UX_Accounts_UserId)
+        // is not misinterpreted as a regenerable account-number collision.
+        return exception.Number is 2601 or 2627
+            && exception.Message.Contains(AccountNumberIndexName, StringComparison.Ordinal);
     }
 
     #endregion

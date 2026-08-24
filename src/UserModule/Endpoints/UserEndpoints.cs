@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using ModularMonolith.Template.SharedKernel.Paging;
 using ModularMonolith.Template.SharedKernel.Results;
-using System.Globalization;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
 using UserModule.Services;
@@ -12,16 +12,20 @@ internal static class UserEndpoints
 {
     #region Public Method Declarations
 
-    public static async Task<Ok<IReadOnlyCollection<UserResponse>>> GetAll(IUserService userService, HttpResponse response, CancellationToken cancellationToken, int? afterId = null, int? limit = null)
+    public static async Task<Ok<IReadOnlyCollection<UserResponse>>> GetAll(IUserService userService, IPagingService pagingService, HttpResponse response, CancellationToken cancellationToken, int? afterId = null, int? limit = null, bool includeCount = false)
     {
         if (limit is null)
         {
             return TypedResults.Ok(await userService.GetAllAsync(cancellationToken));
         }
 
-        int clampedLimit = Math.Clamp(limit.Value, 1, 100);
-        IReadOnlyCollection<UserResponse> page = await userService.GetPageAsync(afterId ?? 0, clampedLimit, cancellationToken);
-        response.Headers["X-Total-Count"] = (await userService.CountAsync(cancellationToken)).ToString(CultureInfo.InvariantCulture);
+        IReadOnlyCollection<UserResponse> page = await pagingService.GetPageAsync(
+            new PageRequest(afterId, limit, includeCount),
+            response,
+            userService.GetPageAsync,
+            userService.CountAsync,
+            cancellationToken);
+
         return TypedResults.Ok(page);
     }
 

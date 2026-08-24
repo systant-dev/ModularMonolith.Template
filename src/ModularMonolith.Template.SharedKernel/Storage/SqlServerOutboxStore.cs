@@ -33,19 +33,25 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
         var parameters = new { MaxAttempts = maxAttempts, BatchSize = batchSize, VisibilitySeconds = visibility };
         CommandDefinition command = new(
             """
-            UPDATE TOP (@BatchSize) dbo.OutboxMessages WITH (READPAST, UPDLOCK)
+            WITH claimable AS (
+                SELECT TOP (@BatchSize) Id, Type, Payload, OccurredOnUtc,
+                       ProcessedOnUtc, Attempts, Error, NextAttemptOnUtc
+                FROM dbo.OutboxMessages WITH (READPAST, UPDLOCK)
+                WHERE ProcessedOnUtc IS NULL
+                  AND Attempts < @MaxAttempts
+                  AND (NextAttemptOnUtc IS NULL OR NextAttemptOnUtc <= SYSUTCDATETIME())
+                ORDER BY OccurredOnUtc
+            )
+            UPDATE claimable
             SET NextAttemptOnUtc = DATEADD(SECOND, @VisibilitySeconds, SYSUTCDATETIME())
             OUTPUT INSERTED.Id, INSERTED.Type, INSERTED.Payload, INSERTED.OccurredOnUtc,
-                   INSERTED.ProcessedOnUtc, INSERTED.Attempts, INSERTED.Error, INSERTED.NextAttemptOnUtc
-            WHERE ProcessedOnUtc IS NULL
-              AND Attempts < @MaxAttempts
-              AND (NextAttemptOnUtc IS NULL OR NextAttemptOnUtc <= SYSUTCDATETIME());
+                   INSERTED.ProcessedOnUtc, INSERTED.Attempts, INSERTED.Error, INSERTED.NextAttemptOnUtc;
             """,
             parameters,
             cancellationToken: cancellationToken);
 
         IEnumerable<OutboxMessage> messages = await connection.QueryAsync<OutboxMessage>(command);
-        return [.. messages];
+        return messages as List<OutboxMessage> ?? [.. messages];
     }
 
     public async Task<IReadOnlyList<OutboxMessage>> GetDeadLetteredAsync(int maxAttempts, int batchSize, CancellationToken cancellationToken = default)
@@ -66,7 +72,7 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
             cancellationToken: cancellationToken);
 
         IEnumerable<OutboxMessage> messages = await connection.QueryAsync<OutboxMessage>(command);
-        return [.. messages];
+        return messages as List<OutboxMessage> ?? [.. messages];
     }
 
     public async Task UpdateAsync(IReadOnlyList<OutboxMessage> messages, CancellationToken cancellationToken = default)
@@ -87,7 +93,6 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
         }));
 
         await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-        await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         CommandDefinition command = new(
             """
@@ -107,10 +112,8 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
             ) AS source ON source.Id = outbox.Id;
             """,
             new { Json = json },
-            transaction,
             cancellationToken: cancellationToken);
         await connection.ExecuteAsync(command);
-        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task<bool> TryMarkProcessedAsync(string consumer, string messageId, CancellationToken cancellationToken = default)

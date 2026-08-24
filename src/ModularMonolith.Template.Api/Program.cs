@@ -11,6 +11,7 @@ using ModularMonolith.Template.Api.Versioning;
 using ModularMonolith.Template.SharedKernel.Features;
 using ModularMonolith.Template.SharedKernel.Idempotency;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.SharedKernel.Paging;
 using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,7 @@ builder.Services.AddModuleCors(builder.Configuration);
 builder.Services.AddModuleAuthentication(builder.Configuration);
 builder.Services.AddModuleAuthorization();
 builder.Services.AddIdempotency();
+builder.Services.AddPaging(builder.Configuration);
 builder.Services.AddModuleFeatureManagement();
 if (appConfigurationConnected)
 {
