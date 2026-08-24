@@ -1,6 +1,8 @@
 # Messaging & Reliability
 
-Modules communicate through **in-process messaging** backed by reliability primitives that make delivery safe to retry and hard to lose.
+[← Docs index](README.md)
+
+Modules communicate through
 
 ## Building Blocks
 
@@ -16,6 +18,46 @@ Modules communicate through **in-process messaging** backed by reliability primi
 2. `OutboxProcessor` picks up unpublished events and dispatches them.
 3. Subscribing modules handle the event; the **inbox** ensures it is processed once.
 4. Persistent failures are routed to the dead-letter store for inspection/replay.
+
+```mermaid
+flowchart LR
+    Service[Module Service] -->|state + event, one transaction| Outbox[(Outbox)]
+    Outbox --> Processor[Outbox Processor]
+    Processor -->|dispatch| Dispatcher[IMessageDispatcher]
+    Dispatcher --> Inbox{Inbox: already processed?}
+    Inbox -->|yes| Skip[Skip]
+    Inbox -->|no| Handler[IMessageHandler]
+    Handler -->|success| Done[Done]
+    Handler -->|repeated failure| DeadLetter[(Dead-letter store)]
+```
+
+## Example
+
+A module registers what it publishes and what it handles during `RegisterServices`:
+
+```csharp
+// Publish contracts this module raises
+serviceCollection.AddMessageContract<UserUpdatedIntegrationEvent>();
+serviceCollection.AddMessageContract<UserDeletedIntegrationEvent>();
+
+// Subscribe to another module's event
+serviceCollection.AddMessageHandler<AccountOpenedIntegrationEvent, AccountOpenedHandler>();
+```
+
+A handler implements `IMessageHandler<TMessage>`:
+
+```csharp
+internal sealed class AccountOpenedHandler(ILogger<AccountOpenedHandler> logger)
+    : IMessageHandler<AccountOpenedIntegrationEvent>
+{
+    public Task HandleAsync(AccountOpenedIntegrationEvent message, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        UserMessagingLog.AccountOpenedForUser(logger, message.UserId, message.AccountNumber);
+        return Task.CompletedTask;
+    }
+}
+```
 
 ## Related Docs
 

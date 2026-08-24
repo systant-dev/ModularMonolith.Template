@@ -1,6 +1,8 @@
 # Architecture
 
-The solution is a **modular monolith**: a single deployable process composed of independently-designed feature modules that stay strictly isolated from one another.
+[← Docs index](README.md)
+
+The solution is a **modular monolith**
 
 ## Core Ideas
 
@@ -33,6 +35,54 @@ public interface IModule
 3. Services return `Result`/`Result<T>` rather than throwing for expected failures.
 4. State changes and integration events are persisted transactionally via the **Outbox**.
 5. The **Outbox processor** dispatches events; other modules react through registered handlers, guarded by the **Inbox** and **Idempotency** primitives.
+
+```mermaid
+sequenceDiagram
+    actor Client
+    participant Host as API Host
+    participant Endpoint as Module Endpoint
+    participant Service as Domain Service
+    participant Outbox
+    participant Processor as Outbox Processor
+    participant Handler as Subscriber Handler
+
+    Client->>Host: HTTP request
+    Host->>Host: Correlation, auth, rate limiting, validation
+    Host->>Endpoint: Route to module
+    Endpoint->>Service: Invoke
+    Service->>Outbox: Persist state + event (one transaction)
+    Service-->>Endpoint: Result / Result<T>
+    Endpoint-->>Client: HTTP response
+    Processor->>Outbox: Poll unpublished events
+    Processor->>Handler: Dispatch integration event
+    Handler->>Handler: Inbox + idempotency guard
+```
+
+## Example
+
+A minimal module implementing the contract:
+
+```csharp
+[Module]
+public sealed class Module : IModule
+{
+    public void RegisterServices(IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddScoped<IUserService, UserService>();
+        serviceCollection.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
+        serviceCollection.AddMessageHandler<AccountOpenedIntegrationEvent, AccountOpenedHandler>();
+        serviceCollection.AddMessageContract<UserUpdatedIntegrationEvent>();
+    }
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        RouteGroupBuilder group = endpoints.MapGroup("/v{version:apiVersion}/users");
+        group.MapGet("/{id:int}", UserEndpoints.Get);
+        group.MapPost("/", UserEndpoints.Create)
+             .AddEndpointFilter<ValidationFilter<CreateUserRequest>>();
+    }
+}
+```
 
 ## Related Docs
 

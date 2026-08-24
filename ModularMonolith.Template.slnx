@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/docs/">
     <File Path="README.md" />
+    <File Path="docs/adding-a-module.md" />
+    <File Path="docs/conventions.md" />
     <File Path="docs/analysers.md" />
     <File Path="docs/api-host.md" />
     <File Path="docs/architecture.md" />

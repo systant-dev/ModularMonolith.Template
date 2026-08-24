@@ -1,6 +1,8 @@
 # Source Generators
 
-Custom Roslyn source generators remove repetitive wiring at compile time. They target **.NET Standard 2.0** (a Roslyn requirement) and share infrastructure.
+[← Docs index](README.md)
+
+Custom Roslyn source generators
 
 ## Generators
 
@@ -16,6 +18,32 @@ Custom Roslyn source generators remove repetitive wiring at compile time. They t
 - `Generators/` — the `IIncrementalGenerator` entry points.
 - `Diagnostics/` — generator-specific diagnostics.
 - `LanguageFeatures/` — polyfills/helpers for targeting older TFMs.
+
+## Example
+
+**MappingGen** — declare a `partial` mapping method marked with `[Map]`; the generator emits the body:
+
+```csharp
+internal static partial class UserMappings
+{
+    [Map]
+    public static partial UserResponse ToResponse(this User source);
+}
+
+// usage
+UserResponse response = user.ToResponse();
+```
+
+**ModularGen** — marking a type with `[Module]` lets the generator discover and wire it, so the host never needs a hand-maintained module list:
+
+```csharp
+[Module]
+public sealed class Module : IModule
+{
+    public void RegisterServices(IServiceCollection serviceCollection) { /* ... */ }
+    public void MapEndpoints(IEndpointRouteBuilder endpoints) { /* ... */ }
+}
+```
 
 ## Related Docs
 

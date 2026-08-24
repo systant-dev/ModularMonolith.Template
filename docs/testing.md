@@ -1,6 +1,8 @@
 # Testing
 
-The `tests/` folder mirrors `src/`, with a suite per area.
+[← Docs index](README.md)
+
+The `tests/` folder mirrors
 
 ## Test Projects
 
@@ -22,6 +24,31 @@ Run a single suite:
 
 ```powershell
 dotnet test tests/ModularMonolith.Template.UserModule.Tests
+```
+
+## Example
+
+Module tests use **xUnit** with **FluentAssertions** and an in-memory store, so services can be tested without a database:
+
+```csharp
+[Component(TestComponent.UserModule)]
+[Category(TestCategory.Modular)]
+public sealed class UserServiceTests
+{
+    [Fact]
+    public async Task Create_WhenEmailAlreadyExists_ReturnsConflict()
+    {
+        UserService service = await CreateService();
+        await service.CreateAsync(NewRequest("First User", "dupe@example.com"), TestContext.Current.CancellationToken);
+
+        Result<UserResponse> result = await service.CreateAsync(
+            NewRequest("Second User", "DUPE@example.com"),
+            TestContext.Current.CancellationToken);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("user.email-conflict");
+    }
+}
 ```
 
 ## Related Docs

@@ -1,10 +1,12 @@
 # Feature Modules
 
-The template ships two example modules — **UserModule** and **AccountsModule** — that demonstrate the standard module shape. Each is a self-contained vertical slice.
+[← Docs index](README.md)
+
+The template ships two example modules
 
 ## Standard Module Shape
 
-- **`Module.cs`** — the `[Module]` entry point implementing `IModule` (`RegisterServices`, `MapEndpoints`, optional `RegisterHealthChecks`).
+- **`Module.cs`** — the `[Module]` entry point implementing [`IModule`](architecture.md#the-module-contract) (`RegisterServices`, `MapEndpoints`, optional `RegisterHealthChecks`).
 - **`Endpoints/`** — versioned minimal-API endpoints.
 - **`Services/`** — domain/application services returning `Result`/`Result<T>`.
 - **`Storage/`** — module-owned persistence (connection factory, stores, database initialiser).
@@ -27,6 +29,30 @@ Manages accounts with its own endpoints, services, storage, mappings, messaging 
 
 - A module may reference `SharedKernel` and other modules' **Contracts** — never another module's implementation.
 - Cross-module communication happens only through contracts and messaging. This is enforced by the [analysers](analysers.md).
+
+## Example
+
+A module service returns `Result`/`Result<T>` instead of throwing for expected failures, and publishes integration events transactionally via the store:
+
+```csharp
+internal sealed class UserService(IUserStore store, ILogger<UserService> logger) : IUserService
+{
+    public async Task<Result<UserResponse>> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
+    {
+        if (await store.ExistsByEmailAsync(request.Email, cancellationToken))
+        {
+            return Error.Conflict("user.email-conflict", $"A user with email '{request.Email}' already exists.");
+        }
+
+        User created = await store.CreateAsync(
+            request.ToUser(),
+            user => new UserCreatedIntegrationEvent { Id = user.Id, FullName = user.FullName, Email = user.Email },
+            cancellationToken);
+
+        return created.ToResponse();
+    }
+}
+```
 
 ## Related Docs
 
