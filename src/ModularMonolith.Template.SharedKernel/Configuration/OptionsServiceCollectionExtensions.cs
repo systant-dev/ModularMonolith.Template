@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -8,9 +8,8 @@ public static class OptionsServiceCollectionExtensions
 {
     extension(IServiceCollection serviceCollection)
     {
-        public IServiceCollection AddValidatedOptions<TOptions, TValidator>(string sectionName)
-            where TOptions : class, IModuleOptions
-            where TValidator : class, IValidator<TOptions>
+        public IServiceCollection AddValidatedOptions<TOptions, TValidator>(string sectionName) where TOptions : class, IModuleOptions
+                                                                                                where TValidator : class, IValidator<TOptions>
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(sectionName);
 

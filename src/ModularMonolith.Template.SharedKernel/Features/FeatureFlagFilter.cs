@@ -11,14 +11,8 @@ public sealed class FeatureFlagFilter(string featureName) : IEndpointFilter
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         IFeatureManager featureManager = context.HttpContext.RequestServices.GetRequiredService<IFeatureManager>();
-
         bool enabled = await featureManager.IsEnabledAsync(featureName);
-        if (!enabled)
-        {
-            return TypedResults.NotFound();
-        }
-
-        return await next(context);
+        return enabled ? await next(context) : TypedResults.NotFound();
     }
 
     #endregion
