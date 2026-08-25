@@ -41,7 +41,10 @@ builder.AddSerilogWithRedaction();
 
 WebApplication webApplication = builder.Build();
 
-if (webApplication.Configuration.GetValue("Modules:RunDatabaseInitialisationOnStartup", defaultValue: true))
+// Database initialisation defaults to on in Development for a friction-free local run,
+// and off outside Development so production migrations are run deliberately (out-of-band).
+// Override explicitly via the "Modules:RunDatabaseInitialisationOnStartup" setting.
+if (webApplication.Configuration.GetValue("Modules:RunDatabaseInitialisationOnStartup", defaultValue: webApplication.Environment.IsDevelopment()))
 {
     await webApplication.Services.MigrateModuleDatabasesAsync();
 }

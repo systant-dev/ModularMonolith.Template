@@ -37,6 +37,11 @@ Each module reads its own connection string from configuration under `Modules:<M
 Modules initialise their own databases on startup. Adjust the connection strings (and the
 `Features` flags, e.g. `UserDeletion`) to suit your environment.
 
+> **Database initialisation on startup** is environment-aware. By default it runs **only in
+> Development** so local runs are friction-free, and is **disabled outside Development** so
+> production migrations are applied deliberately (out-of-band). Override this with the
+> `Modules:RunDatabaseInitialisationOnStartup` setting (`true`/`false`).
+
 **Run the tests**
 
 ```powershell
