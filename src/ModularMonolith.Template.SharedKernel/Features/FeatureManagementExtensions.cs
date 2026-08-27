@@ -41,6 +41,40 @@ public static class FeatureManagementExtensions
 
     extension(ConfigurationManager configurationManager)
     {
+        public ConfigurationManager MapModuleFeatureFlags(string modulesSectionKey = "Modules",
+                                                          string moduleFeatureSectionKey = "FeatureManagement")
+        {
+            Dictionary<string, string?> mappedFeatureFlags = [];
+
+            foreach (IConfigurationSection moduleSection in configurationManager.GetSection(modulesSectionKey).GetChildren())
+            {
+                IConfigurationSection featureSection = moduleSection.GetSection(moduleFeatureSectionKey);
+
+                foreach (IConfigurationSection feature in featureSection.GetChildren())
+                {
+                    string targetBase = $"{moduleFeatureSectionKey}:{moduleSection.Key}.{feature.Key}";
+
+                    foreach (KeyValuePair<string, string?> setting in feature.AsEnumerable())
+                    {
+                        if (setting.Value is null)
+                        {
+                            continue;
+                        }
+
+                        string relativeKey = setting.Key[feature.Path.Length..];
+                        mappedFeatureFlags[targetBase + relativeKey] = setting.Value;
+                    }
+                }
+            }
+
+            if (mappedFeatureFlags.Count > 0)
+            {
+                configurationManager.AddInMemoryCollection(mappedFeatureFlags);
+            }
+
+            return configurationManager;
+        }
+
         public bool ConnectAppConfigurationFeatureFlags(bool isDevelopment,
                                                         string endpointKey = "AppConfiguration:Endpoint",
                                                         string connectionStringKey = "AppConfiguration:ConnectionString",

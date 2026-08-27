@@ -86,7 +86,7 @@ public sealed class Module : IModule
                                                        .RequireAuthorization(AuthorisationPolicies.WriteAccess);
 
         group.MapDelete("/{id:int}", UserEndpoints.Delete).AddEndpointFilter<AuditLogFilter>()
-                                                          .RequireFeature("UserDeletion")
+                                                          .RequireFeature("UserModule.UserDeletion")
                                                           .RequireAuthorization(AuthorisationPolicies.WriteAccess);
     }
 

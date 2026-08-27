@@ -16,6 +16,7 @@ using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.MapModuleFeatureFlags();
 bool appConfigurationConnected = builder.Configuration.ConnectAppConfigurationFeatureFlags(builder.Environment.IsDevelopment());
 
 builder.Services.AddMessaging();

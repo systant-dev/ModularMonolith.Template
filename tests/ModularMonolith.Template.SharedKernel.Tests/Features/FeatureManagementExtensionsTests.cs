@@ -55,5 +55,75 @@ public sealed class FeatureManagementExtensionsTests
         act.Should().Throw<InvalidOperationException>();
     }
 
+    [Fact]
+    public void MapModuleFeatureFlags_ProjectsModuleFlagToPrefixedGlobalFeature()
+    {
+        ConfigurationManager configurationManager = new();
+        configurationManager.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Modules:UserModule:FeatureManagement:UserDeletion"] = "false"
+        });
+
+        configurationManager.MapModuleFeatureFlags();
+
+        configurationManager["FeatureManagement:UserModule.UserDeletion"].Should().Be("false");
+    }
+
+    [Fact]
+    public void MapModuleFeatureFlags_ProjectsFlagsForEveryModule()
+    {
+        ConfigurationManager configurationManager = new();
+        configurationManager.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Modules:UserModule:FeatureManagement:UserDeletion"] = "true",
+            ["Modules:AccountsModule:FeatureManagement:AccountsDeletion"] = "false"
+        });
+
+        configurationManager.MapModuleFeatureFlags();
+
+        configurationManager["FeatureManagement:UserModule.UserDeletion"].Should().Be("true");
+        configurationManager["FeatureManagement:AccountsModule.AccountsDeletion"].Should().Be("false");
+    }
+
+    [Fact]
+    public void MapModuleFeatureFlags_PreservesComplexFeatureFilterSubtree()
+    {
+        ConfigurationManager configurationManager = new();
+        configurationManager.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Modules:UserModule:FeatureManagement:UserDeletion:EnabledFor:0:Name"] = "Percentage",
+            ["Modules:UserModule:FeatureManagement:UserDeletion:EnabledFor:0:Parameters:Value"] = "50"
+        });
+
+        configurationManager.MapModuleFeatureFlags();
+
+        configurationManager["FeatureManagement:UserModule.UserDeletion:EnabledFor:0:Name"].Should().Be("Percentage");
+        configurationManager["FeatureManagement:UserModule.UserDeletion:EnabledFor:0:Parameters:Value"].Should().Be("50");
+    }
+
+    [Fact]
+    public void MapModuleFeatureFlags_ReturnsSameConfigurationManager()
+    {
+        ConfigurationManager configurationManager = new();
+
+        ConfigurationManager result = configurationManager.MapModuleFeatureFlags();
+
+        result.Should().BeSameAs(configurationManager);
+    }
+
+    [Fact]
+    public void MapModuleFeatureFlags_WhenNoModuleFeatureFlags_AddsNoFeatureManagementSection()
+    {
+        ConfigurationManager configurationManager = new();
+        configurationManager.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Modules:UserModule:Enabled"] = "true"
+        });
+
+        configurationManager.MapModuleFeatureFlags();
+
+        configurationManager.GetSection("FeatureManagement").GetChildren().Should().BeEmpty();
+    }
+
     #endregion
 }
