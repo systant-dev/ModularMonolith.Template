@@ -12,7 +12,7 @@ public sealed class RuleProcessor : IRuleProcessor
 
     #region Constructor Declarations
 
-    public RuleProcessor(IEnumerable<IRule> rules, ILogger<RuleProcessor> logger)
+    public RuleProcessor(ILogger<RuleProcessor> logger)
     {
         ArgumentNullException.ThrowIfNull(logger);
         _logger = logger;
