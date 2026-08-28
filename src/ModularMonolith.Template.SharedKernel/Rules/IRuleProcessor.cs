@@ -1,10 +1,12 @@
+using ModularMonolith.Template.SharedKernel.Results;
+
 namespace ModularMonolith.Template.SharedKernel.Rules;
 
-public interface IRuleProcessor
+public interface IRuleProcessor<in TContext>
 {
     #region Method Declarations
 
-    Task RunRulesAsync(IEnumerable<IRule> rules, CancellationToken cancellationToken);
+    Task<Result> RunRulesAsync(TContext context, CancellationToken cancellationToken);
 
     #endregion
 }

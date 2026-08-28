@@ -1,6 +1,8 @@
+using ModularMonolith.Template.SharedKernel.Results;
+
 namespace ModularMonolith.Template.SharedKernel.Rules;
 
-public interface IRule
+public interface IRule<in TContext>
 {
     #region Property Declarations
 
@@ -10,9 +12,9 @@ public interface IRule
 
     #region Method Declarations
 
-    bool CanExecute();
+    bool CanExecute(TContext context);
 
-    Task ExecuteAsync(CancellationToken cancellationToken);
+    Task<Result> ExecuteAsync(TContext context, CancellationToken cancellationToken);
 
     #endregion
 }

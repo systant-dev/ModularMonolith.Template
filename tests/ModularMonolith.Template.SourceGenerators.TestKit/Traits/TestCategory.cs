@@ -12,6 +12,7 @@ public enum TestCategory
     Modular,
     Messaging,
     Results,
+    Rules,
     Serialisation,
     Storage,
     Validation
