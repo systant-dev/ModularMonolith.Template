@@ -8,6 +8,7 @@ using UserModule.Contracts.Events;
 using UserModule.Contracts.Requests;
 using UserModule.Contracts.Responses;
 using UserModule.Services;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 
 namespace ModularMonolith.Template.UserModule.Tests.Services;
 

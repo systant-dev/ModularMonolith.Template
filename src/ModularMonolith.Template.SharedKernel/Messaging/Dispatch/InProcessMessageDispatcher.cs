@@ -1,4 +1,4 @@
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 
 internal sealed class InProcessMessageDispatcher(IServiceProvider serviceProvider, IMessageDispatchMap dispatchMap) : IMessageDispatcher
 {

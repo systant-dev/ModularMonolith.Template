@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Handling;
 using Moq;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Messaging;

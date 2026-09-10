@@ -1,6 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
+using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
+using ModularMonolith.Template.SharedKernel.Messaging.Handling;
 using System.Runtime.CompilerServices;
 
 namespace ModularMonolith.Template.SharedKernel.Messaging;
@@ -64,7 +67,7 @@ public static class MessagingServiceCollectionExtensions
 
     internal static MessageContractRegistry GetOrAddMessageContractRegistry(this IServiceCollection serviceCollection)
     {
-        return Registries.GetValue(serviceCollection, static collection =>
+        MessageContractRegistry nessageContractRegistry = Registries.GetValue(serviceCollection, static collection =>
         {
             ServiceDescriptor? descriptor = collection.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IMessageContractRegistry));
 
@@ -80,6 +83,8 @@ public static class MessagingServiceCollectionExtensions
             collection.TryAddSingleton<IMessageContractRegistry>(registry);
             return registry;
         });
+
+        return nessageContractRegistry;
     }
 
     #endregion

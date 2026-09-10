@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using ModularMonolith.Template.SharedKernel.Inbox;
 
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Handling;
 
 internal sealed class InboxIdempotencyMessageHandlerDecorator<TMessage>(IMessageHandler<TMessage> inner,
                                                                         IInboxStore inboxStore,

@@ -1,4 +1,5 @@
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 using ModularMonolith.Template.SharedKernel.Serialisation;
 using System.Collections.Concurrent;
 using System.Text.Json;

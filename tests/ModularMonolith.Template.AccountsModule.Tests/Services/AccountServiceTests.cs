@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModularMonolith.Template.AccountsModule.Tests.Storage;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Results;
 

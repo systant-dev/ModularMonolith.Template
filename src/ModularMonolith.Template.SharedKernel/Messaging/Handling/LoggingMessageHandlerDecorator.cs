@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Handling;
 
 internal sealed class LoggingMessageHandlerDecorator<TMessage>(IMessageHandler<TMessage> inner,
                                                                ILogger<LoggingMessageHandlerDecorator<TMessage>> logger)

@@ -2,7 +2,7 @@ using AccountsModule.Contracts.Requests;
 using AccountsModule.Contracts.Responses;
 using AccountsModule.Services;
 using Microsoft.Extensions.Logging;
-using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Handling;
 using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Contracts.Events;
 

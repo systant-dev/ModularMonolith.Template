@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 
 public sealed class MessageContractRegistry : IMessageContractRegistry
 {

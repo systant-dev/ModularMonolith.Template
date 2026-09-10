@@ -3,6 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
+using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 using System.Diagnostics;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;

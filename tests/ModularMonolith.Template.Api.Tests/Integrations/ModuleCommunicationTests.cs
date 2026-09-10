@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.Api.Tests.Infrastructure;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 using System.Net.Http.Json;
 using UserModule.Contracts.Events;
 

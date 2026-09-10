@@ -1,5 +1,6 @@
 using FluentAssertions;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 using ModularMonolith.Template.SharedKernel.Outbox;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Outbox;

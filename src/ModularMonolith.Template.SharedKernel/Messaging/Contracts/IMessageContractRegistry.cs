@@ -1,4 +1,4 @@
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 
 public interface IMessageContractRegistry
 {

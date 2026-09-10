@@ -1,6 +1,9 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
+using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
+using ModularMonolith.Template.SharedKernel.Messaging.Handling;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Messaging;
 

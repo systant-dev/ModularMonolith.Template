@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
+using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using Moq;
 using System.Collections.Concurrent;

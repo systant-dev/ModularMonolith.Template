@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Handling;
 
 public static class MessageHandlerInvoker
 {

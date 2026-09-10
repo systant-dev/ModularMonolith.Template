@@ -1,14 +1,14 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false, AllowMultiple = false)]
 public sealed class MessageContractAttribute : Attribute
 {
     #region Field Declarations
 
-    private static readonly ConcurrentDictionary<Type, string> ContractNameCache = new();
+    private static readonly ConcurrentDictionary<Type, string> ContractNameCache = [];
 
     #endregion
 
@@ -34,11 +34,13 @@ public sealed class MessageContractAttribute : Attribute
     {
         ArgumentNullException.ThrowIfNull(messageType);
 
-        return ContractNameCache.GetOrAdd(messageType, static type =>
+        string contractName = ContractNameCache.GetOrAdd(messageType, static type =>
         {
             MessageContractAttribute? attribute = type.GetCustomAttribute<MessageContractAttribute>(inherit: false);
             return attribute?.Name ?? type.FullName ?? type.Name;
         });
+
+        return contractName;
     }
 
     #endregion

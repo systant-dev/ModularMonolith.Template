@@ -1,4 +1,4 @@
-namespace ModularMonolith.Template.SharedKernel.Messaging;
+namespace ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 
 public interface IMessageDispatchMap
 {

@@ -1,5 +1,5 @@
 using FluentAssertions;
-using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Messaging;
 
