@@ -25,10 +25,12 @@ internal sealed class AccountService(IAccountStore store, ILogger<AccountService
         return [.. accounts.Select(account => account.ToResponse())];
     }
 
-    public async Task<AccountResponse?> FindAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Result<AccountResponse>> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         Account? account = await store.FindAsync(id, cancellationToken);
-        return account?.ToResponse();
+        return account is null
+            ? Error.NotFound("account.not-found", $"Account {id} was not found.")
+            : account.ToResponse();
     }
 
     public async Task<Result<AccountResponse>> CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default)
@@ -45,25 +47,31 @@ internal sealed class AccountService(IAccountStore store, ILogger<AccountService
         {
             toCreate.AccountNumber = GenerateAccountNumber();
 
-            try
-            {
-                Account created = await store.CreateAsync(
-                    toCreate,
-                    account => new AccountOpenedIntegrationEvent
-                    {
-                        AccountId = account.Id,
-                        UserId = account.UserId,
-                        AccountNumber = account.AccountNumber
-                    },
-                    cancellationToken);
+            Result<Account> createResult = await store.CreateAsync(
+                toCreate,
+                account => new AccountOpenedIntegrationEvent
+                {
+                    AccountId = account.Id,
+                    UserId = account.UserId,
+                    AccountNumber = account.AccountNumber
+                },
+                cancellationToken);
 
-                AccountLog.AccountOpened(logger, created);
-                return created.ToResponse();
-            }
-            catch (DuplicateAccountNumberException)
+            if (createResult.IsFailure)
             {
+                if (createResult.Error.Code != "account.number-conflict")
+                {
+                    return createResult.Error;
+                }
+
                 AccountLog.AccountNumberCollision(logger, attempt);
+                continue;
             }
+
+            Account created = createResult.Value;
+
+            AccountLog.AccountOpened(logger, created);
+            return created.ToResponse();
         }
 
         AccountLog.AccountNumberAllocationFailed(logger, MaxAccountNumberAttempts);
@@ -82,10 +90,14 @@ internal sealed class AccountService(IAccountStore store, ILogger<AccountService
         {
             AccountHolderName = request.AccountHolderName
         };
-        await store.UpdateAsync(updated, cancellationToken);
+        Result<Account> updateResult = await store.UpdateAsync(updated, cancellationToken);
+        if (updateResult.IsFailure)
+        {
+            return updateResult.Error;
+        }
 
         AccountLog.AccountUpdated(logger, updated);
-        return updated.ToResponse();
+        return updateResult.Value.ToResponse();
     }
 
     public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)

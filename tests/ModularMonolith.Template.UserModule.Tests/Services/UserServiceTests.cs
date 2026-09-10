@@ -89,18 +89,21 @@ public sealed class UserServiceTests
         UserService service = await CreateService();
         UserResponse created = (await service.CreateAsync(NewRequest("Katherine Johnson", "katherine@example.com"), TestContext.Current.CancellationToken)).Value;
 
-        UserResponse? found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
+        Result<UserResponse> found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
 
-        found.Should().NotBeNull();
-        found!.Id.Should().Be(created.Id);
+        found.IsSuccess.Should().BeTrue();
+        found.Value.Id.Should().Be(created.Id);
     }
 
     [Fact]
-    public async Task Find_WhenMissing_ReturnsNull()
+    public async Task Find_WhenMissing_ReturnsNotFound()
     {
         UserService service = await CreateService();
 
-        (await service.FindAsync(999, TestContext.Current.CancellationToken)).Should().BeNull();
+        Result<UserResponse> result = await service.FindAsync(999, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]
@@ -109,18 +112,18 @@ public sealed class UserServiceTests
         UserService service = await CreateService();
         UserResponse created = (await service.CreateAsync(NewRequest("Original Name", "original@example.com"), TestContext.Current.CancellationToken)).Value;
 
-        UserResponse? updated = (await service.UpdateAsync(created.Id, new UpdateUserRequest
+        Result<UserResponse> updated = await service.UpdateAsync(created.Id, new UpdateUserRequest
         {
             FullName = "Updated Name",
             Email = "updated@example.com",
             PhoneNumber = "555-0199"
-        }, TestContext.Current.CancellationToken)).Value;
+        }, TestContext.Current.CancellationToken);
 
-        updated.Should().NotBeNull();
-        updated!.Id.Should().Be(created.Id);
-        updated.FullName.Should().Be("Updated Name");
-        updated.Email.Should().Be("updated@example.com");
-        updated.PhoneNumber.Should().Be("555-0199");
+        updated.IsSuccess.Should().BeTrue();
+        updated.Value.Id.Should().Be(created.Id);
+        updated.Value.FullName.Should().Be("Updated Name");
+        updated.Value.Email.Should().Be("updated@example.com");
+        updated.Value.PhoneNumber.Should().Be("555-0199");
     }
 
     [Fact]
@@ -202,7 +205,10 @@ public sealed class UserServiceTests
         UserResponse created = (await service.CreateAsync(NewRequest("Temp User", "temp@example.com"), TestContext.Current.CancellationToken)).Value;
 
         (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).IsSuccess.Should().BeTrue();
-        (await service.FindAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeNull();
+        Result<UserResponse> result = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]

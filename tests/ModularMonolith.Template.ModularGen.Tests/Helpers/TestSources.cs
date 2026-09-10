@@ -116,12 +116,22 @@ internal static class TestSources
         namespace ModularMonolith.Template.SharedKernel.Messaging
         {
             public interface IMessage { }
+        }
+
+        namespace ModularMonolith.Template.SharedKernel.Messaging.Handling
+        {
+            using ModularMonolith.Template.SharedKernel.Messaging;
 
             public interface IMessageHandler<in TMessage>
                 where TMessage : IMessage
             {
                 System.Threading.Tasks.Task HandleAsync(TMessage message, System.Threading.CancellationToken cancellationToken = default);
             }
+        }
+
+        namespace ModularMonolith.Template.SharedKernel.Messaging.Dispatch
+        {
+            using ModularMonolith.Template.SharedKernel.Messaging;
 
             public enum DispatchMode { Sequential, Concurrent }
 
@@ -131,12 +141,22 @@ internal static class TestSources
                 bool CanDispatch(System.Type messageType);
             }
 
+        }
+
+        namespace ModularMonolith.Template.SharedKernel.Messaging.Handling
+        {
+            using ModularMonolith.Template.SharedKernel.Messaging;
+            using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
+
             public static class MessageHandlerInvoker
             {
                 public static System.Threading.Tasks.Task InvokeAsync<TMessage>(System.IServiceProvider serviceProvider, TMessage message, DispatchMode mode, System.Threading.CancellationToken cancellationToken)
                     where TMessage : IMessage => System.Threading.Tasks.Task.CompletedTask;
             }
+        }
 
+        namespace ModularMonolith.Template.SharedKernel.Messaging.Dispatch
+        {
             [System.AttributeUsage(System.AttributeTargets.Method, AllowMultiple = false)]
             public sealed class MessageDispatchMapTargetAttribute : System.Attribute { }
         }
@@ -146,6 +166,7 @@ internal static class TestSources
         namespace ExampleModuleA.Messages
         {
             using ModularMonolith.Template.SharedKernel.Messaging;
+            using ModularMonolith.Template.SharedKernel.Messaging.Handling;
 
             public sealed record UserCreated : IMessage;
 

@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.SharedKernel.Results;
 using ModularMonolith.Template.SharedKernel.Storage;
 using System.Data.Common;
 
@@ -45,7 +46,7 @@ internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFacto
         return await connection.ExecuteScalarAsync<bool>(command);
     }
 
-    public async Task<Account> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
+    public async Task<Result<Account>> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -69,14 +70,16 @@ internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFacto
 
             return created;
         }
-        catch (SqlException exception) when (IsAccountNumberConflict(exception))
+        catch (SqlException exception) when (IsUniqueAccountConflict(exception))
         {
             await transaction.RollbackAsync(cancellationToken);
-            throw new DuplicateAccountNumberException(account.AccountNumber, exception);
+            return exception.Message.Contains(AccountNumberIndexName, StringComparison.Ordinal)
+                ? Error.Conflict("account.number-conflict", $"Account number '{account.AccountNumber}' is already in use.")
+                : Error.Conflict("account.already-exists", $"An account already exists for user {account.UserId}.");
         }
     }
 
-    public async Task<bool> UpdateAsync(Account account, CancellationToken cancellationToken = default)
+    public async Task<Result<Account>> UpdateAsync(Account account, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var parameters = new { account.Id, account.AccountHolderName, account.Balance };
@@ -90,7 +93,9 @@ internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFacto
             cancellationToken: cancellationToken);
 
         int affected = await connection.ExecuteAsync(command);
-        return affected > 0;
+        return affected > 0
+            ? account
+            : Error.NotFound("account.not-found", $"Account {account.Id} was not found.");
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
@@ -106,13 +111,11 @@ internal sealed class SqlServerAccountStore(IDbConnectionFactory connectionFacto
 
     #region Private Method Declarations
 
-    private static bool IsAccountNumberConflict(SqlException exception)
+    private static bool IsUniqueAccountConflict(SqlException exception)
     {
-        // 2601 = duplicate key in a unique index, 2627 = unique constraint violation. Match the
-        // specific AccountNumber index so an unrelated unique violation (e.g. UX_Accounts_UserId)
-        // is not misinterpreted as a regenerable account-number collision.
         return exception.Number is 2601 or 2627
-            && exception.Message.Contains(AccountNumberIndexName, StringComparison.Ordinal);
+            && (exception.Message.Contains(AccountNumberIndexName, StringComparison.Ordinal)
+                || exception.Message.Contains("UX_Accounts_UserId", StringComparison.Ordinal));
     }
 
     #endregion

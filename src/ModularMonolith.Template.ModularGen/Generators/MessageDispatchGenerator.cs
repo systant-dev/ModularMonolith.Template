@@ -14,9 +14,9 @@ public sealed class MessageDispatchGenerator : IIncrementalGenerator
 {
     #region Field Declarations
 
-    private const string DispatchMapTargetAttributeName = "ModularMonolith.Template.SharedKernel.Messaging.MessageDispatchMapTargetAttribute";
+    private const string DispatchMapTargetAttributeName = "ModularMonolith.Template.SharedKernel.Messaging.Dispatch.MessageDispatchMapTargetAttribute";
 
-    private const string MessageHandlerInterfaceName = "ModularMonolith.Template.SharedKernel.Messaging.IMessageHandler`1";
+    private const string MessageHandlerInterfaceName = "ModularMonolith.Template.SharedKernel.Messaging.Handling.IMessageHandler`1";
 
     #endregion
 

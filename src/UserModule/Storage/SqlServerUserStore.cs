@@ -1,7 +1,9 @@
+using Microsoft.Data.SqlClient;
 using Dapper;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
+using ModularMonolith.Template.SharedKernel.Results;
 using System.Data.Common;
 using UserModule.Models;
 
@@ -68,7 +70,7 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
         return await connection.ExecuteScalarAsync<bool>(command);
     }
 
-    public async Task<User> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
+    public async Task<Result<User>> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -83,15 +85,23 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
             transaction,
             cancellationToken: cancellationToken);
 
-        int id = await connection.ExecuteScalarAsync<int>(command);
-        User created = user with { Id = id };
-        await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(created)), cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        try
+        {
+            int id = await connection.ExecuteScalarAsync<int>(command);
+            User created = user with { Id = id };
+            await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(created)), cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
-        return created;
+            return created;
+        }
+        catch (SqlException exception) when (IsEmailConflict(exception))
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return Error.Conflict("user.email-conflict", $"A user with email '{user.Email}' already exists.");
+        }
     }
 
-    public async Task<bool> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
+    public async Task<Result<User>> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -106,16 +116,24 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
             transaction,
             cancellationToken: cancellationToken);
 
-        int affected = await connection.ExecuteAsync(command);
-        if (affected == 0)
+        try
+        {
+            int affected = await connection.ExecuteAsync(command);
+            if (affected == 0)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return Error.NotFound("user.not-found", $"User {user.Id} was not found.");
+            }
+
+            await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(user)), cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return user;
+        }
+        catch (SqlException exception) when (IsEmailConflict(exception))
         {
             await transaction.RollbackAsync(cancellationToken);
-            return false;
+            return Error.Conflict("user.email-conflict", $"A user with email '{user.Email}' already exists.");
         }
-
-        await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(user)), cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-        return true;
     }
 
     public async Task<bool> DeleteAsync(int id, Func<int, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
@@ -134,6 +152,16 @@ internal sealed class SqlServerUserStore(IDbConnectionFactory connectionFactory)
         await InsertOutboxMessageAsync(connection, transaction, OutboxMessage.Create(integrationEventFactory(id)), cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return true;
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private static bool IsEmailConflict(SqlException exception)
+    {
+        return exception.Number is 2601 or 2627
+            && exception.Message.Contains("UX_Users_Email", StringComparison.Ordinal);
     }
 
     #endregion

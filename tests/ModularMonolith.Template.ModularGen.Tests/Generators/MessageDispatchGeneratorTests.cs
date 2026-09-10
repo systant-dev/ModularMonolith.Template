@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp;
 using ModularMonolith.Template.ModularGen.Tests.Helpers;
 using ModularMonolith.Template.SourceGenerators.TestKit.Helpers;
 
@@ -24,7 +24,7 @@ public sealed class MessageDispatchGeneratorTests
 
                 public static partial class MessageDispatchServiceCollectionExtensions
                 {
-                    [ModularMonolith.Template.SharedKernel.Messaging.MessageDispatchMapTarget]
+                    [ModularMonolith.Template.SharedKernel.Messaging.Dispatch.MessageDispatchMapTarget]
                     private static partial void RegisterGeneratedMessageDispatch(IServiceCollection serviceCollection);
                 }
             }

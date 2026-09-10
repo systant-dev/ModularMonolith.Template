@@ -1,4 +1,4 @@
-﻿using Azure.Core;
+using Azure.Core;
 using Azure.Identity;
 
 namespace ModularMonolith.Template.SharedKernel.Azure;
@@ -18,9 +18,7 @@ public static class AzureCredentialFactory
         };
 
         configure?.Invoke(options);
-
         DefaultAzureCredential credential = new(options);
-
         return credential;
     }
 

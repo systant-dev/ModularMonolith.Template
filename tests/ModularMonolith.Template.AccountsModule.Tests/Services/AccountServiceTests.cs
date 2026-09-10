@@ -88,18 +88,21 @@ public sealed class AccountServiceTests
     {
         AccountService service = CreateService();
         AccountResponse created = (await service.CreateAsync(NewRequest(4, "Katherine Johnson"), TestContext.Current.CancellationToken)).Value;
-        AccountResponse? found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
+        Result<AccountResponse> found = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
 
-        found.Should().NotBeNull();
-        found!.Id.Should().Be(created.Id);
+        found.IsSuccess.Should().BeTrue();
+        found.Value.Id.Should().Be(created.Id);
     }
 
     [Fact]
-    public async Task Find_WhenMissing_ReturnsNull()
+    public async Task Find_WhenMissing_ReturnsNotFound()
     {
         AccountService service = CreateService();
 
-        (await service.FindAsync(999, TestContext.Current.CancellationToken)).Should().BeNull();
+        Result<AccountResponse> result = await service.FindAsync(999, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]
@@ -108,14 +111,14 @@ public sealed class AccountServiceTests
         AccountService service = CreateService();
         AccountResponse created = (await service.CreateAsync(NewRequest(5, "Original Name"), TestContext.Current.CancellationToken)).Value;
 
-        AccountResponse? updated = (await service.UpdateAsync(created.Id, new UpdateAccountRequest
+        Result<AccountResponse> updated = await service.UpdateAsync(created.Id, new UpdateAccountRequest
         {
             AccountHolderName = "Updated Name"
-        }, TestContext.Current.CancellationToken)).Value;
+        }, TestContext.Current.CancellationToken);
 
-        updated.Should().NotBeNull();
-        updated!.Id.Should().Be(created.Id);
-        updated.AccountHolderName.Should().Be("Updated Name");
+        updated.IsSuccess.Should().BeTrue();
+        updated.Value.Id.Should().Be(created.Id);
+        updated.Value.AccountHolderName.Should().Be("Updated Name");
     }
 
     [Fact]
@@ -139,7 +142,10 @@ public sealed class AccountServiceTests
         AccountResponse created = (await service.CreateAsync(NewRequest(6, "Temp Holder"), TestContext.Current.CancellationToken)).Value;
 
         (await service.DeleteAsync(created.Id, TestContext.Current.CancellationToken)).IsSuccess.Should().BeTrue();
-        (await service.FindAsync(created.Id, TestContext.Current.CancellationToken)).Should().BeNull();
+        Result<AccountResponse> result = await service.FindAsync(created.Id, TestContext.Current.CancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]

@@ -30,10 +30,12 @@ internal sealed class UserService(IUserStore store, ILogger<UserService> logger)
         return store.CountAsync(cancellationToken);
     }
 
-    public async Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Result<UserResponse>> FindAsync(int id, CancellationToken cancellationToken = default)
     {
         User? user = await store.FindAsync(id, cancellationToken);
-        return user?.ToResponse();
+        return user is null
+            ? Error.NotFound("user.not-found", $"User {id} was not found.")
+            : user.ToResponse();
     }
 
     public async Task<Result<UserResponse>> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
@@ -44,7 +46,7 @@ internal sealed class UserService(IUserStore store, ILogger<UserService> logger)
         }
 
         User toCreate = request.ToUser();
-        User created = await store.CreateAsync(
+        Result<User> createResult = await store.CreateAsync(
             toCreate,
             user => new UserCreatedIntegrationEvent
             {
@@ -54,6 +56,12 @@ internal sealed class UserService(IUserStore store, ILogger<UserService> logger)
             },
             cancellationToken);
 
+        if (createResult.IsFailure)
+        {
+            return createResult.Error;
+        }
+
+        User created = createResult.Value;
         UserLog.UserCreated(logger, created);
         return created.ToResponse();
     }
@@ -78,7 +86,7 @@ internal sealed class UserService(IUserStore store, ILogger<UserService> logger)
             PhoneNumber = request.PhoneNumber
         };
 
-        bool wasUpdated = await store.UpdateAsync(
+        Result<User> updateResult = await store.UpdateAsync(
             updated,
             user => new UserUpdatedIntegrationEvent
             {
@@ -88,9 +96,9 @@ internal sealed class UserService(IUserStore store, ILogger<UserService> logger)
             },
             cancellationToken);
 
-        if (!wasUpdated)
+        if (updateResult.IsFailure)
         {
-            return Error.NotFound("user.not-found", $"User {id} was not found.");
+            return updateResult.Error;
         }
 
         UserLog.UserUpdated(logger, updated);

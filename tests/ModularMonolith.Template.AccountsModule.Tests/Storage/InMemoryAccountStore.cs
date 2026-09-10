@@ -3,6 +3,7 @@ using AccountsModule.Storage;
 using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.SharedKernel.Results;
 using System.Collections.Concurrent;
 
 namespace ModularMonolith.Template.AccountsModule.Tests.Storage;
@@ -21,8 +22,8 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore, IInbox
     #region Property Declarations
 
     /// <summary>
-    /// Number of consecutive <see cref="CreateAsync"/> calls that should throw
-    /// <see cref="DuplicateAccountNumberException"/> before succeeding, used to exercise the
+        /// Number of consecutive <see cref="CreateAsync"/> calls that should return a conflict
+        /// before succeeding, used to exercise the
     /// account-number regeneration retry in the service layer.
     /// </summary>
     public int AccountNumberCollisionsToSimulate { get; set; }
@@ -48,12 +49,12 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore, IInbox
         return Task.FromResult(_accounts.Values.Any(account => account.UserId == userId));
     }
 
-    public Task<Account> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
+    public Task<Result<Account>> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         if (AccountNumberCollisionsToSimulate > 0)
         {
             AccountNumberCollisionsToSimulate--;
-            throw new DuplicateAccountNumberException(account.AccountNumber, new InvalidOperationException("Simulated account number collision."));
+            return Task.FromResult<Result<Account>>(Error.Conflict("account.number-conflict", "Simulated account number collision."));
         }
 
         int id = Interlocked.Increment(ref _nextId);
@@ -63,18 +64,18 @@ internal sealed class InMemoryAccountStore : IAccountStore, IOutboxStore, IInbox
         OutboxMessage message = OutboxMessage.Create(integrationEventFactory(created));
         _outbox[message.Id] = message;
 
-        return Task.FromResult(created);
+        return Task.FromResult<Result<Account>>(created);
     }
 
-    public Task<bool> UpdateAsync(Account account, CancellationToken cancellationToken = default)
+    public Task<Result<Account>> UpdateAsync(Account account, CancellationToken cancellationToken = default)
     {
         if (!_accounts.ContainsKey(account.Id))
         {
-            return Task.FromResult(false);
+            return Task.FromResult<Result<Account>>(Error.NotFound("account.not-found", $"Account {account.Id} was not found."));
         }
 
         _accounts[account.Id] = account;
-        return Task.FromResult(true);
+        return Task.FromResult<Result<Account>>(account);
     }
 
     public Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)

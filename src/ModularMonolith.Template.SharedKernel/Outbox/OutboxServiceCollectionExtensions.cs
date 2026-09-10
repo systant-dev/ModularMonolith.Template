@@ -10,7 +10,7 @@ public static class OutboxServiceCollectionExtensions
 {
     #region Field Declarations
 
-    private static readonly ConditionalWeakTable<IServiceCollection, OutboxStoreRegistry> Registries = new();
+    private static readonly ConditionalWeakTable<IServiceCollection, OutboxStoreRegistry> Registries = [];
 
     #endregion
 

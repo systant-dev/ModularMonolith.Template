@@ -31,7 +31,8 @@ internal static class UserEndpoints
 
     public static async Task<Results<Ok<UserResponse>, NotFound>> Get(int id, IUserService userService, CancellationToken cancellationToken)
     {
-        return await userService.FindAsync(id, cancellationToken) is { } user ? TypedResults.Ok(user) : TypedResults.NotFound();
+        Result<UserResponse> result = await userService.FindAsync(id, cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : TypedResults.NotFound();
     }
 
     public static async Task<Results<Created<UserResponse>, ProblemHttpResult>> Create(CreateUserRequest request, IUserService userService, CancellationToken cancellationToken)

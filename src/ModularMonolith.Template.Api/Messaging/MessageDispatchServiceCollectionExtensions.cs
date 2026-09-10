@@ -1,4 +1,5 @@
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 
 namespace ModularMonolith.Template.Api.Messaging;
 

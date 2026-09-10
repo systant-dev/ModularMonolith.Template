@@ -18,7 +18,8 @@ internal static class AccountEndpoints
 
     public static async Task<Results<Ok<AccountResponse>, NotFound>> Get(int id, IAccountService accountService, CancellationToken cancellationToken)
     {
-        return await accountService.FindAsync(id, cancellationToken) is { } account ? TypedResults.Ok(account) : TypedResults.NotFound();
+        Result<AccountResponse> result = await accountService.FindAsync(id, cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : TypedResults.NotFound();
     }
 
     public static async Task<Results<Created<AccountResponse>, ProblemHttpResult>> Create(CreateAccountRequest request, IAccountService accountService, CancellationToken cancellationToken)

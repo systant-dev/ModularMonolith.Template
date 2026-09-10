@@ -1,4 +1,5 @@
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Results;
 using UserModule.Models;
 
 namespace UserModule.Storage;
@@ -19,9 +20,9 @@ internal interface IUserStore
 
     Task<bool> ExistsByEmailAsync(string email, int excludingUserId, CancellationToken cancellationToken = default);
 
-    Task<User> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
+    Task<Result<User>> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 
-    Task<bool> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
+    Task<Result<User>> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 
     Task<bool> DeleteAsync(int id, Func<int, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 

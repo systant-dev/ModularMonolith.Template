@@ -1,5 +1,6 @@
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
+using ModularMonolith.Template.SharedKernel.Results;
 using System.Collections.Concurrent;
 using UserModule.Models;
 using UserModule.Storage;
@@ -58,7 +59,7 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
             user.Id != excludingUserId && string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase)));
     }
 
-    public Task<User> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
+    public Task<Result<User>> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         int id = Interlocked.Increment(ref _nextId);
         User created = user with { Id = id };
@@ -67,14 +68,14 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         OutboxMessage message = OutboxMessage.Create(integrationEventFactory(created));
         _outbox[message.Id] = message;
 
-        return Task.FromResult(created);
+        return Task.FromResult<Result<User>>(created);
     }
 
-    public Task<bool> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
+    public Task<Result<User>> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
         if (!_users.ContainsKey(user.Id))
         {
-            return Task.FromResult(false);
+            return Task.FromResult<Result<User>>(Error.NotFound("user.not-found", $"User {user.Id} was not found."));
         }
 
         _users[user.Id] = user;
@@ -82,7 +83,7 @@ internal sealed class InMemoryUserStore : IUserStore, IOutboxStore
         OutboxMessage message = OutboxMessage.Create(integrationEventFactory(user));
         _outbox[message.Id] = message;
 
-        return Task.FromResult(true);
+        return Task.FromResult<Result<User>>(user);
     }
 
     public Task<bool> DeleteAsync(int id, Func<int, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)

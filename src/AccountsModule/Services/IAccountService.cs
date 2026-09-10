@@ -10,7 +10,7 @@ internal interface IAccountService
 
     Task<IReadOnlyCollection<AccountResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
-    Task<AccountResponse?> FindAsync(int id, CancellationToken cancellationToken = default);
+    Task<Result<AccountResponse>> FindAsync(int id, CancellationToken cancellationToken = default);
 
     Task<Result<AccountResponse>> CreateAsync(CreateAccountRequest request, CancellationToken cancellationToken = default);
 

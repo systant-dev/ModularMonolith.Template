@@ -1,5 +1,6 @@
 using AccountsModule.Models;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Results;
 
 namespace AccountsModule.Storage;
 
@@ -13,9 +14,9 @@ internal interface IAccountStore
 
     Task<bool> ExistsForUserAsync(int userId, CancellationToken cancellationToken = default);
 
-    Task<Account> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
+    Task<Result<Account>> CreateAsync(Account account, Func<Account, IMessage> integrationEventFactory, CancellationToken cancellationToken = default);
 
-    Task<bool> UpdateAsync(Account account, CancellationToken cancellationToken = default);
+    Task<Result<Account>> UpdateAsync(Account account, CancellationToken cancellationToken = default);
 
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 

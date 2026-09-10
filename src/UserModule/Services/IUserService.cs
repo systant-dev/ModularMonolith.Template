@@ -14,7 +14,7 @@ internal interface IUserService
 
     Task<int> CountAsync(CancellationToken cancellationToken = default);
 
-    Task<UserResponse?> FindAsync(int id, CancellationToken cancellationToken = default);
+    Task<Result<UserResponse>> FindAsync(int id, CancellationToken cancellationToken = default);
 
     Task<Result<UserResponse>> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default);
 

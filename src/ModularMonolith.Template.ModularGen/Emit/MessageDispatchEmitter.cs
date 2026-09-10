@@ -19,6 +19,8 @@ internal static class MessageDispatchEmitter
             using Microsoft.Extensions.DependencyInjection;
             using Microsoft.Extensions.DependencyInjection.Extensions;
             using ModularMonolith.Template.SharedKernel.Messaging;
+            using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
+            using ModularMonolith.Template.SharedKernel.Messaging.Handling;
 
             namespace {{namespaceName}};
 
@@ -28,14 +30,14 @@ internal static class MessageDispatchEmitter
             {
                 private static partial void {{methodName}}(IServiceCollection serviceCollection)
                 {
-                    serviceCollection.TryAddSingleton<global::ModularMonolith.Template.SharedKernel.Messaging.IMessageDispatchMap, GeneratedMessageDispatchMap>();
+                    serviceCollection.TryAddSingleton<global::ModularMonolith.Template.SharedKernel.Messaging.Dispatch.IMessageDispatchMap, GeneratedMessageDispatchMap>();
                 }
 
                 [global::System.CodeDom.Compiler.GeneratedCode("ModularMonolith.Template.ModularGen", null)]
                 [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-                private sealed class GeneratedMessageDispatchMap : global::ModularMonolith.Template.SharedKernel.Messaging.IMessageDispatchMap
+                private sealed class GeneratedMessageDispatchMap : global::ModularMonolith.Template.SharedKernel.Messaging.Dispatch.IMessageDispatchMap
                 {
-                    public global::System.Threading.Tasks.Task DispatchAsync(global::System.IServiceProvider serviceProvider, global::ModularMonolith.Template.SharedKernel.Messaging.IMessage message, global::ModularMonolith.Template.SharedKernel.Messaging.DispatchMode mode, global::System.Threading.CancellationToken cancellationToken)
+                    public global::System.Threading.Tasks.Task DispatchAsync(global::System.IServiceProvider serviceProvider, global::ModularMonolith.Template.SharedKernel.Messaging.IMessage message, global::ModularMonolith.Template.SharedKernel.Messaging.Dispatch.DispatchMode mode, global::System.Threading.CancellationToken cancellationToken)
                     {
                         switch (message)
                         {
@@ -68,7 +70,7 @@ internal static class MessageDispatchEmitter
         foreach (MessageInfo message in messages.OrderBy(message => message.FullyQualifiedName, StringComparer.Ordinal))
         {
             builder.AppendLine($"                case {message.FullyQualifiedName} typedMessage:");
-            builder.AppendLine($"                    return global::ModularMonolith.Template.SharedKernel.Messaging.MessageHandlerInvoker.InvokeAsync(serviceProvider, typedMessage, mode, cancellationToken);");
+            builder.AppendLine($"                    return global::ModularMonolith.Template.SharedKernel.Messaging.Handling.MessageHandlerInvoker.InvokeAsync(serviceProvider, typedMessage, mode, cancellationToken);");
         }
 
         return builder.ToString().TrimEnd();
