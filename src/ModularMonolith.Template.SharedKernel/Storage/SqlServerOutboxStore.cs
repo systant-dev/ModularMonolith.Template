@@ -8,11 +8,14 @@ using System.Text.Json;
 
 namespace ModularMonolith.Template.SharedKernel.Storage;
 
-public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactory) : IOutboxStore, IInboxStore
+public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactory,
+                                           IOutboxInterceptor outboxInterceptor) : IOutboxStore, IInboxStore
 {
     #region Property Declarations
 
     protected IDbConnectionFactory ConnectionFactory => connectionFactory;
+
+    protected IOutboxInterceptor OutboxInterceptor => outboxInterceptor;
 
     #endregion
 
@@ -21,8 +24,7 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
     public async Task EnqueueAsync(IMessage message, CancellationToken cancellationToken = default)
     {
         await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-        OutboxMessage outboxMessage = OutboxMessage.Create(message);
-        await InsertOutboxMessageAsync(connection, transaction: null, outboxMessage, cancellationToken);
+        await outboxInterceptor.InterceptAsync(connection, transaction: null, message, cancellationToken);
     }
 
     public async Task<IReadOnlyList<OutboxMessage>> GetPendingAsync(int maxAttempts, int batchSize, TimeSpan visibilityTimeout, CancellationToken cancellationToken = default)
@@ -141,35 +143,4 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
 
     #endregion
 
-    #region Protected Method Declarations
-
-    protected static async Task InsertOutboxMessageAsync(IDbConnection connection,
-                                                         IDbTransaction? transaction,
-                                                         OutboxMessage message,
-                                                         CancellationToken cancellationToken)
-    {
-        var parameters = new
-        {
-            message.Id,
-            message.Type,
-            message.Payload,
-            message.OccurredOnUtc,
-            message.ProcessedOnUtc,
-            message.Attempts,
-            message.Error,
-            message.NextAttemptOnUtc
-        };
-        CommandDefinition command = new(
-            """
-            INSERT INTO OutboxMessages (Id, Type, Payload, OccurredOnUtc, ProcessedOnUtc, Attempts, Error, NextAttemptOnUtc)
-            VALUES (@Id, @Type, @Payload, @OccurredOnUtc, @ProcessedOnUtc, @Attempts, @Error, @NextAttemptOnUtc);
-            """,
-            parameters,
-            transaction,
-            cancellationToken: cancellationToken);
-
-        await connection.ExecuteAsync(command);
-    }
-
-    #endregion
 }

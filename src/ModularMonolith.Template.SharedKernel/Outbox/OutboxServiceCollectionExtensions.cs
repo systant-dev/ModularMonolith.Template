@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ModularMonolith.Template.SharedKernel.Messaging;
+using ModularMonolith.Template.SharedKernel.Storage;
 using System.Runtime.CompilerServices;
 
 namespace ModularMonolith.Template.SharedKernel.Outbox;
@@ -16,8 +17,16 @@ public static class OutboxServiceCollectionExtensions
 
     extension(IServiceCollection serviceCollection)
     {
+        public IServiceCollection AddOutboxInterceptor<TInterceptor>()
+            where TInterceptor : class, IOutboxInterceptor
+        {
+            serviceCollection.TryAddScoped<IOutboxInterceptor, TInterceptor>();
+            return serviceCollection;
+        }
+
         public IServiceCollection AddOutboxStore<TStore>() where TStore : class, IOutboxStore
         {
+            serviceCollection.AddOutboxInterceptor<SqlServerOutboxInterceptor>();
             serviceCollection.AddScoped<TStore>();
             serviceCollection.AddScoped<IOutboxStore>(provider => provider.GetRequiredService<TStore>());
             serviceCollection.GetOrAddOutboxStoreRegistry().Register<TStore>();

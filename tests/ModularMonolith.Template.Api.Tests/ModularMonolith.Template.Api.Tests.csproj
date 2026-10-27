@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<IsPackable>false</IsPackable>
@@ -29,8 +29,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Include="..\ModularMonolith.Template.UserModule.Tests\Storage\InMemoryUserStore.cs" Link="Infrastructure\InMemoryUserStore.cs" />
-		<Compile Include="..\ModularMonolith.Template.AccountsModule.Tests\Storage\InMemoryAccountStore.cs" Link="Infrastructure\InMemoryAccountStore.cs" />
+		<Compile Include="..\ModularMonolith.Template.UserModule.Tests\Infrastructure\Storage\InMemoryUserStore.cs" Link="Infrastructure\InMemoryUserStore.cs" />
+		<Compile Include="..\ModularMonolith.Template.AccountsModule.Tests\Infrastructure\Storage\InMemoryAccountStore.cs" Link="Infrastructure\InMemoryAccountStore.cs" />
 	</ItemGroup>
 
 </Project>

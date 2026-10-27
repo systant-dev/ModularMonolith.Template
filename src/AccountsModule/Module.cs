@@ -1,9 +1,9 @@
-using AccountsModule.Configuration;
+using AccountsModule.Infrastructure.Configuration;
 using AccountsModule.Contracts.Requests;
-using AccountsModule.Endpoints;
-using AccountsModule.Messaging;
-using AccountsModule.Services;
-using AccountsModule.Storage;
+using AccountsModule.Features.Accounts;
+using AccountsModule.Features.Accounts.Validation;
+using AccountsModule.Features.UserCreated;
+using AccountsModule.Infrastructure.Storage;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using FluentValidation;
@@ -49,8 +49,8 @@ public sealed class Module : IModule
         serviceCollection.AddScoped<IInboxStore>(provider => provider.GetRequiredService<SqlServerAccountStore>());
 
         serviceCollection.AddScoped<IAccountService, AccountService>();
-        serviceCollection.AddScoped<IValidator<CreateAccountRequest>, Validation.CreateAccountRequestValidator>();
-        serviceCollection.AddScoped<IValidator<UpdateAccountRequest>, Validation.UpdateAccountRequestValidator>();
+        serviceCollection.AddScoped<IValidator<CreateAccountRequest>, CreateAccountRequestValidator>();
+        serviceCollection.AddScoped<IValidator<UpdateAccountRequest>, UpdateAccountRequestValidator>();
 
         serviceCollection.AddIdempotentMessageHandler<UserCreatedIntegrationEvent, UserCreatedHandler>();
     }

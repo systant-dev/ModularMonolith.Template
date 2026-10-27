@@ -1,15 +1,15 @@
-﻿using AccountsModule.Storage;
+using AccountsModule.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ModularMonolith.Template.AccountsModule.Tests.Storage;
+using ModularMonolith.Template.AccountsModule.Tests.Infrastructure.Storage;
 using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Outbox;
-using ModularMonolith.Template.UserModule.Tests.Storage;
-using UserModule.Storage;
+using ModularMonolith.Template.UserModule.Tests.Infrastructure.Storage;
+using UserModule.Infrastructure.Storage;
 
 namespace ModularMonolith.Template.Api.Tests.Infrastructure;
 

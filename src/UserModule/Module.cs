@@ -17,13 +17,13 @@ using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Security;
 using ModularMonolith.Template.SharedKernel.Storage;
 using ModularMonolith.Template.SharedKernel.Validation;
-using UserModule.Configuration;
+using UserModule.Infrastructure.Configuration;
 using UserModule.Contracts.Events;
 using UserModule.Contracts.Requests;
-using UserModule.Endpoints;
-using UserModule.Messaging;
-using UserModule.Services;
-using UserModule.Storage;
+using UserModule.Features.AccountOpened;
+using UserModule.Features.Users;
+using UserModule.Features.Users.Validation;
+using UserModule.Infrastructure.Storage;
 
 namespace UserModule;
 
@@ -48,8 +48,8 @@ public sealed class Module : IModule
         serviceCollection.AddScoped<IUserStore>(provider => provider.GetRequiredService<SqlServerUserStore>());
 
         serviceCollection.AddScoped<IUserService, UserService>();
-        serviceCollection.AddScoped<IValidator<CreateUserRequest>, Validation.CreateUserRequestValidator>();
-        serviceCollection.AddScoped<IValidator<UpdateUserRequest>, Validation.UpdateUserRequestValidator>();
+        serviceCollection.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
+        serviceCollection.AddScoped<IValidator<UpdateUserRequest>, UpdateUserRequestValidator>();
 
         serviceCollection.AddMessageHandler<AccountOpenedIntegrationEvent, AccountOpenedHandler>();
 
