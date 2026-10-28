@@ -1,19 +1,35 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<ItemGroup>
+	  <Compile Remove="Logs\**" />
+	  <Content Remove="Logs\**" />
+	  <EmbeddedResource Remove="Logs\**" />
+	  <None Remove="Logs\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Asp.Versioning.Http" />
+		<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+		<PackageReference Include="Asp.Versioning.OpenApi" />
+		<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
+		<PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
+		<PackageReference Include="Microsoft.Identity.Web" />
+		<PackageReference Include="Microsoft.Extensions.Telemetry" />
 		<PackageReference Include="Microsoft.OpenApi" />
+		<PackageReference Include="Scalar.AspNetCore" />
+		<PackageReference Include="Serilog.AspNetCore" />
+		<PackageReference Include="Serilog.Enrichers.Environment" />
+		<PackageReference Include="Serilog.Enrichers.Process" />
+		<PackageReference Include="Serilog.Enrichers.Thread" />
+		<PackageReference Include="System.Security.Cryptography.Pkcs" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Http Endpoints\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\ExampleModuleA\ExampleModuleA.csproj" />
-	  <ProjectReference Include="..\ExampleModuleB\ExampleModuleB.csproj" />
+	  <ProjectReference Include="..\UserModule\UserModule.csproj" />
+	  <ProjectReference Include="..\AccountsModule\AccountsModule.csproj" />
 	  <ProjectReference Include="..\ModularMonolith.Template.SharedKernel\ModularMonolith.Template.SharedKernel.csproj" />
-	  <ProjectReference Include="..\ModularMonolith.Template.SourceGen\ModularMonolith.Template.SourceGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+	  <ProjectReference Include="..\ModularMonolith.Template.ModularGen\ModularMonolith.Template.ModularGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
 </Project>

@@ -6,5 +6,25 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
-	
+
+	<!-- Build quality and reproducibility. Applied to every project so the ~20 projects
+		 enforce the same analyzer, code-style and determinism rules from a single place.
+		 Warnings are treated as errors so architecture/quality violations fail the build.
+		 CA1708 is excluded because the new C# 'extension' block syntax currently trips it
+		 (members differing only by case across extension blocks). -->
+	<PropertyGroup>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>latest-recommended</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<Deterministic>true</Deterministic>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<NoWarn>$(NoWarn);CA1708</NoWarn>
+	</PropertyGroup>
+
+	<!-- Fully reproducible builds on CI: normalizes source paths embedded in the output.
+		 Enabled automatically when running under GitHub Actions. -->
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
 </Project>

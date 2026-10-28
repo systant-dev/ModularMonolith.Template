@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<Import Project="..\Tests.Common.props" />
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\ModularMonolith.Template.SourceGenerators.Shared\ModularMonolith.Template.SourceGenerators.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="ModularMonolith.Template.SourceGenerators.Shared.Analysis" />
+		<Using Include="ModularMonolith.Template.SourceGenerators.Shared.Collections" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="xunit.runner.visualstudio">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
+
+</Project>

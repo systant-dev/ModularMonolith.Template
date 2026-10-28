@@ -1,29 +1,56 @@
 <Solution>
-  <Folder Name="/ai/" />
   <Folder Name="/docs/">
+    <File Path="README.md" />
+    <File Path="docs/adding-a-module.md" />
+    <File Path="docs/conventions.md" />
+    <File Path="docs/analysers.md" />
+    <File Path="docs/api-host.md" />
+    <File Path="docs/architecture.md" />
+    <File Path="docs/contracts.md" />
+    <File Path="docs/messaging.md" />
+    <File Path="docs/modules.md" />
+    <File Path="docs/shared-kernel.md" />
+    <File Path="docs/source-generators.md" />
+    <File Path="docs/testing.md" />
+  </Folder>
+  <Folder Name="/docs/dev/">
+    <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="LICENSE.txt" />
-    <File Path="README.md" />
+    <File Path="tests/Tests.Common.props" />
+  </Folder>
+  <Folder Name="/pipelines/">
+    <File Path=".github/workflows/github-workflow-branches.yaml" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ModularMonolith.Template.Api/ModularMonolith.Template.Api.csproj" />
     <Project Path="src/ModularMonolith.Template.SharedKernel/ModularMonolith.Template.SharedKernel.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/" />
-  <Folder Name="/src/Modules/ExampleModuleA/">
-    <Project Path="src/ExampleModuleA.Contracts/ExampleModuleA.Contracts.csproj" />
-    <Project Path="src/ExampleModuleA/ExampleModuleA.csproj" />
+  <Folder Name="/src/Example Modules/" />
+  <Folder Name="/src/Example Modules/AccountsModule/">
+    <Project Path="src/AccountsModule.Contracts/AccountsModule.Contracts.csproj" />
+    <Project Path="src/AccountsModule/AccountsModule.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/ExampleModuleB/">
-    <Project Path="src/ExampleModuleB.Contracts/ExampleModuleB.Contracts.csproj" />
-    <Project Path="src/ExampleModuleB/ExampleModuleB.csproj" />
+  <Folder Name="/src/Example Modules/UserModule/">
+    <Project Path="src/UserModule.Contracts/UserModule.Contracts.csproj" />
+    <Project Path="src/UserModule/UserModule.csproj" />
   </Folder>
   <Folder Name="/src/Roslyn/">
     <Project Path="src/ModularMonolith.Template.Analysers/ModularMonolith.Template.Analysers.csproj" Id="722463ce-3b7c-47e3-bf27-9770142fbf64" />
-    <Project Path="src/ModularMonolith.Template.SourceGen/ModularMonolith.Template.SourceGen.csproj" Id="d4a3a334-b818-499b-9e29-b414ade8f43a" />
+    <Project Path="src/ModularMonolith.Template.MappingGen/ModularMonolith.Template.MappingGen.csproj" Id="424e197c-6138-4ca8-bce7-ae054fb2faf5" />
+    <Project Path="src/ModularMonolith.Template.ModularGen/ModularMonolith.Template.ModularGen.csproj" Id="d4a3a334-b818-499b-9e29-b414ade8f43a" />
+    <Project Path="src/ModularMonolith.Template.SourceGenerators.Shared/ModularMonolith.Template.SourceGenerators.Shared.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ModularMonolith.Template.AccountsModule.Tests/ModularMonolith.Template.AccountsModule.Tests.csproj" />
+    <Project Path="tests/ModularMonolith.Template.Analysers.Tests/ModularMonolith.Template.Analysers.Tests.csproj" />
+    <Project Path="tests/ModularMonolith.Template.Api.Tests/ModularMonolith.Template.Api.Tests.csproj" />
+    <Project Path="tests/ModularMonolith.Template.MappingGen.Tests/ModularMonolith.Template.MappingGen.Tests.csproj" Id="9f3d2c41-8b17-4e6a-9d2f-1c5b7a4e0d88" />
+    <Project Path="tests/ModularMonolith.Template.ModularGen.Tests/ModularMonolith.Template.ModularGen.Tests.csproj" Id="d804d66f-270a-4a8d-924e-a233f160d83f" />
     <Project Path="tests/ModularMonolith.Template.SharedKernel.Tests/ModularMonolith.Template.SharedKernel.Tests.csproj" />
+    <Project Path="tests/ModularMonolith.Template.SourceGenerators.Shared.Tests/ModularMonolith.Template.SourceGenerators.Shared.Tests.csproj" />
+    <Project Path="tests/ModularMonolith.Template.SourceGenerators.TestKit/ModularMonolith.Template.SourceGenerators.TestKit.csproj" />
+    <Project Path="tests/ModularMonolith.Template.UserModule.Tests/ModularMonolith.Template.UserModule.Tests.csproj" />
   </Folder>
 </Solution>

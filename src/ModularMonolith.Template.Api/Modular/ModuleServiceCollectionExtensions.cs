@@ -1,16 +1,22 @@
-﻿namespace ModularMonolith.Template.Api.Modular;
+﻿using ModularMonolith.Template.SharedKernel.Modular;
+
+namespace ModularMonolith.Template.Api.Modular;
 
 public static partial class ModuleServiceCollectionExtensions
 {
-    public static IServiceCollection AddModules(this IServiceCollection serviceCollection)
+    extension(IServiceCollection serviceCollection)
     {
-        GetModules(serviceCollection);
-        return serviceCollection;
+        public IServiceCollection AddModules(IConfiguration configuration)
+        {
+            GetModules(serviceCollection, configuration);
+            return serviceCollection;
+        }
     }
 
     #region Private Method Declarations
 
-    private static partial void GetModules(IServiceCollection serviceCollection);
+    [ModuleRegistrationTarget]
+    private static partial void GetModules(IServiceCollection serviceCollection, IConfiguration configuration);
 
     #endregion
 }
