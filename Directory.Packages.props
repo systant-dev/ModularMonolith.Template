@@ -2,6 +2,7 @@
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU1507</NoWarn>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <!-- Production Dependencies -->
   <ItemGroup>
@@ -31,7 +32,8 @@
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Enrichers.Process" Version="3.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Thread" Version="4.0.0" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+	<PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+	<PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.14" />
   </ItemGroup>
   <!-- SourceGen Dependencies -->
   <ItemGroup>
