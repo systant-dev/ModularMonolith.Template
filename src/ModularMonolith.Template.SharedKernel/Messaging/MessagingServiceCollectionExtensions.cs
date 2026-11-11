@@ -36,9 +36,11 @@ public static class MessagingServiceCollectionExtensions
             return serviceCollection;
         }
 
-        public IServiceCollection AddIdempotentMessageHandler<TMessage, THandler>()
+        public IServiceCollection AddIdempotentMessageHandler<TMessage, THandler>(string inboxStoreKey)
             where TMessage : IMessage where THandler : class, IMessageHandler<TMessage>
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(inboxStoreKey);
+
             serviceCollection.AddScoped<THandler>();
             serviceCollection.AddScoped<IMessageHandler<TMessage>>(provider =>
             {
@@ -48,7 +50,7 @@ public static class MessagingServiceCollectionExtensions
 
                 return new InboxIdempotencyMessageHandlerDecorator<TMessage>(
                     logging,
-                    provider.GetRequiredService<Inbox.IInboxStore>(),
+                    provider.GetRequiredKeyedService<Inbox.IInboxStore>(inboxStoreKey),
                     typeof(THandler).Name,
                     provider.GetRequiredService<ILogger<InboxIdempotencyMessageHandlerDecorator<TMessage>>>());
             });

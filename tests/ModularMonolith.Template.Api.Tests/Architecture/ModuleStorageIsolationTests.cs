@@ -2,6 +2,8 @@ using AccountsModule.Infrastructure.Storage;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ModularMonolith.Template.SharedKernel.Inbox;
+using ModularMonolith.Template.SharedKernel.Outbox;
 using ModularMonolith.Template.SharedKernel.Storage;
 using UserModule.Infrastructure.Storage;
 
@@ -44,6 +46,42 @@ public sealed class ModuleStorageIsolationTests
 
         scope.ServiceProvider.GetRequiredService<IUserStore>().Should().BeOfType<SqlServerUserStore>();
         scope.ServiceProvider.GetRequiredService<IAccountStore>().Should().BeOfType<SqlServerAccountStore>();
+    }
+
+    [Fact]
+    public void Modules_DoNotRegisterAnUnkeyedInboxStore()
+    {
+        ServiceCollection services = BuildModuleServices();
+
+        services.Should().NotContain(descriptor => descriptor.ServiceType == typeof(IInboxStore) && !descriptor.IsKeyedService,
+                                     "an unkeyed registration is shared by every module, so the last module registered would win");
+    }
+
+    [Fact]
+    public void InboxStore_ResolvesOnlyUnderTheKeyOfTheModuleThatRegisteredIt()
+    {
+        using ServiceProvider provider = BuildModuleServices().BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        scope.ServiceProvider.GetKeyedService<IInboxStore>(global::AccountsModule.Module.ServiceKey).Should().BeOfType<SqlServerInboxStore>();
+        scope.ServiceProvider.GetKeyedService<IInboxStore>(global::UserModule.Module.ServiceKey).Should().BeNull();
+    }
+
+    [Fact]
+    public void ModuleStores_AreNotOutboxOrInboxStores()
+    {
+        Type[] moduleStores = [typeof(SqlServerUserStore), typeof(SqlServerAccountStore)];
+
+        moduleStores.Should().NotContain(storeType => typeof(IOutboxStore).IsAssignableFrom(storeType) || typeof(IInboxStore).IsAssignableFrom(storeType));
+    }
+
+    [Fact]
+    public void EachModule_RegistersItsOwnOutboxStore()
+    {
+        using ServiceProvider provider = BuildModuleServices().BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        scope.ServiceProvider.GetServices<IOutboxStore>().Select(store => store.GetType()).Should().BeEquivalentTo([typeof(UserModuleOutboxStore), typeof(AccountsModuleOutboxStore)]);
     }
 
     #endregion

@@ -1,24 +1,13 @@
 using Dapper;
-using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Outbox;
-using System.Data;
 using System.Data.Common;
 using System.Text.Json;
 
 namespace ModularMonolith.Template.SharedKernel.Storage;
 
-public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactory,
-                                           IOutboxInterceptor outboxInterceptor) : IOutboxStore, IInboxStore
+public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactory, IOutboxInterceptor outboxInterceptor) : IOutboxStore
 {
-    #region Property Declarations
-
-    protected IDbConnectionFactory ConnectionFactory => connectionFactory;
-
-    protected IOutboxInterceptor OutboxInterceptor => outboxInterceptor;
-
-    #endregion
-
     #region Public Method Declarations
 
     public async Task EnqueueAsync(IMessage message, CancellationToken cancellationToken = default)
@@ -125,69 +114,13 @@ public abstract class SqlServerOutboxStore(IDbConnectionFactory connectionFactor
         var parameters = new { ProcessedBefore = processedBefore, BatchSize = batchSize };
         CommandDefinition command = new(
             """
-            DECLARE @OutboxPurged INT = 0;
-            DECLARE @InboxPurged INT = 0;
-
             DELETE TOP (@BatchSize) FROM dbo.OutboxMessages
             WHERE ProcessedOnUtc IS NOT NULL AND ProcessedOnUtc < @ProcessedBefore;
-            SET @OutboxPurged = @@ROWCOUNT;
-
-            IF OBJECT_ID(N'dbo.InboxMessages', N'U') IS NOT NULL
-            BEGIN
-                DELETE TOP (@BatchSize) FROM dbo.InboxMessages
-                WHERE ProcessedOnUtc < @ProcessedBefore;
-                SET @InboxPurged = @@ROWCOUNT;
-            END;
-
-            SELECT CASE WHEN @OutboxPurged > @InboxPurged THEN @OutboxPurged ELSE @InboxPurged END;
             """,
             parameters,
             cancellationToken: cancellationToken);
 
-        return await connection.ExecuteScalarAsync<int>(command);
-    }
-
-    public async Task<bool> IsProcessedAsync(string consumer, string messageId, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(consumer);
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
-
-        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-
-        var parameters = new { Consumer = consumer, MessageId = messageId };
-        CommandDefinition command = new(
-            """
-            SELECT CASE WHEN EXISTS (
-                SELECT 1 FROM dbo.InboxMessages
-                WHERE Consumer = @Consumer AND MessageId = @MessageId) THEN 1 ELSE 0 END;
-            """,
-            parameters,
-            cancellationToken: cancellationToken);
-
-        return await connection.ExecuteScalarAsync<bool>(command);
-    }
-
-    public async Task<bool> TryMarkProcessedAsync(string consumer, string messageId, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(consumer);
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
-
-        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-
-        var parameters = new { Consumer = consumer, MessageId = messageId };
-        CommandDefinition command = new(
-            """
-            INSERT INTO dbo.InboxMessages (Consumer, MessageId)
-            SELECT @Consumer, @MessageId
-            WHERE NOT EXISTS (
-                SELECT 1 FROM dbo.InboxMessages WITH (UPDLOCK, HOLDLOCK)
-                WHERE Consumer = @Consumer AND MessageId = @MessageId);
-            """,
-            parameters,
-            cancellationToken: cancellationToken);
-
-        int inserted = await connection.ExecuteAsync(command);
-        return inserted > 0;
+        return await connection.ExecuteAsync(command);
     }
 
     #endregion

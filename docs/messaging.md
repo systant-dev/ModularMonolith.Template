@@ -7,10 +7,10 @@ Modules communicate through
 ## Building Blocks
 
 - **Message dispatch** — `IMessageDispatcher` / `InProcessMessageDispatcher` route messages to registered handlers. Modules register handlers with `AddMessageHandler<TMessage, THandler>()` and declare published contracts with `AddMessageContract<T>()`.
-- **Outbox** — integration events are written to an outbox in the **same transaction** as the state change. `OutboxProcessor` later reads and dispatches them, so events are never lost if the process crashes after commit.
+- **Outbox** — integration events are written to an outbox in the **same transaction** as the state change. `OutboxProcessor` later reads and dispatches them, so events are never lost if the process crashes after commit. Each module registers its own outbox store with `AddOutboxStore<TStore>()` (a `SqlServerOutboxStore` bound to the module's connection factory); the module's data store is not an outbox store and only writes events through `IOutboxInterceptor`.
 - **Retention** — dispatched outbox messages and recorded inbox entries are deleted once they are older than `Outbox:RetentionPeriod` (7 days by default; `00:00:00` keeps everything). Pending and dead-lettered messages are never deleted.
 - **Dead-letter** — messages that repeatedly fail are moved aside; the host exposes dead-letter management endpoints (`Api/Outbox/`).
-- **Inbox** — `IInboxStore` records a message id once its handler has succeeded, so a redelivered event is skipped. A handler that fails is not recorded and is retried. The record is not written in the handler's own transaction, so a crash between the two can redeliver: keep handler writes safe to repeat.
+- **Inbox** — `IInboxStore` records a message id once its handler has succeeded, so a redelivered event is skipped. A handler that fails is not recorded and is retried. The record is not written in the handler's own transaction, so a crash between the two can redeliver: keep handler writes safe to repeat. The inbox is keyed per module: register it with `AddSqlServerInboxStore(ServiceKey)` and subscribe with `AddIdempotentMessageHandler<TMessage, THandler>(ServiceKey)`, so a handler always deduplicates against its own module's database.
 - **Idempotency** — `IdempotencyFilter` / idempotency keys make inbound requests and message processing safe under retries.
 
 ## Typical Flow

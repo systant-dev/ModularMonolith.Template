@@ -1,9 +1,11 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
 using ModularMonolith.Template.SharedKernel.Messaging.Handling;
+using Moq;
 
 namespace ModularMonolith.Template.SharedKernel.Tests.Messaging;
 
@@ -55,6 +57,44 @@ public sealed class MessagingServiceCollectionExtensionsTests
 
         IMessageHandler<TestMessage> handler = scope.ServiceProvider.GetRequiredService<IMessageHandler<TestMessage>>();
         handler.Should().BeOfType<LoggingMessageHandlerDecorator<TestMessage>>();
+    }
+
+    [Fact]
+    public async Task AddIdempotentMessageHandler_UsesTheInboxStoreRegisteredUnderItsKey()
+    {
+        Mock<IInboxStore> ownInboxStore = new();
+        Mock<IInboxStore> otherInboxStore = new();
+        ServiceCollection services = new();
+        services.AddLogging();
+        services.AddKeyedSingleton("own", ownInboxStore.Object);
+        services.AddKeyedSingleton("other", otherInboxStore.Object);
+        services.AddIdempotentMessageHandler<TestMessage, TestHandler>("own");
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+        IMessageHandler<TestMessage> handler = scope.ServiceProvider.GetRequiredService<IMessageHandler<TestMessage>>();
+        TestMessage message = new();
+
+        await handler.HandleAsync(message, TestContext.Current.CancellationToken);
+
+        ownInboxStore.Verify(store => store.TryMarkProcessedAsync(nameof(TestHandler), message.MessageId.ToString(), It.IsAny<CancellationToken>()), Times.Once);
+        otherInboxStore.Invocations.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void AddIdempotentMessageHandler_WhenNoInboxStoreIsRegisteredUnderItsKey_Throws()
+    {
+        ServiceCollection services = new();
+        services.AddLogging();
+        services.AddSingleton(new Mock<IInboxStore>().Object);
+        services.AddIdempotentMessageHandler<TestMessage, TestHandler>("own");
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        Action act = () => scope.ServiceProvider.GetRequiredService<IMessageHandler<TestMessage>>();
+
+        act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]

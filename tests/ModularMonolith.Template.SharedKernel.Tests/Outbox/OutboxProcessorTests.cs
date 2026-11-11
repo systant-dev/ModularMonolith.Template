@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
@@ -260,6 +261,28 @@ public sealed class OutboxProcessorTests
         store.Rows.Should().ContainSingle();
     }
 
+    [Fact]
+    public async Task Purges_EveryKeyedInboxStore()
+    {
+        RecordingInboxStore firstInboxStore = new();
+        RecordingInboxStore secondInboxStore = new();
+        ServiceCollection services = new();
+        services.AddSingleton(new ClaimingStore());
+        services.AddKeyedSingleton<IInboxStore>("first", firstInboxStore);
+        services.AddKeyedSingleton<IInboxStore>("second", secondInboxStore);
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        OutboxOptions options = new() { PollingInterval = TimeSpan.FromMilliseconds(20), RetentionPeriod = TimeSpan.FromDays(7), PurgeBatchSize = 10 };
+        OutboxProcessor processor = CreateProcessor<ClaimingStore>(provider, options);
+
+        await processor.StartAsync(TestContext.Current.CancellationToken);
+        await WaitForAsync(() => !firstInboxStore.PurgeBatchSizes.IsEmpty && !secondInboxStore.PurgeBatchSizes.IsEmpty);
+        await processor.StopAsync(TestContext.Current.CancellationToken);
+
+        firstInboxStore.PurgeBatchSizes.Should().Equal(10);
+        secondInboxStore.PurgeBatchSizes.Should().Equal(10);
+    }
+
     #endregion
 
     #region Private Method Declarations
@@ -502,6 +525,27 @@ public sealed class OutboxProcessorTests
                 Error = source.Error,
                 NextAttemptOnUtc = source.NextAttemptOnUtc
             };
+        }
+    }
+
+    private sealed class RecordingInboxStore : IInboxStore
+    {
+        public ConcurrentQueue<int> PurgeBatchSizes { get; } = [];
+
+        public Task<bool> IsProcessedAsync(string consumer, string messageId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> TryMarkProcessedAsync(string consumer, string messageId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(true);
+        }
+
+        public Task<int> PurgeProcessedAsync(DateTimeOffset processedBefore, int batchSize, CancellationToken cancellationToken = default)
+        {
+            PurgeBatchSizes.Enqueue(batchSize);
+            return Task.FromResult(0);
         }
     }
 
