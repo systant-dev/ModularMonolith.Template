@@ -1,0 +1,110 @@
+using AccountsModule.Contracts.Requests;
+using AccountsModule.Contracts.Responses;
+using AccountsModule.Features.Accounts;
+using AccountsModule.Features.UserCreated;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using ModularMonolith.Template.SharedKernel.Results;
+using Moq;
+using UserModule.Contracts.Events;
+
+namespace ModularMonolith.Template.AccountsModule.Tests.Features.UserCreated;
+
+[Component(TestComponent.AccountsModule)]
+[Category(TestCategory.Messaging)]
+public sealed class UserCreatedHandlerTests
+{
+    #region Test Method Declarations
+
+    [Fact]
+    public async Task HandleAsync_CreatesAccountFromEvent()
+    {
+        Mock<IAccountService> accountService = new();
+        accountService
+            .Setup(service => service.CreateAsync(It.IsAny<CreateAccountRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CreateAccountRequest request, CancellationToken _) => Result.Success(new AccountResponse
+            {
+                Id = 1,
+                UserId = request.UserId,
+                AccountHolderName = request.AccountHolderName,
+                AccountNumber = "ACC-1",
+                Balance = request.InitialDeposit
+            }));
+
+        UserCreatedHandler handler = new(accountService.Object, NullLogger<UserCreatedHandler>.Instance);
+
+        UserCreatedIntegrationEvent message = new()
+        {
+            Id = 42,
+            FullName = "Ada Lovelace",
+            Email = "ada@example.com"
+        };
+
+        await handler.HandleAsync(message, TestContext.Current.CancellationToken);
+
+        accountService.Verify(
+            service => service.CreateAsync(
+                It.Is<CreateAccountRequest>(request =>
+                    request.UserId == 42 &&
+                    request.AccountHolderName == "Ada Lovelace" &&
+                    request.InitialDeposit == 0m),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenAccountAlreadyExists_CompletesWithoutThrowing()
+    {
+        UserCreatedHandler handler = CreateHandlerReturning(Error.Conflict(AccountErrorCodes.AlreadyExists, "An account already exists for user 42."));
+
+        Func<Task> act = () => handler.HandleAsync(CreateEvent(), TestContext.Current.CancellationToken);
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenAccountCannotBeOpened_ThrowsSoTheMessageIsRetried()
+    {
+        UserCreatedHandler handler = CreateHandlerReturning(Error.Conflict("account.number-generation-failed", "Unable to allocate a unique account number."));
+
+        Func<Task> act = () => handler.HandleAsync(CreateEvent(), TestContext.Current.CancellationToken);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*account.number-generation-failed*");
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithNullMessage_Throws()
+    {
+        UserCreatedHandler handler = new(Mock.Of<IAccountService>(), NullLogger<UserCreatedHandler>.Instance);
+
+        Func<Task> act = async () => await handler.HandleAsync(null!, TestContext.Current.CancellationToken);
+
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    #endregion
+
+    #region Private Method Declarations
+
+    private static UserCreatedHandler CreateHandlerReturning(Error error)
+    {
+        Mock<IAccountService> accountService = new();
+        accountService
+            .Setup(service => service.CreateAsync(It.IsAny<CreateAccountRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure<AccountResponse>(error));
+
+        return new UserCreatedHandler(accountService.Object, NullLogger<UserCreatedHandler>.Instance);
+    }
+
+    private static UserCreatedIntegrationEvent CreateEvent()
+    {
+        return new UserCreatedIntegrationEvent
+        {
+            Id = 42,
+            FullName = "Ada Lovelace",
+            Email = "ada@example.com"
+        };
+    }
+
+    #endregion
+}

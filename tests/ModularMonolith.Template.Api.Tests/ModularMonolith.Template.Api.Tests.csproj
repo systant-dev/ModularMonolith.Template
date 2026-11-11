@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+		<PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+		<PackageReference Include="NetArchTest.Rules" />
+		<PackageReference Include="xunit.runner.visualstudio">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="xunit.v3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\ModularMonolith.Template.Api\ModularMonolith.Template.Api.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="..\ModularMonolith.Template.UserModule.Tests\Infrastructure\Storage\InMemoryUserStore.cs" Link="Infrastructure\InMemoryUserStore.cs" />
+		<Compile Include="..\ModularMonolith.Template.AccountsModule.Tests\Infrastructure\Storage\InMemoryAccountStore.cs" Link="Infrastructure\InMemoryAccountStore.cs" />
+	</ItemGroup>
+
+</Project>

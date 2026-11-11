@@ -1,0 +1,19 @@
+namespace ModularMonolith.Template.SourceGenerators.TestKit.Traits;
+
+public enum TestCategory
+{
+    Diagnostics,
+    Generators,
+    Cacheability,
+    Azure,
+    Compliance,
+    Configuration,
+    Http,
+    Modular,
+    Messaging,
+    Results,
+    Rules,
+    Serialisation,
+    Storage,
+    Validation
+}
