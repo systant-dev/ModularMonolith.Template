@@ -52,15 +52,15 @@ public sealed class Module : IModule
         });
 
         serviceCollection.AddScoped<IModuleDatabaseInitialiser, AccountsModuleDatabaseInitialiser>();
-        serviceCollection.AddOutboxStore<SqlServerAccountStore>();
-        serviceCollection.AddScoped<IAccountStore>(provider => provider.GetRequiredService<SqlServerAccountStore>());
-        serviceCollection.AddScoped<IInboxStore>(provider => provider.GetRequiredService<SqlServerAccountStore>());
+        serviceCollection.AddOutboxStore<AccountsModuleOutboxStore>();
+        serviceCollection.AddSqlServerInboxStore(ServiceKey);
+        serviceCollection.AddScoped<IAccountStore, SqlServerAccountStore>();
 
         serviceCollection.AddScoped<IAccountService, AccountService>();
         serviceCollection.AddScoped<IValidator<CreateAccountRequest>, CreateAccountRequestValidator>();
         serviceCollection.AddScoped<IValidator<UpdateAccountRequest>, UpdateAccountRequestValidator>();
 
-        serviceCollection.AddIdempotentMessageHandler<UserCreatedIntegrationEvent, UserCreatedHandler>();
+        serviceCollection.AddIdempotentMessageHandler<UserCreatedIntegrationEvent, UserCreatedHandler>(ServiceKey);
 
         serviceCollection.AddMessageContract<AccountOpenedIntegrationEvent>();
     }

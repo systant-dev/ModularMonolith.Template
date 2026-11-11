@@ -51,8 +51,8 @@ public sealed class Module : IModule
         });
 
         serviceCollection.AddScoped<IModuleDatabaseInitialiser, UserModuleDatabaseInitialiser>();
-        serviceCollection.AddOutboxStore<SqlServerUserStore>();
-        serviceCollection.AddScoped<IUserStore>(provider => provider.GetRequiredService<SqlServerUserStore>());
+        serviceCollection.AddOutboxStore<UserModuleOutboxStore>();
+        serviceCollection.AddScoped<IUserStore, SqlServerUserStore>();
 
         serviceCollection.AddScoped<IUserService, UserService>();
         serviceCollection.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();

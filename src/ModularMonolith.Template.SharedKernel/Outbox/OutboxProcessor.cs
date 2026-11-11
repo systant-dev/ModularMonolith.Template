@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ModularMonolith.Template.SharedKernel.Inbox;
 using ModularMonolith.Template.SharedKernel.Messaging;
 using ModularMonolith.Template.SharedKernel.Messaging.Contracts;
 using ModularMonolith.Template.SharedKernel.Messaging.Dispatch;
@@ -94,14 +95,26 @@ internal sealed partial class OutboxProcessor(IServiceScopeFactory scopeFactory,
                 continue;
             }
 
-            int purged;
-
-            do
-            {
-                purged = await store.PurgeProcessedAsync(processedBefore, _options.PurgeBatchSize, cancellationToken);
-            }
-            while (purged >= _options.PurgeBatchSize);
+            await PurgeInBatchesAsync(store.PurgeProcessedAsync, processedBefore, cancellationToken);
         }
+
+        await using AsyncServiceScope inboxScope = scopeFactory.CreateAsyncScope();
+
+        foreach (IInboxStore inboxStore in inboxScope.ServiceProvider.GetKeyedServices<IInboxStore>(KeyedService.AnyKey))
+        {
+            await PurgeInBatchesAsync(inboxStore.PurgeProcessedAsync, processedBefore, cancellationToken);
+        }
+    }
+
+    private async Task PurgeInBatchesAsync(Func<DateTimeOffset, int, CancellationToken, Task<int>> purgeAsync, DateTimeOffset processedBefore, CancellationToken cancellationToken)
+    {
+        int purged;
+
+        do
+        {
+            purged = await purgeAsync(processedBefore, _options.PurgeBatchSize, cancellationToken);
+        }
+        while (purged >= _options.PurgeBatchSize);
     }
 
     private async Task ProcessStoreAsync(Type storeType, CancellationToken cancellationToken)

@@ -50,7 +50,6 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
     private static void UseInMemoryUserStore(IServiceCollection services)
     {
         RemoveAll(services, typeof(IUserStore));
-        RemoveAll(services, typeof(SqlServerUserStore));
 
         InMemoryUserStore store = new();
         services.AddSingleton<IUserStore>(store);
@@ -61,11 +60,10 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
         RemoveAll(services, typeof(IAccountStore));
         RemoveAll(services, typeof(IInboxStore));
         RemoveAll(services, typeof(IOutboxStore));
-        RemoveAll(services, typeof(SqlServerAccountStore));
 
         InMemoryAccountStore store = new();
         services.AddSingleton<IAccountStore>(store);
-        services.AddSingleton<IInboxStore>(store);
+        services.AddKeyedSingleton<IInboxStore>(global::AccountsModule.Module.ServiceKey, store);
         services.AddSingleton<IOutboxStore>(store);
     }
 

@@ -11,13 +11,13 @@ using UserModule.Infrastructure.Models;
 namespace UserModule.Infrastructure.Storage;
 
 internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] IDbConnectionFactory connectionFactory,
-                                         IOutboxInterceptor outboxInterceptor) : SqlServerOutboxStore(connectionFactory, outboxInterceptor), IUserStore
+                                         IOutboxInterceptor outboxInterceptor) : IUserStore
 {
     #region IUserStore Method Declarations
 
     public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         CommandDefinition command = new("SELECT Id, FullName, Email, PhoneNumber FROM Users ORDER BY Id;", cancellationToken: cancellationToken);
         IEnumerable<User> users = await connection.QueryAsync<User>(command);
         return [.. users];
@@ -25,7 +25,7 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
 
     public async Task<IReadOnlyList<User>> GetPageAsync(int afterId, int limit, CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var parameters = new { AfterId = afterId, Limit = limit };
         CommandDefinition command = new(
             "SELECT TOP (@Limit) Id, FullName, Email, PhoneNumber FROM Users WHERE Id > @AfterId ORDER BY Id;",
@@ -37,14 +37,14 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
 
     public async Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         CommandDefinition command = new("SELECT COUNT_BIG(*) FROM Users;", cancellationToken: cancellationToken);
         return (int)await connection.ExecuteScalarAsync<long>(command);
     }
 
     public async Task<User?> FindAsync(int id, CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var parameters = new { Id = id };
         CommandDefinition command = new("SELECT Id, FullName, Email, PhoneNumber FROM Users WHERE Id = @Id;", parameters, cancellationToken: cancellationToken);
         return await connection.QuerySingleOrDefaultAsync<User>(command);
@@ -52,7 +52,7 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
 
     public async Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var parameters = new { Email = email };
         CommandDefinition command = new(
             "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE Email = @Email) THEN 1 ELSE 0 END;",
@@ -63,7 +63,7 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
 
     public async Task<bool> ExistsByEmailAsync(string email, int excludingUserId, CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         var parameters = new { Email = email, ExcludingUserId = excludingUserId };
         CommandDefinition command = new(
             "SELECT CASE WHEN EXISTS (SELECT 1 FROM Users WHERE Email = @Email AND Id <> @ExcludingUserId) THEN 1 ELSE 0 END;",
@@ -74,13 +74,13 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
 
     public async Task<Result<User>> CreateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         try
         {
             User created = await InsertUserAsync(connection, transaction, user, cancellationToken);
-            await OutboxInterceptor.InterceptAsync(connection, transaction, integrationEventFactory(created), cancellationToken);
+            await outboxInterceptor.InterceptAsync(connection, transaction, integrationEventFactory(created), cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
             return created;
@@ -94,7 +94,7 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
 
     public async Task<Result<User>> UpdateAsync(User user, Func<User, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         try
@@ -106,7 +106,7 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
                 return Error.NotFound("user.not-found", $"User {user.Id} was not found.");
             }
 
-            await OutboxInterceptor.InterceptAsync(connection, transaction, integrationEventFactory(user), cancellationToken);
+            await outboxInterceptor.InterceptAsync(connection, transaction, integrationEventFactory(user), cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return user;
         }
@@ -119,7 +119,7 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
 
     public async Task<bool> DeleteAsync(int id, Func<int, IMessage> integrationEventFactory, CancellationToken cancellationToken = default)
     {
-        await using DbConnection connection = await ConnectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await using DbConnection connection = await connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
         int affected = await DeleteUserAsync(connection, transaction, id, cancellationToken);
         if (affected == 0)
@@ -128,7 +128,7 @@ internal sealed class SqlServerUserStore([FromKeyedServices(Module.ServiceKey)] 
             return false;
         }
 
-        await OutboxInterceptor.InterceptAsync(connection, transaction, integrationEventFactory(id), cancellationToken);
+        await outboxInterceptor.InterceptAsync(connection, transaction, integrationEventFactory(id), cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return true;
     }
